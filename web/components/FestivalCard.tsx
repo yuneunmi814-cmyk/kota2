@@ -34,7 +34,7 @@ export default function FestivalCard({
           className="transition-transform duration-500 group-hover:scale-[1.04]"
         />
         {st === 'ongoing' && !always && (
-          <span className="absolute left-3 top-3 rounded-full bg-accent px-2.5 py-1 text-[11px] font-black text-white">
+          <span className="absolute left-3 top-3 rounded-full bg-accent px-2.5 py-1 text-[11px] font-black text-on-accent shadow-sm">
             {t(lang, 'status.ongoing')}
           </span>
         )}

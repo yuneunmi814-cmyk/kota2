@@ -15,8 +15,14 @@
   --color-brand-400: #0e8a5f;
   --color-brand-50: #eef5f1; /* 배경 틴트 */
 
-  --color-accent: #ff5a1f; /* 진행중·마감임박 등 시간 신호에만 쓴다 */
-  --color-accent-50: #fff1ec;
+  /* 포인트는 노랑. 축제는 등불·유채꽃·흥의 영역이고, 노랑은 즐거움과 주목을 준다.
+   * 다만 노랑은 흰 배경에서 글자로 쓰면 대비가 무너지므로 **면으로만** 쓰고
+   * 그 위에 짙은 글자를 얹는다(--color-on-accent). 배경 전체를 노랑으로 깔지 않는 이유는
+   * 누런 배경이 'AI 기본 스킨'의 대표 신호라 피하려던 인상에 오히려 가까워지기 때문. */
+  --color-accent: #ffc233;
+  --color-accent-600: #e9a800;
+  --color-accent-50: #fff8e6;
+  --color-on-accent: #4a3200;
 
   --color-ink: #16181d; /* 본문 — 순검정은 눈이 아프다 */
   --color-muted: #5f6672;
