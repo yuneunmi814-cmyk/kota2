@@ -1,0 +1,55 @@
+@import 'tailwindcss';
+
+/* 디자인 토큰.
+ *
+ * 색은 직접 고른다 — "깔끔하게"만 시키면 어느 프로젝트든 같은 회색·파랑이 나오고,
+ * 그게 'AI가 만든 티'로 읽힌다. 브랜드 초록(#004027)을 축으로 잡고,
+ * 어두워서 옅게 깔면 회색으로 보이는 성질을 감안해 밝은 보조 초록을 따로 둔다.
+ *
+ * 여백과 타이포는 트립어드바이저 쪽 — 헤드라인을 크게 쓰고 요소 사이를 넉넉히 띄운다.
+ * 축제 포스터가 주인공이므로 UI는 물러나 있어야 한다.
+ */
+@theme {
+  --color-brand: #004027; /* 딥 포레스트 — 로고·제목·주요 버튼 */
+  --color-brand-600: #00593a;
+  --color-brand-400: #0e8a5f;
+  --color-brand-50: #eef5f1; /* 배경 틴트 */
+
+  --color-accent: #ff5a1f; /* 진행중·마감임박 등 시간 신호에만 쓴다 */
+  --color-accent-50: #fff1ec;
+
+  --color-ink: #16181d; /* 본문 — 순검정은 눈이 아프다 */
+  --color-muted: #5f6672;
+  --color-hint: #8b929e;
+  --color-line: #e6e8eb;
+  --color-surface: #f7f8f7;
+
+  --font-sans:
+    'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, 'Segoe UI', Roboto,
+    'Helvetica Neue', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+
+  --radius-card: 16px;
+  --radius-pill: 999px;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font-sans);
+}
+
+/* 헤드라인은 자간을 좁혀 덩어리로 보이게 한다 — 한글은 기본 자간이 넓어 크게 쓰면 흩어진다 */
+.h-display {
+  letter-spacing: -0.035em;
+  line-height: 1.12;
+  font-weight: 800;
+}
+
+/* 키보드 사용자에게만 보이는 포커스 링 — 마우스 클릭 때는 뜨지 않는다 */
+:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+  border-radius: 6px;
+}

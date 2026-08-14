@@ -1,0 +1,149 @@
+import type { Lang } from './i18n'
+
+// 화면 문구.
+//
+// 번역투를 피한다 — 한국어를 그대로 옮기지 않고 각 언어에서 자연스러운 말로 쓴다.
+// 예: '내 여행지 주변 축제'를 영어로 직역하면 어색하므로 'What's on near you'로 간다.
+
+type Dict = Record<string, string>
+
+const ko: Dict = {
+  'brand.tagline': '내 여행지 주변 축제',
+  'home.headline': '지금, 어디로 가시나요?',
+  'home.sub': '전국 {n}개 축제를 날짜와 위치로 찾아드립니다.',
+  'search.placeholder': '축제·지역 검색 (예: 강릉, 불꽃축제)',
+  'search.button': '검색',
+  'nearby.title': '내 주변에서 열리는 축제',
+  'nearby.asking': '위치를 확인하는 중…',
+  'nearby.denied': '위치를 켜면 지금 계신 곳 기준으로 가까운 축제를 보여드려요.',
+  'nearby.retry': '위치 허용하기',
+  'nearby.found': '반경 {r}km 안에 {n}곳',
+  'nearby.none': '반경 {r}km 안에는 지금 열리는 축제가 없어요',
+  'nearby.seeAll': '가까운 순으로 모두 보기',
+  'purpose.title': '무엇을 하러 가시나요?',
+  'purpose.sub': '목적을 고르면 그에 맞는 축제만 모아 보여드려요.',
+  'popular.title': '지금 사람들이 많이 찾는 축제',
+  'region.title': '지역으로 찾기',
+  'month.title': '언제 가시나요?',
+  'status.ongoing': '진행중',
+  'status.upcoming': '예정',
+  'status.always': '상시',
+  'list.total': '축제 {n}곳',
+  'detail.period': '기간',
+  'detail.place': '장소',
+  'detail.tel': '문의',
+  'detail.homepage': '홈페이지',
+  'detail.directions': '길찾기',
+  'detail.back': '목록으로',
+  'detail.nearby': '이 근처 다른 축제',
+  'foot.disclaimer': '축제 일정·장소는 주최 측 사정으로 바뀔 수 있습니다. 방문 전 공식 채널로 확인해 주세요.',
+  'foot.source': '데이터: 한국관광공사 TourAPI · 공공데이터포털 · 각 지자체',
+}
+
+const en: Dict = {
+  'brand.tagline': "What's on near you",
+  'home.headline': 'Where are you headed?',
+  'home.sub': 'Find {n} festivals across Korea by date and location.',
+  'search.placeholder': 'Search a festival or place (e.g. Gangneung, fireworks)',
+  'search.button': 'Search',
+  'nearby.title': 'Festivals near you',
+  'nearby.asking': 'Finding your location…',
+  'nearby.denied': 'Turn on location and we’ll show what’s on around you.',
+  'nearby.retry': 'Allow location',
+  'nearby.found': '{n} within {r} km',
+  'nearby.none': 'Nothing on within {r} km right now',
+  'nearby.seeAll': 'See all by distance',
+  'purpose.title': 'What are you in the mood for?',
+  'purpose.sub': 'Pick a purpose and we’ll narrow it down.',
+  'popular.title': 'Popular right now',
+  'region.title': 'Browse by region',
+  'month.title': 'When are you going?',
+  'status.ongoing': 'On now',
+  'status.upcoming': 'Upcoming',
+  'status.always': 'Year-round',
+  'list.total': '{n} festivals',
+  'detail.period': 'Dates',
+  'detail.place': 'Where',
+  'detail.tel': 'Contact',
+  'detail.homepage': 'Website',
+  'detail.directions': 'Directions',
+  'detail.back': 'Back to list',
+  'detail.nearby': 'Other festivals nearby',
+  'foot.disclaimer': 'Dates and venues can change. Please check the official channel before you go.',
+  'foot.source': 'Data: Korea Tourism Organization TourAPI · data.go.kr · local governments',
+}
+
+const ja: Dict = {
+  'brand.tagline': '旅先の近くで開かれる祭り',
+  'home.headline': '今日は、どこへ？',
+  'home.sub': '韓国全土の祭り{n}件を、日付と現在地から探せます。',
+  'search.placeholder': '祭り・地域を検索（例：江陵、花火）',
+  'search.button': '検索',
+  'nearby.title': '近くで開催中の祭り',
+  'nearby.asking': '現在地を確認しています…',
+  'nearby.denied': '位置情報を許可すると、今いる場所の近くの祭りをお見せします。',
+  'nearby.retry': '位置情報を許可',
+  'nearby.found': '半径{r}kmに{n}件',
+  'nearby.none': '半径{r}km以内で開催中の祭りはありません',
+  'nearby.seeAll': '近い順にすべて見る',
+  'purpose.title': '何をしに行きますか？',
+  'purpose.sub': '目的を選ぶと、それに合う祭りだけを集めます。',
+  'popular.title': '今よく見られている祭り',
+  'region.title': '地域から探す',
+  'month.title': 'いつ行きますか？',
+  'status.ongoing': '開催中',
+  'status.upcoming': '開催予定',
+  'status.always': '通年',
+  'list.total': '祭り{n}件',
+  'detail.period': '期間',
+  'detail.place': '会場',
+  'detail.tel': 'お問い合わせ',
+  'detail.homepage': '公式サイト',
+  'detail.directions': '経路',
+  'detail.back': '一覧へ戻る',
+  'detail.nearby': 'この近くの祭り',
+  'foot.disclaimer': '日程・会場は主催者の都合で変更される場合があります。お出かけ前に公式情報をご確認ください。',
+  'foot.source': 'データ：韓国観光公社 TourAPI・公共データポータル・各自治体',
+}
+
+const th: Dict = {
+  'brand.tagline': 'เทศกาลใกล้จุดหมายของคุณ',
+  'home.headline': 'วันนี้จะไปไหนดี?',
+  'home.sub': 'ค้นหาเทศกาล {n} งานทั่วเกาหลี ตามวันที่และตำแหน่งของคุณ',
+  'search.placeholder': 'ค้นหาเทศกาลหรือพื้นที่ (เช่น คังนึง, พลุ)',
+  'search.button': 'ค้นหา',
+  'nearby.title': 'เทศกาลใกล้คุณ',
+  'nearby.asking': 'กำลังตรวจสอบตำแหน่ง…',
+  'nearby.denied': 'เปิดตำแหน่งแล้วเราจะแสดงเทศกาลรอบตัวคุณ',
+  'nearby.retry': 'อนุญาตตำแหน่ง',
+  'nearby.found': '{n} งานในรัศมี {r} กม.',
+  'nearby.none': 'ไม่มีเทศกาลที่กำลังจัดในรัศมี {r} กม.',
+  'nearby.seeAll': 'ดูทั้งหมดตามระยะทาง',
+  'purpose.title': 'อยากไปทำอะไร?',
+  'purpose.sub': 'เลือกจุดประสงค์ แล้วเราจะคัดให้',
+  'popular.title': 'กำลังได้รับความนิยม',
+  'region.title': 'ค้นหาตามภูมิภาค',
+  'month.title': 'จะไปเมื่อไหร่?',
+  'status.ongoing': 'กำลังจัด',
+  'status.upcoming': 'กำลังจะจัด',
+  'status.always': 'ตลอดปี',
+  'list.total': 'เทศกาล {n} งาน',
+  'detail.period': 'ช่วงวันที่',
+  'detail.place': 'สถานที่',
+  'detail.tel': 'ติดต่อ',
+  'detail.homepage': 'เว็บไซต์',
+  'detail.directions': 'เส้นทาง',
+  'detail.back': 'กลับไปที่รายการ',
+  'detail.nearby': 'เทศกาลอื่นใกล้เคียง',
+  'foot.disclaimer': 'วันและสถานที่อาจเปลี่ยนแปลงได้ กรุณาตรวจสอบกับผู้จัดก่อนเดินทาง',
+  'foot.source': 'ข้อมูล: องค์การส่งเสริมการท่องเที่ยวเกาหลี TourAPI · data.go.kr · หน่วยงานท้องถิ่น',
+}
+
+const DICTS: Record<Lang, Dict> = { ko, en, ja, th }
+
+/** 문구 조회. {n} 같은 자리표시자는 vars로 채운다 */
+export function t(lang: Lang, key: string, vars?: Record<string, string | number>): string {
+  let s = DICTS[lang][key] ?? DICTS.ko[key] ?? key
+  if (vars) for (const [k, v] of Object.entries(vars)) s = s.replaceAll(`{${k}}`, String(v))
+  return s
+}
