@@ -73,7 +73,7 @@ function parseBooths(list?: { boothName?: string; menuDetails?: string }[] | nul
 const toDate = (s: string) => s.replace(/\./g, '-')
 // kfes 개요 앞머리의 운영 메모: '*하기 축제(장) 먹거리 내용은 전년도(2025년) 축제 내용으로, 2026년도 축제 내용은 업데이트 중에 있습니다.*'
 // 소개 첫 줄이 안내문이면 안 된다. 떼어내되, '먹거리가 지난 회차 것'이라는 사실은 플래그로 남긴다(실측 34건).
-const OPS_NOTE = /^\s*[\*※]\s*하기[^*※]*?(?:업데이트|변동)[^*※]*?[\.。]?\s*[\*※]?\s*/
+const OPS_NOTE = /^\s*[\*※]\s*하기[^*※]*[\*※]\s*/
 function splitOpsNote(text: string | null): { summary: string | null; pastBooths: boolean } {
   if (!text) return { summary: null, pastBooths: false }
   const m = text.match(OPS_NOTE)
