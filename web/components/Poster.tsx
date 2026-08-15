@@ -37,7 +37,7 @@ export default function Poster({
     return (
       <img
         src={src}
-        alt=""
+        alt={name}
         loading="lazy"
         onError={() => setFailed(true)}
         className={`h-full w-full object-cover ${className}`}

@@ -68,9 +68,13 @@ function placeFallback(f: Festival): string | null {
 
 const DAY = 86_400_000
 
-/** 1년 이상 이어지는 상시 운영 행사 — '지금 뭐하지'를 물을 때 답이 되지 못한다 */
+/**
+ * 상시 운영 행사 — '지금 뭐하지'를 물을 때 답이 되지 못한다.
+ * 기준을 300일로 잡는 이유: 1/1~12/31은 364일이라 '365일 이상'으로 하면 빠져나간다.
+ * 실측으로 그 사이(300~364일)에 놓이는 축제는 전부 연중 상설 행사였다.
+ */
 export function isAlwaysOn(f: Festival): boolean {
-  return new Date(f.endDate).getTime() - new Date(f.startDate).getTime() >= 365 * DAY
+  return new Date(f.endDate).getTime() - new Date(f.startDate).getTime() >= 300 * DAY
 }
 
 export type Status = 'ongoing' | 'upcoming' | 'ended'
