@@ -133,6 +133,12 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
               <dd>{f.address}</dd>
             </>
           )}
+          {f.fee && (
+            <>
+              <dt className="font-bold text-muted">{l === 'ko' ? '요금' : l === 'ja' ? '料金' : l === 'th' ? 'ค่าเข้า' : 'Admission'}</dt>
+              <dd>{f.fee}</dd>
+            </>
+          )}
           {f.tel && (
             <>
               <dt className="font-bold text-muted">{t(l, 'detail.tel')}</dt>
@@ -149,7 +155,24 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
               </dd>
             </>
           )}
+          {f.instagram && (
+            <>
+              <dt className="font-bold text-muted">Instagram</dt>
+              <dd className="break-all">
+                <a href={f.instagram} target="_blank" rel="noopener noreferrer" className="font-semibold text-brand hover:underline">
+                  @{f.instagram.replace(/^https?:\/\/(www\.)?instagram\.com\//, '').replace(/\/$/, '')}
+                </a>
+              </dd>
+            </>
+          )}
         </dl>
+
+        {f.program && (
+          <section className="mb-8 rounded-[var(--radius-card)] bg-surface p-5">
+            <h2 className="mb-2 text-[14px] font-black text-muted">{l === 'ko' ? '프로그램' : l === 'ja' ? 'プログラム' : l === 'th' ? 'โปรแกรม' : 'Program'}</h2>
+            <p className="text-[15px] leading-relaxed text-ink/85">{f.program}</p>
+          </section>
+        )}
 
         {mapHref && (
           <a

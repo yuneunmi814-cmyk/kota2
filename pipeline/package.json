@@ -1,0 +1,24 @@
+{
+  "name": "kota-pipeline",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "sync": "tsx --env-file=.env src/sync.ts",
+    "merge": "tsx --env-file=.env src/merge.ts",
+    "translate": "tsx --env-file=.env src/translate.ts",
+    "all": "npm run sync && npm run merge && npm run enrich && npm run translate && npm run export",
+    "enrich": "tsx --env-file=.env src/enrich.ts",
+    "export": "cp data/festivals.json ../web/data/festivals.json && echo \"→ web/data/festivals.json 갱신\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "private": "true",
+  "devDependencies": {
+    "@types/node": "^26.2.0",
+    "tsx": "^4.23.12",
+    "typescript": "^7.0.2"
+  }
+}

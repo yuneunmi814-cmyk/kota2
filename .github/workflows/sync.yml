@@ -1,0 +1,48 @@
+name: sync-festivals
+
+# 매주 월요일 09:00 KST — 5소스 수집 → 병합 → 보강 → 번역 → web/data 갱신 → 커밋.
+# 커밋이 main에 들어가면 deploy.yml이 이어서 배포한다.
+# DB·서버가 없다. 이 워크플로와 정적 JSON이 백엔드의 전부다.
+
+on:
+  schedule:
+    - cron: '0 0 * * 1' # UTC 00:00 = KST 09:00
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: pipeline
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: pipeline/package-lock.json
+      - run: npm ci
+      # 한 소스가 죽어도 나머지로 진행한다. 쿼터 소진은 enrich가 스스로 멈춘다.
+      - run: npm run sync
+        env:
+          TOURAPI_SERVICE_KEY: ${{ secrets.TOURAPI_SERVICE_KEY }}
+      - run: npm run merge
+      - run: npm run enrich
+        env:
+          TOURAPI_SERVICE_KEY: ${{ secrets.TOURAPI_SERVICE_KEY }}
+      - run: npm run translate
+      - run: npm run export
+      - name: 변경분 커밋
+        working-directory: .
+        run: |
+          git config user.name "kota-bot"
+          git config user.email "actions@github.com"
+          git add pipeline/data web/data
+          if git diff --cached --quiet; then echo "변경 없음"; exit 0; fi
+          N=$(node -e "console.log(require('./web/data/festivals.json').items.length)")
+          git commit -m "data: 주간 축제 갱신 — ${N}건 ($(date -u +%Y-%m-%d))"
+          git push

@@ -28,6 +28,12 @@ export interface Festival {
   imageUrl?: string | null
   homepage?: string | null
   tel?: string | null
+  /** kfes가 주는 것들 — 요금·프로그램·SNS. 다른 소스는 비어 있다 */
+  fee?: string | null
+  program?: string | null
+  instagram?: string | null
+  youtube?: string | null
+  sources?: string[]
   lat?: number | null
   lng?: number | null
   popularity?: number | null
