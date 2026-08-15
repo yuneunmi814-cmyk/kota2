@@ -46,8 +46,8 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
 
       <main className="pb-24">
         {/* 히어로 — 질문으로 연다. 목록을 먼저 보여주면 '또 하나의 축제 포털'이 된다 */}
-        <section className="mx-auto max-w-6xl px-5 pb-12 pt-16 text-center sm:pt-24">
-          <h1 className="h-display mx-auto max-w-3xl text-[40px] text-brand sm:text-[58px]">
+        <section className="confetti mx-auto max-w-6xl rounded-b-[32px] px-5 pb-12 pt-16 text-center sm:pt-24">
+          <h1 className={`h-display mx-auto max-w-3xl text-[40px] text-brand sm:text-[58px] ${l === 'en' ? 'font-[family-name:var(--font-hand)] sm:text-[64px]' : ''}`}>
             {t(l, 'home.headline')}
           </h1>
           <p className="mx-auto mt-5 max-w-xl text-[16px] text-muted sm:text-[17px]">
@@ -73,7 +73,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
               <Link
                 key={k}
                 href={`/${l}/themes/${k}/`}
-                className="group flex flex-col gap-3 rounded-[var(--radius-card)] border border-line bg-white p-5 transition hover:border-brand/40 hover:bg-brand-50"
+                className="lift group flex flex-col gap-3 rounded-[var(--radius-card)] border border-line bg-surface p-5 hover:border-brand/40"
               >
                 <span className="text-brand transition group-hover:scale-110">
                   <Icon name={k} size={26} strokeWidth={1.6} />

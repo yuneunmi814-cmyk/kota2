@@ -42,7 +42,7 @@ export default async function ThemePage({ params }: { params: Promise<{ lang: st
       <Header lang={l} path={`themes/${key}`} />
       <main className="mx-auto max-w-6xl px-5 pb-24 pt-10">
         <div className="mb-8 flex items-center gap-4">
-          <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-brand">
+          <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-tint-y text-on-y">
             <Icon name={key} size={28} strokeWidth={1.6} />
           </span>
           <div>

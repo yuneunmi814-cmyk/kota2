@@ -11,7 +11,7 @@ import Icon from './Icon'
 export default function Header({ lang, path = '' }: { lang: Lang; path?: string }) {
   const clean = path.replace(/^\/+|\/+$/g, '')
   return (
-    <header className="sticky top-0 z-30 border-b border-line/70 bg-white/90 backdrop-blur">
+    <header className="sticky top-0 z-30 border-b border-line bg-paper/90 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5">
         <Link href={`/${lang}/`} className="text-[21px] font-black tracking-tight text-brand">
           KOTA
@@ -20,7 +20,7 @@ export default function Header({ lang, path = '' }: { lang: Lang; path?: string 
         <nav className="flex items-center gap-1">
           <Link
             href={`/${lang}/calendar/`}
-            className="hidden items-center gap-1.5 rounded-full px-3 py-2 text-[14px] font-bold text-muted transition hover:bg-surface hover:text-brand sm:flex"
+            className="hidden items-center gap-1.5 rounded-full px-3 py-2 text-[14px] font-bold text-muted transition hover:bg-paper-2 hover:text-brand sm:flex"
           >
             <Icon name="calendar" size={16} />
             {lang === 'ko' ? '축제 달력' : lang === 'ja' ? '祭りカレンダー' : lang === 'th' ? 'ปฏิทิน' : 'Calendar'}
@@ -30,19 +30,19 @@ export default function Header({ lang, path = '' }: { lang: Lang; path?: string 
           <div className="group relative">
             <button
               type="button"
-              className="flex items-center gap-1.5 rounded-full px-3 py-2 text-[14px] font-bold text-muted transition hover:bg-surface hover:text-brand"
+              className="flex items-center gap-1.5 rounded-full px-3 py-2 text-[14px] font-bold text-muted transition hover:bg-paper-2 hover:text-brand"
               aria-haspopup="true"
             >
               <Icon name="globe" size={16} />
               {LANG_NAME[lang]}
             </button>
-            <ul className="invisible absolute right-0 top-full w-36 rounded-2xl border border-line bg-white py-1.5 opacity-0 shadow-lg transition group-focus-within:visible group-focus-within:opacity-100 group-hover:visible group-hover:opacity-100">
+            <ul className="invisible absolute right-0 top-full w-36 rounded-2xl border border-line bg-surface py-1.5 opacity-0 shadow-lg transition group-focus-within:visible group-focus-within:opacity-100 group-hover:visible group-hover:opacity-100">
               {LANGS.map((l) => (
                 <li key={l}>
                   <Link
                     href={`/${l}/${clean ? `${clean}/` : ''}`}
                     hrefLang={l}
-                    className={`block px-4 py-2 text-[14px] transition hover:bg-surface ${
+                    className={`block px-4 py-2 text-[14px] transition hover:bg-paper-2 ${
                       l === lang ? 'font-bold text-brand' : 'text-muted'
                     }`}
                   >

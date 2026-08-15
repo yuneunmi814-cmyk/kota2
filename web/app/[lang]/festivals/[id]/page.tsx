@@ -113,7 +113,7 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
 
         <div className="mb-3 flex flex-wrap items-center gap-2 text-[14px] font-semibold text-muted">
           {st === 'ongoing' && !always && (
-            <span className="rounded-full bg-accent px-3 py-1 text-[12px] font-black text-on-accent">{t(l, 'status.ongoing')}</span>
+            <span className="sticker rounded-full bg-y px-3 py-1 text-[12px] font-black text-on-y">{t(l, 'status.ongoing')}</span>
           )}
           {always && <span className="rounded-full bg-surface px-3 py-1 text-[12px] font-bold text-muted">{t(l, 'status.always')}</span>}
           {L.placeName && <span>{L.placeName}</span>}

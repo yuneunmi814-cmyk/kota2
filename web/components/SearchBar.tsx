@@ -19,7 +19,7 @@ export default function SearchBar({ lang }: { lang: Lang }) {
   return (
     <form
       onSubmit={submit}
-      className="mx-auto flex w-full max-w-2xl items-center gap-2 rounded-full border border-line bg-white p-2 pl-6 shadow-[0_2px_18px_-6px_rgba(0,0,0,.14)] transition focus-within:border-brand"
+      className="mx-auto flex w-full max-w-2xl items-center gap-2 rounded-full border border-line bg-surface p-2 pl-6 shadow-[0_2px_18px_-6px_rgba(79,50,22,.18)] transition focus-within:border-brand"
     >
       <Icon name="search" size={20} className="text-hint" />
       <input

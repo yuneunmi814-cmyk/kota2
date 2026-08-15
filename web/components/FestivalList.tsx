@@ -90,13 +90,13 @@ export default function FestivalList({
 
   const chip = (on: boolean) =>
     `shrink-0 rounded-full border px-4 py-2 text-[13px] font-bold transition ${
-      on ? 'border-brand bg-brand text-white' : 'border-line bg-white text-muted hover:border-brand/40 hover:text-brand'
+      on ? 'border-brand bg-brand text-white' : 'border-line bg-surface text-muted hover:border-brand/40 hover:text-brand'
     }`
 
   return (
     <div>
       {/* 검색 */}
-      <div className="mb-5 flex items-center gap-2 rounded-full border border-line bg-white px-5 py-1 focus-within:border-brand">
+      <div className="mb-5 flex items-center gap-2 rounded-full border border-line bg-surface px-5 py-1 focus-within:border-brand">
         <Icon name="search" size={18} className="text-hint" />
         <input
           value={q}
@@ -156,7 +156,7 @@ export default function FestivalList({
               key={s}
               onClick={() => setSort(s)}
               className={`rounded-full px-3 py-1.5 text-[13px] font-bold transition ${
-                sort === s ? 'bg-surface text-brand' : 'text-hint hover:text-muted'
+                sort === s ? 'bg-paper-2 text-brand' : 'text-hint hover:text-muted'
               }`}
             >
               {s === 'date'
@@ -186,7 +186,7 @@ export default function FestivalList({
               <Link
                 key={f.k}
                 href={`/${lang}/festivals/${f.k}/`}
-                className="group block overflow-hidden rounded-[var(--radius-card)] border border-line bg-white transition hover:border-brand/30 hover:shadow-[0_8px_28px_-12px_rgba(0,64,39,.28)]"
+                className="lift group block overflow-hidden rounded-[var(--radius-card)] border border-line bg-surface hover:border-brand/40 hover:shadow-[0_10px_28px_-14px_rgba(79,50,22,.35)]"
               >
                 <div className="relative aspect-[4/3] overflow-hidden bg-surface">
                   <Poster
@@ -195,7 +195,7 @@ export default function FestivalList({
                     className="transition-transform duration-500 group-hover:scale-[1.04]"
                   />
                   {f.st === 'ongoing' && !f.al && (
-                    <span className="absolute left-3 top-3 rounded-full bg-accent px-2.5 py-1 text-[11px] font-black text-on-accent shadow-sm">
+                    <span className="absolute left-3 top-3 sticker rounded-full bg-y px-2.5 py-1 text-[11px] font-black text-on-y">
                       {t(lang, 'status.ongoing')}
                     </span>
                   )}
