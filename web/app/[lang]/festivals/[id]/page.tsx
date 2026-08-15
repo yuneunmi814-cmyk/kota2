@@ -4,29 +4,33 @@ import { notFound } from 'next/navigation'
 import { allFestivals, distanceKm, findByKey, isAlwaysOn, localized, statusOf } from '@/lib/festivals'
 import { LANGS, SITE_URL, isLang, type Lang } from '@/lib/i18n'
 import { t } from '@/lib/ui'
+import { sidoLabel } from '@/lib/sido'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import Poster from '@/components/Poster'
 import Icon from '@/components/Icon'
 import FestivalCard from '@/components/FestivalCard'
 import StaticMap from '@/components/StaticMap'
+import ReadMore from '@/components/detail/ReadMore'
+import ShareButton from '@/components/detail/ShareButton'
+import YouTube from '@/components/detail/YouTube'
 
-// 축제 상세 — 715건 × 4언어 = 2,860장을 빌드 시 전부 찍는다.
+// 축제 상세 — 뼈대는 트립어드바이저, 살은 구석구석.
 //
-// 이게 재구현의 핵심 산출물이다. 이전엔 <noscript>에 본문을 밀어 넣는 우회였고
-// 언어는 URL에 없었다. 여기서는 일본어 상세가 /ja/festivals/{id}/ 라는 자기 URL을 갖고,
-// <html lang="ja">, 일본어 <title>, hreflang 4개, Event JSON-LD를 실제 HTML로 가진다.
+// 트립어드바이저 상세의 문법(실측 2026-08-15):
+//   빵부스러기 → 제목 + 우측 [저장][공유] → 신뢰 한 줄(평점·순위) → 사진 그리드(큰 1 + 작은 2)
+//   → 2단: 왼쪽 본문 섹션들 / 오른쪽 sticky 정보 카드 → 하단 가로 스크롤 추천 카드
+// 구석구석 상세가 가진 정보(실측): 산문 개요(더보기), 기간·주소·요금·주최·전화·인스타 아이콘 리스트,
+//   먹거리 부스별 메뉴·가격, 영상, 길찾기 지도, 출처·최종 업데이트.
+// 우리 것: 신뢰 줄에 '문화관광축제 지정'과 '방문객 N배'(관광빅데이터)를 놓는다 — 트립어드바이저의
+//   평점 자리에 공공 데이터로 만든 근거가 들어간다.
 
 export function generateStaticParams() {
   const ids = allFestivals().map((f) => f.externalId)
   return LANGS.flatMap((lang) => ids.map((id) => ({ lang, id })))
 }
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ lang: string; id: string }>
-}): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: Promise<{ lang: string; id: string }> }): Promise<Metadata> {
   const { lang, id } = await params
   const l: Lang = isLang(lang) ? lang : 'ko'
   const f = findByKey(decodeURIComponent(id))
@@ -40,16 +44,12 @@ export async function generateMetadata({
       canonical: `${SITE_URL}/${l}/festivals/${f.externalId}/`,
       languages: Object.fromEntries(LANGS.map((x) => [x, `${SITE_URL}/${x}/festivals/${f.externalId}/`])),
     },
-    openGraph: {
-      title: L.name,
-      description: desc,
-      ...(f.imageUrl ? { images: [f.imageUrl] } : {}),
-      type: 'website',
-    },
+    openGraph: { title: L.name, description: desc, ...(f.imageUrl ? { images: [f.imageUrl] } : {}), type: 'website' },
   }
 }
 
 const fmt = (d: string) => d.replace(/-/g, '.')
+const won = (n: number, l: Lang) => t(l, 'detail.won', { n: n.toLocaleString(l === 'ko' ? 'ko-KR' : 'en-US') })
 
 export default async function FestivalDetailPage({ params }: { params: Promise<{ lang: string; id: string }> }) {
   const { lang, id } = await params
@@ -60,22 +60,20 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
   const L = localized(f, l)
   const st = statusOf(f)
   const always = isAlwaysOn(f)
+  const hasCoords = f.lat != null && f.lng != null
 
-  // 이 근처 다른 축제 — 좌표가 있으면 30km 안, 진행중·예정만
-  const nearby =
-    f.lat != null && f.lng != null
-      ? allFestivals()
-          .filter((x) => x.externalId !== f.externalId && x.lat != null && x.lng != null && statusOf(x) !== 'ended' && !isAlwaysOn(x))
-          .map((x) => ({ x, km: distanceKm({ lat: f.lat as number, lng: f.lng as number }, { lat: x.lat as number, lng: x.lng as number }) }))
-          .filter((o) => o.km <= 30)
-          .sort((a, b) => a.km - b.km)
-          .slice(0, 4)
-      : []
+  const nearby = hasCoords
+    ? allFestivals()
+        .filter((x) => x.externalId !== f.externalId && x.lat != null && x.lng != null && statusOf(x) !== 'ended' && !isAlwaysOn(x))
+        .map((x) => ({ x, km: distanceKm({ lat: f.lat as number, lng: f.lng as number }, { lat: x.lat as number, lng: x.lng as number }) }))
+        .filter((o) => o.km <= 30)
+        .sort((a, b) => a.km - b.km)
+        .slice(0, 8)
+    : []
 
-  const mapHref =
-    f.lat != null && f.lng != null
-      ? `https://map.kakao.com/link/to/${encodeURIComponent(f.name)},${f.lat},${f.lng}`
-      : null
+  const mapHref = hasCoords ? `https://map.kakao.com/link/to/${encodeURIComponent(f.name)},${f.lat},${f.lng}` : null
+  const boothCount = f.booths?.length ?? 0
+  const menuCount = f.booths?.reduce((n, b) => n + b.menu.length, 0) ?? 0
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -91,33 +89,58 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
       '@type': 'Place',
       name: L.placeName ?? f.address ?? 'Korea',
       ...(f.address ? { address: f.address } : {}),
-      ...(f.lat != null && f.lng != null ? { geo: { '@type': 'GeoCoordinates', latitude: f.lat, longitude: f.lng } } : {}),
+      ...(hasCoords ? { geo: { '@type': 'GeoCoordinates', latitude: f.lat, longitude: f.lng } } : {}),
     },
     ...(f.imageUrl ? { image: [f.imageUrl] } : {}),
-    isAccessibleForFree: true,
+    ...(f.organizer ? { organizer: { '@type': 'Organization', name: f.organizer } } : {}),
+    isAccessibleForFree: !f.fee || /무료|free/i.test(f.fee),
     url: `${SITE_URL}/${l}/festivals/${f.externalId}/`,
   }
+
+  // 사진 그리드에 뭘 채울지 — 포스터, 유튜브 썸네일, 지도. 없는 칸은 접는다
+  const ytId = f.youtube?.match(/(?:youtu\.be\/|v=|shorts\/|embed\/)([A-Za-z0-9_-]{11})/)?.[1] ?? null
+  const sideTiles = [ytId ? { kind: 'yt' as const, id: ytId } : null, hasCoords ? { kind: 'map' as const } : null].filter(Boolean)
+
+  const sido = f.sido ? sidoLabel(f.sido, l) : null
 
   return (
     <>
       <Header lang={l} path={`festivals/${f.externalId}`} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
-      <main className="mx-auto max-w-3xl px-5 pb-24 pt-8">
-        <Link href={`/${l}/festivals/`} className="mb-6 inline-flex items-center gap-1 text-[14px] font-bold text-muted hover:text-brand">
-          <Icon name="arrow" size={15} className="rotate-180" /> {t(l, 'detail.back')}
-        </Link>
-
-        <div className="relative mb-7 aspect-[16/9] overflow-hidden rounded-[var(--radius-card)] bg-surface">
-          <Poster src={f.imageUrl} name={L.name} letterClass="text-[4.5em]" />
-          {f.imageFrom === 'past' && (
-            <span className="absolute bottom-3 right-3 rounded-full bg-ink/70 px-2.5 py-1 text-[11px] font-bold text-white backdrop-blur-sm">
-              {t(l, 'poster.past')}
-            </span>
+      <main className="mx-auto max-w-6xl px-5 pb-24 pt-5">
+        {/* 빵부스러기 — 트립어드바이저: 유럽 › 영국 › 런던 › 즐길거리 › 이름 */}
+        <nav aria-label="breadcrumb" className="mb-4 flex flex-wrap items-center gap-1 text-[12px] text-hint">
+          <Link href={`/${l}/`} className="hover:text-brand">{t(l, 'crumb.home')}</Link>
+          <span>›</span>
+          <Link href={`/${l}/festivals/`} className="hover:text-brand">{t(l, 'nav.festivals')}</Link>
+          {sido && (
+            <>
+              <span>›</span>
+              <span>{sido}</span>
+            </>
           )}
+          {l === 'ko' && f.sigungu && (
+            <>
+              <span>›</span>
+              <span>{f.sigungu}</span>
+            </>
+          )}
+          <span>›</span>
+          <span className="text-muted">{L.name}</span>
+        </nav>
+
+        {/* 제목 줄 — 왼쪽 H1, 오른쪽 공유 */}
+        <div className="mb-2 flex flex-wrap items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h1 className="h-display text-[28px] leading-[1.15] text-brand sm:text-[36px]">{L.name}</h1>
+            {l !== 'ko' && L.name !== f.name && <p className="mt-1 text-[14px] text-hint">{f.name}</p>}
+          </div>
+          <ShareButton title={L.name} label={t(l, 'detail.share')} copied={t(l, 'detail.copied')} />
         </div>
 
-        <div className="mb-3 flex flex-wrap items-center gap-2 text-[14px] font-semibold text-muted">
+        {/* 신뢰 줄 — 트립어드바이저의 '5.0 ●●●●● (10건) 327위' 자리. 우리는 공공 데이터 근거 */}
+        <div className="mb-5 flex flex-wrap items-center gap-2 text-[13px] font-semibold text-muted">
           {st === 'ongoing' && !always && (
             <span className="sticker rounded-full bg-y px-3 py-1 text-[12px] font-black text-on-y">{t(l, 'status.ongoing')}</span>
           )}
@@ -130,86 +153,176 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
               {t(l, 'lift.label', { x: f.visitorLift.toFixed(1) })}
             </span>
           )}
-          {L.placeName && <span>{L.placeName}</span>}
+          {L.placeName && (
+            <span className="inline-flex items-center gap-1">
+              <Icon name="pin" size={14} /> {L.placeName}
+            </span>
+          )}
         </div>
 
-        <h1 className="h-display mb-2 text-[30px] text-brand sm:text-[38px]">{L.name}</h1>
-        {l !== 'ko' && L.name !== f.name && <p className="mb-5 text-[15px] text-hint">{f.name}</p>}
-
-        {L.summary && <p className="mb-8 text-[16px] leading-relaxed text-ink/85">{L.summary}</p>}
-
-        <dl className="mb-8 grid grid-cols-[92px_1fr] gap-x-4 gap-y-3 border-t border-line pt-6 text-[15px]">
-          <dt className="font-bold text-muted">{t(l, 'detail.period')}</dt>
-          <dd className="tabular-nums">{fmt(f.startDate)} – {fmt(f.endDate)}</dd>
-          {f.address && (
-            <>
-              <dt className="font-bold text-muted">{t(l, 'detail.place')}</dt>
-              <dd>{f.address}</dd>
-            </>
-          )}
-          {f.fee && (
-            <>
-              <dt className="font-bold text-muted">{l === 'ko' ? '요금' : l === 'ja' ? '料金' : l === 'th' ? 'ค่าเข้า' : 'Admission'}</dt>
-              <dd>{f.fee}</dd>
-            </>
-          )}
-          {f.tel && (
-            <>
-              <dt className="font-bold text-muted">{t(l, 'detail.tel')}</dt>
-              <dd><a href={`tel:${f.tel}`} className="hover:underline">{f.tel}</a></dd>
-            </>
-          )}
-          {f.homepage && (
-            <>
-              <dt className="font-bold text-muted">{t(l, 'detail.homepage')}</dt>
-              <dd className="break-all">
-                <a href={f.homepage} target="_blank" rel="noopener noreferrer" className="font-semibold text-brand hover:underline">
-                  {f.homepage.replace(/^https?:\/\//, '').slice(0, 60)}
-                </a>
-              </dd>
-            </>
-          )}
-          {f.instagram && (
-            <>
-              <dt className="font-bold text-muted">Instagram</dt>
-              <dd className="break-all">
-                <a href={f.instagram} target="_blank" rel="noopener noreferrer" className="font-semibold text-brand hover:underline">
-                  @{f.instagram.replace(/^https?:\/\/(www\.)?instagram\.com\//, '').replace(/\/$/, '')}
-                </a>
-              </dd>
-            </>
-          )}
-        </dl>
-
-        {f.program && (
-          <section className="mb-8 rounded-[var(--radius-card)] bg-surface p-5">
-            <h2 className="mb-2 text-[14px] font-black text-muted">{l === 'ko' ? '프로그램' : l === 'ja' ? 'プログラム' : l === 'th' ? 'โปรแกรม' : 'Program'}</h2>
-            <p className="text-[15px] leading-relaxed text-ink/85">{f.program}</p>
-          </section>
-        )}
-
-        {f.lat != null && f.lng != null && (
-          <section className="mb-8">
-            <StaticMap lat={f.lat} lng={f.lng} label={f.address ?? L.placeName ?? L.name} />
-            {mapHref && (
-              <a
-                href={mapHref}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-4 inline-flex items-center gap-2 rounded-full bg-brand px-6 py-3 text-[15px] font-bold text-white transition hover:bg-brand-600"
-              >
-                <Icon name="pin" size={17} /> {t(l, 'detail.directions')}
-              </a>
+        {/* 사진 그리드 — 큰 1 + 작은 2. 트립어드바이저 상세 상단. 옆 칸은 유튜브 썸네일·지도로 채운다 */}
+        <div className={`mb-8 grid gap-2 overflow-hidden rounded-[var(--radius-card)] ${sideTiles.length ? 'grid-cols-3' : 'grid-cols-1'}`} style={{ height: 'clamp(240px, 42vw, 440px)' }}>
+          <div className={`relative ${sideTiles.length ? 'col-span-2' : ''} h-full overflow-hidden`}>
+            <Poster src={f.imageUrl} name={L.name} letterClass="text-[5em]" />
+            {f.imageFrom === 'past' && (
+              <span className="absolute bottom-3 left-3 rounded-full bg-ink/70 px-2.5 py-1 text-[11px] font-bold text-white backdrop-blur-sm">{t(l, 'poster.past')}</span>
             )}
-          </section>
-        )}
+          </div>
+          {sideTiles.length > 0 && (
+            <div className={`grid h-full gap-2 ${sideTiles.length === 2 ? 'grid-rows-2' : 'grid-rows-1'}`}>
+              {sideTiles.map((tile) =>
+                tile!.kind === 'yt' ? (
+                  <a key="yt" href="#video" className="group relative block overflow-hidden bg-ink">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={`https://i.ytimg.com/vi/${tile!.id}/hqdefault.jpg`} alt="" className="h-full w-full object-cover opacity-90 transition group-hover:opacity-100" />
+                    <span className="absolute left-1/2 top-1/2 flex h-11 w-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-r text-white shadow">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden><path d="M8 5v14l11-7z" /></svg>
+                    </span>
+                  </a>
+                ) : (
+                  <a key="map" href="#location" className="relative block overflow-hidden">
+                    <div className="pointer-events-none h-full w-full [&_figure]:h-full [&_figure]:rounded-none [&_figure]:border-0 [&_figcaption]:hidden [&_.aspect-\[16\/9\]]:aspect-auto [&_.aspect-\[16\/9\]]:h-full">
+                      <StaticMap lat={f.lat as number} lng={f.lng as number} label="" />
+                    </div>
+                  </a>
+                ),
+              )}
+            </div>
+          )}
+        </div>
 
+        {/* 2단 — 왼쪽 본문 / 오른쪽 sticky 정보 카드 */}
+        <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_340px]">
+          <div className="min-w-0">
+            {/* 소개 */}
+            {(L.summary || f.summary) && (
+              <section className="mb-10">
+                <h2 className="mb-3 text-[20px] font-black text-ink">{t(l, 'detail.about')}</h2>
+                <ReadMore text={L.summary ?? f.summary ?? ''} more={t(l, 'detail.more')} less={t(l, 'detail.less')} />
+              </section>
+            )}
+
+            {/* 먹거리 — 구석구석의 부스·메뉴·가격. 외국인에게 '얼마인지'가 정보다 */}
+            {boothCount > 0 && (
+              <section className="mb-10">
+                <div className="mb-3 flex items-baseline gap-2">
+                  <h2 className="text-[20px] font-black text-ink">
+                    <Icon name="utensils" size={18} className="-mt-1 mr-1 inline text-brand" />
+                    {t(l, 'detail.food')}
+                  </h2>
+                  <span className="text-[13px] text-hint">
+                    {t(l, 'detail.booth.n', { n: boothCount })} · {t(l, 'detail.menu.n', { n: menuCount })}
+                  </span>
+                </div>
+                <div className="divide-y divide-line rounded-[var(--radius-card)] border border-line bg-surface">
+                  {f.booths!.slice(0, 12).map((b) => (
+                    <details key={b.name} className="group px-4 py-3" open={boothCount <= 3}>
+                      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[15px] font-bold text-ink [&::-webkit-details-marker]:hidden">
+                        <span className="truncate">{b.name}</span>
+                        <span className="shrink-0 text-[12px] font-semibold text-hint">{t(l, 'detail.menu.n', { n: b.menu.length })}</span>
+                      </summary>
+                      {b.menu.length > 0 && (
+                        <ul className="mt-2 grid gap-x-6 gap-y-1.5 text-[14px] sm:grid-cols-2">
+                          {b.menu.slice(0, 20).map((m, i) => (
+                            <li key={`${m.name}-${i}`} className="flex items-baseline justify-between gap-3 border-b border-dotted border-line/80 pb-1">
+                              <span className="truncate text-ink/85">{m.name}</span>
+                              {m.price != null && <span className="shrink-0 tabular-nums font-bold text-brand">{won(m.price, l)}</span>}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </details>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* 프로그램 */}
+            {f.program && (
+              <section className="mb-10">
+                <h2 className="mb-3 text-[20px] font-black text-ink">{t(l, 'detail.program')}</h2>
+                <p className="whitespace-pre-line rounded-[var(--radius-card)] bg-surface p-5 text-[15px] leading-relaxed text-ink/85">{f.program}</p>
+              </section>
+            )}
+
+            {/* 영상 */}
+            {f.youtube && ytId && (
+              <section id="video" className="mb-10 scroll-mt-24">
+                <h2 className="mb-3 text-[20px] font-black text-ink">{t(l, 'detail.video')}</h2>
+                <YouTube url={f.youtube} title={L.name} />
+              </section>
+            )}
+
+            {/* 위치 */}
+            {hasCoords && (
+              <section id="location" className="mb-10 scroll-mt-24">
+                <h2 className="mb-3 text-[20px] font-black text-ink">{t(l, 'detail.location')}</h2>
+                <StaticMap lat={f.lat as number} lng={f.lng as number} label={f.address ?? L.placeName ?? L.name} />
+                {f.address && <p className="mt-2 text-[14px] text-muted">{f.address}</p>}
+              </section>
+            )}
+
+            <p className="text-[12px] leading-relaxed text-hint">{t(l, 'detail.source')}</p>
+          </div>
+
+          {/* 오른쪽 — sticky 정보 카드. 트립어드바이저의 '시간' 카드 자리 */}
+          <aside className="lg:sticky lg:top-24 lg:self-start">
+            <div className="rounded-[var(--radius-card)] border border-line bg-surface p-5 shadow-[0_8px_28px_-16px_rgba(79,50,22,.25)]">
+              <h2 className="mb-4 text-[15px] font-black text-ink">{t(l, 'detail.info')}</h2>
+              <dl className="space-y-3.5 text-[14px]">
+                <Row icon="calendar" label={t(l, 'detail.period')}>
+                  <span className="tabular-nums font-semibold">{fmt(f.startDate)} – {fmt(f.endDate)}</span>
+                </Row>
+                {f.hours && <Row icon="clock" label={t(l, 'detail.hours')}>{f.hours}</Row>}
+                <Row icon="ticket" label={t(l, 'detail.fee')}>
+                  <span className={!f.fee || /무료|free/i.test(f.fee) ? 'font-bold text-brand' : ''}>{f.fee ?? t(l, 'detail.free')}</span>
+                </Row>
+                {(f.address || L.placeName) && (
+                  <Row icon="pin" label={t(l, 'detail.place')}>
+                    <span className="break-keep">{f.address ?? L.placeName}</span>
+                  </Row>
+                )}
+                {f.ageInfo && <Row icon="user" label={t(l, 'detail.age')}>{f.ageInfo}</Row>}
+                {f.organizer && <Row icon="user" label={t(l, 'detail.organizer')}>{f.organizer}</Row>}
+                {f.tel && (
+                  <Row icon="phone" label={t(l, 'detail.tel')}>
+                    <a href={`tel:${f.tel}`} className="font-semibold text-brand hover:underline">{f.tel}</a>
+                  </Row>
+                )}
+              </dl>
+
+              <div className="mt-5 flex flex-col gap-2">
+                {mapHref && (
+                  <a href={mapHref} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 rounded-full bg-brand px-5 py-3 text-[15px] font-bold text-white transition hover:bg-brand-600">
+                    <Icon name="pin" size={17} /> {t(l, 'detail.directions')}
+                  </a>
+                )}
+                <div className="flex gap-2">
+                  {f.homepage && (
+                    <a href={f.homepage} target="_blank" rel="noopener noreferrer" className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-full border border-line px-4 py-2.5 text-[13px] font-bold text-ink transition hover:border-brand/40 hover:text-brand">
+                      <Icon name="link" size={15} /> {t(l, 'detail.homepage')}
+                    </a>
+                  )}
+                  {f.instagram && (
+                    <a href={f.instagram} target="_blank" rel="noopener noreferrer" className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-full border border-line px-4 py-2.5 text-[13px] font-bold text-ink transition hover:border-brand/40 hover:text-brand">
+                      Instagram
+                    </a>
+                  )}
+                </div>
+              </div>
+            </div>
+          </aside>
+        </div>
+
+        {/* 근처 — 트립어드바이저 하단 가로 스크롤 추천 */}
         {nearby.length > 0 && (
           <section className="mt-16">
             <h2 className="h-display mb-5 text-[22px] text-ink">{t(l, 'detail.nearby')}</h2>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="-mx-5 flex snap-x gap-4 overflow-x-auto px-5 pb-2 [scrollbar-width:none]">
               {nearby.map(({ x, km }) => (
-                <FestivalCard key={x.externalId} f={x} lang={l} distanceKm={km} />
+                <div key={x.externalId} className="w-[260px] shrink-0 snap-start">
+                  <FestivalCard f={x} lang={l} distanceKm={km} />
+                </div>
               ))}
             </div>
           </section>
@@ -217,5 +330,17 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
       </main>
       <Footer lang={l} />
     </>
+  )
+}
+
+function Row({ icon, label, children }: { icon: Parameters<typeof Icon>[0]['name']; label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex gap-3">
+      <dt className="flex w-24 shrink-0 items-center gap-1.5 text-muted">
+        <Icon name={icon} size={15} className="text-brand" />
+        <span className="font-semibold">{label}</span>
+      </dt>
+      <dd className="min-w-0 flex-1 text-ink">{children}</dd>
+    </div>
   )
 }

@@ -26,6 +26,13 @@ export interface RawFestival {
   instagram?: string | null
   youtube?: string | null
   tel?: string | null
+  /** 주최·주관 */
+  organizer?: string | null
+  /** 먹거리 부스 — kfes boothInfoList. 부스별 메뉴·가격(원). 외국인 여행자에게 '얼마인지'가 핵심 */
+  booths?: { name: string; menu: { name: string; price: number | null }[] }[] | null
+  /** 관람 가능 연령·운영 시간(있는 것만) */
+  ageInfo?: string | null
+  hours?: string | null
   /** kfes fstvlClCd — 'MF'면 문체부 지정 문화관광축제(관광공사 인증). 그 외 유형 코드 힌트 */
   category?: string | null
 }

@@ -42,6 +42,32 @@ interface KfesItem {
   fstvlAspcsTelno?: string | null
   fstvlMngtTelno?: string | null
   fstvlClCd?: string | null
+  fstvlAspcsNm?: string | null // 주최
+  fstvlMngtNm?: string | null // 주관
+  boothInfoList?: { boothName?: string; menuDetails?: string }[] | null
+  vwngPsblAgeInfo?: string | null
+  vwngRqmtTime?: string | null
+}
+
+// 부스 메뉴 — menuDetails가 JSON 객체를 쉼표로 이어붙인 문자열이라 배열로 감싸 파싱한다
+function parseBooths(list?: { boothName?: string; menuDetails?: string }[] | null) {
+  if (!list?.length) return null
+  const out: { name: string; menu: { name: string; price: number | null }[] }[] = []
+  for (const b of list) {
+    const name = b.boothName?.trim()
+    if (!name) continue
+    let menu: { name: string; price: number | null }[] = []
+    try {
+      const arr = JSON.parse(`[${b.menuDetails ?? ''}]`) as { menuName?: string; menuPrice?: string }[]
+      menu = arr
+        .filter((m) => m.menuName?.trim())
+        .map((m) => ({ name: m.menuName!.trim(), price: m.menuPrice && /^\d+$/.test(m.menuPrice) ? Number(m.menuPrice) : null }))
+    } catch {
+      /* 깨진 항목은 메뉴 없이 부스명만 */
+    }
+    out.push({ name, menu })
+  }
+  return out.length ? out : null
 }
 
 const toDate = (s: string) => s.replace(/\./g, '-')
@@ -103,6 +129,10 @@ export async function fetchKfes(): Promise<RawFestival[]> {
         youtube: it.ytbUrl?.trim() || null,
         tel: it.fstvlAspcsTelno?.trim() || it.fstvlMngtTelno?.trim() || null,
         category: it.fstvlClCd ?? null,
+        organizer: [it.fstvlAspcsNm, it.fstvlMngtNm].map((v) => v?.trim()).filter(Boolean).filter((v, i, a) => a.indexOf(v) === i).join(' · ') || null,
+        booths: parseBooths(it.boothInfoList),
+        ageInfo: it.vwngPsblAgeInfo?.trim() || null,
+        hours: it.vwngRqmtTime?.trim() || null,
       })
     }
     idx += 12

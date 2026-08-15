@@ -41,7 +41,11 @@ export interface Festival {
   lng?: number | null
   popularity?: number
   /** 관광빅데이터 유입 배율 — 지난 회차 개최지 외지인 방문자 피크 ÷ 평소 */
-  visitorLift?: number | null | null
+  visitorLift?: number | null
+  organizer?: string | null
+  booths?: { name: string; menu: { name: string; price: number | null }[] }[] | null
+  ageInfo?: string | null
+  hours?: string | null
   themes?: string[]
   region?: { name: string } | null
   translations?: Translation[]
