@@ -9,6 +9,7 @@ import Footer from '@/components/Footer'
 import Poster from '@/components/Poster'
 import Icon from '@/components/Icon'
 import FestivalCard from '@/components/FestivalCard'
+import StaticMap from '@/components/StaticMap'
 
 // 축제 상세 — 715건 × 4언어 = 2,860장을 빌드 시 전부 찍는다.
 //
@@ -174,15 +175,20 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
           </section>
         )}
 
-        {mapHref && (
-          <a
-            href={mapHref}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-full bg-brand px-6 py-3 text-[15px] font-bold text-white transition hover:bg-brand-600"
-          >
-            <Icon name="pin" size={17} /> {t(l, 'detail.directions')}
-          </a>
+        {f.lat != null && f.lng != null && (
+          <section className="mb-8">
+            <StaticMap lat={f.lat} lng={f.lng} label={f.address ?? L.placeName ?? L.name} />
+            {mapHref && (
+              <a
+                href={mapHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-4 inline-flex items-center gap-2 rounded-full bg-brand px-6 py-3 text-[15px] font-bold text-white transition hover:bg-brand-600"
+              >
+                <Icon name="pin" size={17} /> {t(l, 'detail.directions')}
+              </a>
+            )}
+          </section>
         )}
 
         {nearby.length > 0 && (
