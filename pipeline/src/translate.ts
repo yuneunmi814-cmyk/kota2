@@ -12,7 +12,9 @@ import { llmSummaryFor, loadLlmCache, needsLlm, runLlmTranslation } from './tran
 // kfes 산문 개요(150~300자)는 엔진 사전이 감당하지 못하는 진짜 문장이다.
 // 이건 Claude(translate-llm.ts)가 옮기고 캐시된다. 키가 없으면 원문을 둔다 —
 // 어설픈 기계 번역보다 한국어 원문이 낫다는 판단(외국인은 번역 앱으로 원문을 읽는다).
-// 우선순위: 손번역 > LLM > 엔진.
+// 우선순위 — 이름·지명: 손번역 > 엔진. 요약: LLM > 손번역 > 엔진.
+// 요약만 LLM이 앞서는 이유: 손번역 요약은 한 줄(영어 중앙값 56자)이고 LLM은 kfes 산문 전체(875자)라
+// 정보량이 다르다(실측 28건). 이름은 손번역이 여전히 정확하다.
 
 interface Hand { name?: string; summary?: string | null; placeName?: string | null }
 interface HandItem { festivalName: string; en?: Hand; ja?: Hand; th?: Hand }
@@ -45,7 +47,7 @@ for (const f of items) {
     return {
       langCode: lang,
       name: hl?.name || nameTr[lang],
-      summary: hl?.summary ?? llmTr?.[lang] ?? sumTr?.[lang] ?? null,
+      summary: llmTr?.[lang] ?? hl?.summary ?? sumTr?.[lang] ?? null,
       placeName: hl?.placeName ?? placeName(f.sido ?? null, f.sigungu ?? null, lang),
     }
   })

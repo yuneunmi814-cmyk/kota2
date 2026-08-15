@@ -71,6 +71,16 @@ function parseBooths(list?: { boothName?: string; menuDetails?: string }[] | nul
 }
 
 const toDate = (s: string) => s.replace(/\./g, '-')
+// kfes 개요 앞머리의 운영 메모: '*하기 축제(장) 먹거리 내용은 전년도(2025년) 축제 내용으로, 2026년도 축제 내용은 업데이트 중에 있습니다.*'
+// 소개 첫 줄이 안내문이면 안 된다. 떼어내되, '먹거리가 지난 회차 것'이라는 사실은 플래그로 남긴다(실측 34건).
+const OPS_NOTE = /^\s*[\*※]\s*하기[^*※]*?(?:업데이트|변동)[^*※]*?[\.。]?\s*[\*※]?\s*/
+function splitOpsNote(text: string | null): { summary: string | null; pastBooths: boolean } {
+  if (!text) return { summary: null, pastBooths: false }
+  const m = text.match(OPS_NOTE)
+  if (!m) return { summary: text, pastBooths: false }
+  const rest = text.slice(m[0].length).trim()
+  return { summary: rest || null, pastBooths: /먹거리/.test(m[0]) }
+}
 const strip = (html?: string | null) => (html ?? '').replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim() || null
 const hrefOf = (html?: string | null) => html?.match(/href="([^"]+)"/)?.[1] ?? null
 const num = (v: unknown) => {
@@ -121,7 +131,8 @@ export async function fetchKfes(): Promise<RawFestival[]> {
         lat: num(it.ycrdVal),
         lng: num(it.xcrdVal),
         imageUrl: it.dispFstvlCntntsImgRout || it.posterImgRout || null,
-        summary: strip(it.fstvlOutlCn),
+        summary: splitOpsNote(strip(it.fstvlOutlCn)).summary,
+        boothsFromPastEdition: splitOpsNote(strip(it.fstvlOutlCn)).pastBooths,
         program: strip(it.fstvlProgrmCn),
         fee: strip(it.fstvlUtztFareInfo),
         homepage: hrefOf(it.fstvlHmpgUrl),

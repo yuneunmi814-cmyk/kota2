@@ -214,6 +214,9 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
                     {t(l, 'detail.booth.n', { n: boothCount })} · {t(l, 'detail.menu.n', { n: menuCount })}
                   </span>
                 </div>
+                {f.boothsFromPastEdition && (
+                  <p className="mb-3 rounded-lg bg-tint-y px-3 py-2 text-[13px] text-on-y">{t(l, 'detail.booth.past')}</p>
+                )}
                 <div className="divide-y divide-line rounded-[var(--radius-card)] border border-line bg-surface">
                   {f.booths!.slice(0, 12).map((b) => (
                     <details key={b.name} className="group px-4 py-3" open={boothCount <= 3}>

@@ -138,6 +138,7 @@ const merged: Festival[] = groups.map((g) => {
     category: first(sorted.map((x) => x.category)),
     organizer: first(sorted.map((x) => x.organizer)),
     booths: first(sorted.map((x) => x.booths)),
+    boothsFromPastEdition: sorted.some((x) => x.boothsFromPastEdition),
     ageInfo: first(sorted.map((x) => x.ageInfo)),
     hours: first(sorted.map((x) => x.hours)),
     themes: [],

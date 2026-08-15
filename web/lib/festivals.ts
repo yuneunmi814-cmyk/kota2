@@ -44,6 +44,7 @@ export interface Festival {
   visitorLift?: number | null
   organizer?: string | null
   booths?: { name: string; menu: { name: string; price: number | null }[] }[] | null
+  boothsFromPastEdition?: boolean
   ageInfo?: string | null
   hours?: string | null
   themes?: string[]
