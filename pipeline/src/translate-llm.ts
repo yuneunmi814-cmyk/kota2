@@ -40,7 +40,8 @@ export function needsLlm(f: Festival): boolean {
   return KO_PARTICLE.test(en)
 }
 
-// 시스템 프롬프트 — 안정된 앞부분. cache_control로 캐시한다(Opus 5는 512토큰부터).
+// 시스템 프롬프트 — 약 300토큰이라 프롬프트 캐시 최소(Sonnet 5는 1024)에 못 미친다. 캐시를 켜도 실측 cache 0.
+// 4건 배치에선 캐시 이득이 작으니 프롬프트를 억지로 늘리지 않고 그냥 보낸다.
 const SYSTEM = `You translate Korean festival descriptions for a tourism website (KOTA) that helps foreign visitors find festivals in Korea.
 
 Audience: travelers reading on a phone. Register: warm, plain, concrete. Not marketing copy, not a brochure — a friend explaining what the festival is.
@@ -82,8 +83,8 @@ async function translateBatch(client: Anthropic, batch: { id: string; name: stri
   const user = batch.map((b) => `<festival id="${b.id}">\n<name>${b.name}</name>\n<summary>${b.summary}</summary>\n</festival>`).join('\n\n')
   const res = await client.messages.create({
     model: MODEL,
-    max_tokens: 8000,
-    system: [{ type: 'text', text: SYSTEM, cache_control: { type: 'ephemeral' } }],
+    max_tokens: 16000, // 태국어가 길다 — 4건×3언어에 8000이면 잘린다(실측 배치 1건 JSON 절단)
+    system: SYSTEM,
     output_config: { format: { type: 'json_schema', schema: SCHEMA } },
     messages: [{ role: 'user', content: `Translate each <summary> into English, Japanese, and Thai. Return {"items":[{"id","en","ja","th"}]} for every festival, same ids.\n\n${user}` }],
   })
