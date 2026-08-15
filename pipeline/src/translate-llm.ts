@@ -15,9 +15,9 @@ import { translateSummary } from './lang/translate-name.js'
 
 const CACHE = new URL('../data/llm-translations.json', import.meta.url)
 const DATA = new URL('../data/festivals.json', import.meta.url)
-const MODEL = 'claude-opus-5'
+const MODEL = 'claude-sonnet-5' // 번역은 Sonnet으로 충분하고 Opus 5는 요청당 사고 시간이 길어 8건 배치가 10분을 넘겼다(실측)
 const MAX_ENGINE = 80 // 이 길이를 넘으면 엔진 사전이 감당 못 한다
-const BATCH = 8 // 한 요청에 몇 건을 묶을지 — 캐시된 시스템 프롬프트 뒤에 8건이면 응답이 2~3천 토큰
+const BATCH = 4 // 한 요청에 4건 — 응답 1~2천 토큰, 한 배치가 1분 안에 끝난다
 
 interface Tr { en: string; ja: string; th: string }
 interface CacheEntry { hash: string; name: string; summary: Tr }
@@ -120,6 +120,7 @@ export async function runLlmTranslation(): Promise<void> {
   let failed = 0
   for (let i = 0; i < todo.length; i += BATCH) {
     const batch = todo.slice(i, i + BATCH)
+    process.stdout.write(`   [${Math.floor(i / BATCH) + 1}/${Math.ceil(todo.length / BATCH)}] `)
     try {
       const got = await translateBatch(client, batch)
       for (const b of batch) {
