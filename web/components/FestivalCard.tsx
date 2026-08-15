@@ -38,6 +38,16 @@ export default function FestivalCard({
             {t(lang, 'status.ongoing')}
           </span>
         )}
+        {f.category === 'MF' && (
+          <span className="absolute right-3 top-3 rounded-full border-2 border-brand bg-paper px-2 py-0.5 text-[10px] font-black text-brand" title={t(lang, 'grade.mf')}>
+            {t(lang, 'grade.mf')}
+          </span>
+        )}
+        {f.imageFrom === 'past' && (
+          <span className="absolute bottom-2 right-2 rounded-full bg-ink/70 px-2 py-0.5 text-[10px] font-bold text-white backdrop-blur-sm">
+            {t(lang, 'poster.past')}
+          </span>
+        )}
       </div>
 
       <div className="p-4">

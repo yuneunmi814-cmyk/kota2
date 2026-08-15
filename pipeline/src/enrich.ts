@@ -119,6 +119,7 @@ for (const f of items) {
   }
   if (!f.imageUrl && c.imageUrl) {
     f.imageUrl = c.imageUrl
+    f.imageFrom = 'past' // 지난 회차 포스터 — 날짜가 박혀 있을 수 있어 화면에 뱃지로 알린다
     appliedImg += 1
   }
 }

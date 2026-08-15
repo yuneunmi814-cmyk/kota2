@@ -19,6 +19,8 @@ export interface ListItem {
   sd: string | null // 시·도(지역 필터용, 한국어 정식명)
   th: string[] // 목적 테마
   img: string | null
+  /** 지난 회차 포스터인가 */
+  ip: boolean
   lat: number | null
   lng: number | null
   pop: number
@@ -39,6 +41,7 @@ export function listItems(lang: Lang): ListItem[] {
       sd: f.sido ?? null,
       th: f.themes ?? [],
       img: f.imageUrl ?? null,
+      ip: f.imageFrom === 'past',
       lat: f.lat ?? null,
       lng: f.lng ?? null,
       pop: f.popularity ?? 0,

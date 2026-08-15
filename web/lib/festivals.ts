@@ -26,6 +26,9 @@ export interface Festival {
   sigungu?: string | null
   address?: string | null
   imageUrl?: string | null
+  imageFrom?: 'own' | 'past' | null
+  /** 'MF' = 문체부 지정 문화관광축제 */
+  category?: string | null
   homepage?: string | null
   tel?: string | null
   /** kfes가 주는 것들 — 요금·프로그램·SNS. 다른 소스는 비어 있다 */

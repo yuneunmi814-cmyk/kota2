@@ -15,6 +15,8 @@ export interface RawFestival {
   lat?: number | null
   lng?: number | null
   imageUrl?: string | null
+  /** 이미지 출처 — 'past'면 같은 축제의 지난 회차 포스터(TourAPI 검색으로 보강). 화면에서 표시한다 */
+  imageFrom?: 'own' | 'past' | null
   /** 산문 개요 — kfes가 준다. 다른 소스는 '공연+체험' 같은 조각뿐 */
   summary?: string | null
   /** 프로그램·요금·예약 등 상세 — 있는 소스만 */
@@ -24,7 +26,7 @@ export interface RawFestival {
   instagram?: string | null
   youtube?: string | null
   tel?: string | null
-  /** 문체부 유형 코드 등 — 테마 분류 힌트 */
+  /** kfes fstvlClCd — 'MF'면 문체부 지정 문화관광축제(관광공사 인증). 그 외 유형 코드 힌트 */
   category?: string | null
 }
 

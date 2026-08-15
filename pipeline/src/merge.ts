@@ -127,6 +127,7 @@ const merged: Festival[] = groups.map((g) => {
     lat: withCoords?.lat ?? null,
     lng: withCoords?.lng ?? null,
     imageUrl: first(sorted.map((x) => x.imageUrl)),
+    imageFrom: first(sorted.map((x) => x.imageUrl)) ? 'own' : null,
     summary,
     program: first(sorted.map((x) => x.program)),
     fee: first(sorted.map((x) => x.fee)),
@@ -140,8 +141,20 @@ const merged: Festival[] = groups.map((g) => {
     translations: [],
   }
   f.themes = classifyThemes(f.name, `${f.summary ?? ''} ${f.category ?? ''}`)
-  // 인기 프록시 — 소스가 여럿에 실린 축제일수록, 이미지·좌표가 갖춰졌을수록 위. 나중에 찜/클릭으로 대체
-  f.popularity = f.sources.length * 10 + (f.imageUrl ? 5 : 0) + (f.lat ? 3 : 0) + (f.sources.includes('kfes') ? 8 : 0)
+  // 인기 — 관광공사 공식 근거를 위에 둔다.
+  //  ① 문화관광축제 지정(kfes fstvlClCd=MF, 문체부 지정·관광공사 인증 65건) = 가장 강한 신호 +100
+  //  ② 관광공사 구석구석 큐레이션 포함(kfes) +30 — 공사가 골라 실은 축제
+  //  ③ 여러 공공 소스에 동시 등재 +10/소스 — 지자체·문체부·공사가 각자 챙기는 규모
+  //  ④ 이미지·좌표 완비 +3 — 동점 정리용
+  // TourAPI 데이터랩(검색순위·방문자)은 2026-08 현재 폐기 상태라 못 쓴다. 살아나면 여기에 얹는다.
+  const kfesGrade = bySrc('kfes')?.category ?? null // 'MF' | 'AF' | null
+  f.popularity =
+    (kfesGrade === 'MF' ? 100 : 0) +
+    (f.sources.includes('kfes') ? 30 : 0) +
+    f.sources.length * 10 +
+    (f.imageUrl ? 2 : 0) +
+    (f.lat != null ? 1 : 0)
+  if (kfesGrade === 'MF') f.category = 'MF'
   return f
 })
 

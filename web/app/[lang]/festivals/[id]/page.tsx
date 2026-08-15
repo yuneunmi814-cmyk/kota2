@@ -108,8 +108,13 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
           <Icon name="arrow" size={15} className="rotate-180" /> {t(l, 'detail.back')}
         </Link>
 
-        <div className="mb-7 aspect-[16/9] overflow-hidden rounded-[var(--radius-card)] bg-surface">
+        <div className="relative mb-7 aspect-[16/9] overflow-hidden rounded-[var(--radius-card)] bg-surface">
           <Poster src={f.imageUrl} name={L.name} letterClass="text-[4.5em]" />
+          {f.imageFrom === 'past' && (
+            <span className="absolute bottom-3 right-3 rounded-full bg-ink/70 px-2.5 py-1 text-[11px] font-bold text-white backdrop-blur-sm">
+              {t(l, 'poster.past')}
+            </span>
+          )}
         </div>
 
         <div className="mb-3 flex flex-wrap items-center gap-2 text-[14px] font-semibold text-muted">
@@ -117,6 +122,9 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
             <span className="sticker rounded-full bg-y px-3 py-1 text-[12px] font-black text-on-y">{t(l, 'status.ongoing')}</span>
           )}
           {always && <span className="rounded-full bg-surface px-3 py-1 text-[12px] font-bold text-muted">{t(l, 'status.always')}</span>}
+          {f.category === 'MF' && (
+            <span className="rounded-full border-2 border-brand px-3 py-1 text-[12px] font-black text-brand">{t(l, 'grade.mf')}</span>
+          )}
           {L.placeName && <span>{L.placeName}</span>}
         </div>
 

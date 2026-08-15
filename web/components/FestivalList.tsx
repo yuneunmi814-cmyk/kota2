@@ -199,6 +199,11 @@ export default function FestivalList({
                       {t(lang, 'status.ongoing')}
                     </span>
                   )}
+                  {f.ip && (
+                    <span className="absolute bottom-2 right-2 rounded-full bg-ink/70 px-2 py-0.5 text-[10px] font-bold text-white backdrop-blur-sm">
+                      {t(lang, 'poster.past')}
+                    </span>
+                  )}
                 </div>
                 <div className="p-4">
                   <div className="mb-1.5 flex items-center gap-2 text-[12px] font-semibold text-muted">
