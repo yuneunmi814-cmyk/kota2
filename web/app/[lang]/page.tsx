@@ -36,7 +36,10 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
   const all = allFestivals()
 
   const ongoing = all.filter((f) => statusOf(f) === 'ongoing' && !isAlwaysOn(f))
-  const popular = [...ongoing].sort((a, b) => (b.popularity ?? 0) - (a.popularity ?? 0)).slice(0, 8)
+  // 인기 — 진행 중 + 30일 안에 시작하는 축제. 진행 중만 보면 비수기엔 소규모가 상위에 뜬다(실측)
+  const soon = Date.now() + 30 * 86_400_000
+  const upcomingSoon = all.filter((f) => statusOf(f) === 'upcoming' && !isAlwaysOn(f) && new Date(f.startDate).getTime() <= soon)
+  const popular = [...ongoing, ...upcomingSoon].sort((a, b) => (b.popularity ?? 0) - (a.popularity ?? 0)).slice(0, 8)
 
   const themeCount = (k: string) => all.filter((f) => f.themes?.includes(k)).length
 
