@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto'
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import Anthropic from '@anthropic-ai/sdk'
 import type { Festival } from './lib/types.js'
+import { translateSummary } from './lang/translate-name.js'
 
 // 산문 개요 LLM 번역 — 엔진(사전+음역)이 못 옮기는 긴 문장을 Claude로 옮긴다.
 //
@@ -15,6 +16,7 @@ import type { Festival } from './lib/types.js'
 const CACHE = new URL('../data/llm-translations.json', import.meta.url)
 const DATA = new URL('../data/festivals.json', import.meta.url)
 const MODEL = 'claude-opus-5'
+const MAX_ENGINE = 80 // 이 길이를 넘으면 엔진 사전이 감당 못 한다
 const BATCH = 8 // 한 요청에 몇 건을 묶을지 — 캐시된 시스템 프롬프트 뒤에 8건이면 응답이 2~3천 토큰
 
 interface Tr { en: string; ja: string; th: string }
@@ -22,6 +24,21 @@ interface CacheEntry { hash: string; name: string; summary: Tr }
 type Cache = Record<string, CacheEntry>
 
 const hashOf = (s: string) => createHash('sha1').update(s).digest('hex').slice(0, 12)
+
+// 엔진이 실패했는지 — 한국어 조사·어미가 로마자로 남아 있으면 번역이 아니라 음역이다.
+// 예: '우리가 살고 있는 도시는…' → 'Uriga Salgo Inneun City Neun Wollae…'
+// 길이로만 거르면 이런 짧은 실패가 그대로 화면에 나간다(실측 15건).
+const KO_PARTICLE =
+  /\b(?:Neun|Reul|Eul|Ege|Eseo|Euro|Ieotda|Ieotdago|Haeyo|Hamnida|Ipnida|Inneun|Haneun|Doeneun|Wihan|Wihae|Kkaji|Buteo|Boda|Cheoreom|Mada|Hago|Hamyeo|Seumnida|Getda)\b/i
+
+/** 이 축제의 요약을 LLM이 맡아야 하는가 — 길거나, 엔진 결과가 음역으로 무너졌거나 */
+export function needsLlm(f: Festival): boolean {
+  const ko = f.summary?.trim()
+  if (!ko) return false
+  if (ko.length > MAX_ENGINE) return true
+  const en = translateSummary(ko)?.en ?? ''
+  return KO_PARTICLE.test(en)
+}
 
 // 시스템 프롬프트 — 안정된 앞부분. cache_control로 캐시한다(Opus 5는 512토큰부터).
 const SYSTEM = `You translate Korean festival descriptions for a tourism website (KOTA) that helps foreign visitors find festivals in Korea.
@@ -87,9 +104,9 @@ export async function runLlmTranslation(): Promise<void> {
   const cache: Cache = existsSync(CACHE) ? JSON.parse(readFileSync(CACHE, 'utf-8')) : {}
   const items = (JSON.parse(readFileSync(DATA, 'utf-8')) as { items: Festival[] }).items
 
-  // 대상: 80자 넘는 산문이 있고, 캐시에 같은 해시가 없는 것
+  // 대상: LLM이 맡아야 하는 요약(긴 산문 + 엔진이 음역으로 무너진 것) 중 캐시에 없는 것
   const todo = items
-    .filter((f) => f.summary && f.summary.length > 80)
+    .filter(needsLlm)
     .filter((f) => cache[f.externalId]?.hash !== hashOf(f.summary!))
     .map((f) => ({ id: f.externalId, name: f.name, summary: f.summary! }))
 

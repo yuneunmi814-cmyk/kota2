@@ -2,7 +2,7 @@ import { readFileSync, writeFileSync } from 'node:fs'
 import type { Festival } from './lib/types.js'
 import { placeName } from './lang/places.js'
 import { LANGS, translateFestivalName, translateSummary, type Lang } from './lang/translate-name.js'
-import { llmSummaryFor, loadLlmCache, runLlmTranslation } from './translate-llm.js'
+import { llmSummaryFor, loadLlmCache, needsLlm, runLlmTranslation } from './translate-llm.js'
 
 // 다국어 — 손번역(data/seed/festival-translations.json)이 엔진을 덮는다.
 //
@@ -35,7 +35,8 @@ let llmCount = 0
 for (const f of items) {
   const h = hand.get(f.name)
   const nameTr = translateFestivalName(f.name)
-  const sumTr = f.summary && f.summary.length <= MAX_ENGINE_SUMMARY ? translateSummary(f.summary) : null
+  // 엔진 요약은 '엔진이 감당 가능한 것'에만 쓴다. needsLlm이 true면 엔진 결과는 음역이라 버린다
+  const sumTr = f.summary && !needsLlm(f) ? translateSummary(f.summary) : null
   const llmTr = llmSummaryFor(llm, f)
   if (h) handCount += 1
   if (llmTr) llmCount += 1
@@ -53,5 +54,5 @@ for (const f of items) {
 writeFileSync(DATA, JSON.stringify({ exportedAt: new Date().toISOString(), items }))
 const n = items.length
 const withSum = items.filter((f) => f.translations.some((t) => t.summary)).length
-const longProse = items.filter((f) => (f.summary?.length ?? 0) > MAX_ENGINE_SUMMARY).length
-console.log(`▶ 번역 ${n}건 × 3언어 · 손번역 ${handCount} · LLM ${llmCount} · 요약 번역 ${withSum}건 (산문 ${longProse}건 중 원문 유지 ${longProse - llmCount})`)
+const need = items.filter(needsLlm).length
+console.log(`▶ 번역 ${n}건 × 3언어 · 손번역 ${handCount} · LLM ${llmCount} · 요약 번역 ${withSum}건 (LLM 필요 ${need}건 중 미처리 ${need - llmCount})`)
