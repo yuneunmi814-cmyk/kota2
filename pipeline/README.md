@@ -22,3 +22,10 @@ Postgres·Render 같은 서버가 필요 없다 → 유료 전환도, 콜드 스
     npm run merge       # 병합·정규화 → data/festivals.json (web/data로 복사)
     npm run translate   # 번역 엔진(en/ja/th)
     npm run all         # 위 순서 전부
+
+## LLM 번역 (선택)
+80자 넘는 산문 개요(kfes, ~130건)는 규칙 엔진이 못 옮긴다. `ANTHROPIC_API_KEY`가 있으면
+`translate` 단계가 Claude(`claude-opus-5`)로 옮기고 `data/llm-translations.json`에 캐시한다.
+캐시는 (externalId, 원문 해시)라 첫 실행만 전량, 매주는 새 축제만 — 비용이 0에 수렴한다.
+키가 없으면 건너뛰고 원문을 둔다. 로컬은 `pipeline/.env`, CI는 GitHub 시크릿에 넣는다.
+우선순위: 손번역(`data/seed/festival-translations.json`) > LLM > 엔진.
