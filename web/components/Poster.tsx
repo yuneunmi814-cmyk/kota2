@@ -33,23 +33,23 @@ export default function Poster({
   letterClass?: string
 }) {
   const [failed, setFailed] = useState(false)
-  if (src && !failed) {
-    return (
-      <img
-        src={src}
-        alt={name}
-        loading="lazy"
-        onError={() => setFailed(true)}
-        className={`h-full w-full object-cover ${className}`}
-      />
-    )
-  }
+  const tint = TINTS[hash(name) % TINTS.length]
+  // 이미지가 있어도 틴트+첫 글자를 먼저 깔고 그 위에 얹는다 — 지자체 서버가 느려서
+  // 로딩에 몇 초 걸리는 동안 흰 공백이 보이던 문제(실측). 로드되면 이미지가 덮는다.
   return (
-    <div
-      className={`flex h-full w-full items-center justify-center ${TINTS[hash(name) % TINTS.length]} ${className}`}
-      aria-hidden="true"
-    >
-      <span className={`font-black leading-none text-ink/45 select-none ${letterClass}`}>{initial(name)}</span>
+    <div className={`relative flex h-full w-full items-center justify-center ${tint} ${className}`}>
+      <span className={`font-black leading-none text-ink/45 select-none ${letterClass}`} aria-hidden="true">
+        {initial(name)}
+      </span>
+      {src && !failed && (
+        <img
+          src={src}
+          alt={name}
+          loading="lazy"
+          onError={() => setFailed(true)}
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+      )}
     </div>
   )
 }
