@@ -7,9 +7,10 @@
     "sync": "tsx --env-file-if-exists=.env src/sync.ts",
     "merge": "tsx --env-file-if-exists=.env src/merge.ts",
     "translate": "tsx --env-file-if-exists=.env src/translate.ts",
-    "all": "npm run sync && npm run merge && npm run enrich && npm run translate && npm run export",
+    "all": "npm run sync && npm run merge && npm run enrich && npm run popularity && npm run translate && npm run export",
     "enrich": "tsx --env-file-if-exists=.env src/enrich.ts",
-    "export": "cp data/festivals.json ../web/data/festivals.json && echo \"→ web/data/festivals.json 갱신\""
+    "export": "cp data/festivals.json ../web/data/festivals.json && echo \"→ web/data/festivals.json 갱신\"",
+    "popularity": "tsx --env-file-if-exists=.env src/popularity.ts"
   },
   "keywords": [],
   "author": "",

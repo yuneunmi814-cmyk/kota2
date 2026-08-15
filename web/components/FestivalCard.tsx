@@ -53,6 +53,11 @@ export default function FestivalCard({
       <div className="p-4">
         <div className="mb-1.5 flex items-center gap-2 text-[12px] font-semibold text-muted">
           <span className="truncate">{L.placeName}</span>
+          {f.visitorLift != null && f.visitorLift >= 2 && (
+            <span className="shrink-0 rounded-full bg-tint-r px-1.5 py-0.5 text-[10px] font-black text-on-r" title={t(lang, 'lift.note')}>
+              {t(lang, 'lift.label', { x: f.visitorLift.toFixed(1) })}
+            </span>
+          )}
           {distanceKm != null && (
             <span className="shrink-0 font-bold text-brand-400">
               {distanceKm < 10 ? distanceKm.toFixed(1) : Math.round(distanceKm)}km

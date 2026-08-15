@@ -34,6 +34,10 @@ jobs:
       - run: npm run enrich
         env:
           TOURAPI_SERVICE_KEY: ${{ secrets.TOURAPI_SERVICE_KEY }}
+      # 관광빅데이터(통신사 방문자수)로 축제별 유입 배율 — 날짜별 스냅샷은 커밋된 캐시를 쓰고 새 날만 받는다
+      - run: npm run popularity
+        env:
+          TOURAPI_SERVICE_KEY: ${{ secrets.TOURAPI_SERVICE_KEY }}
       # ANTHROPIC_API_KEY 시크릿이 없으면 LLM 번역은 건너뛰고 엔진 번역만 적용된다
       - run: npm run translate
         env:

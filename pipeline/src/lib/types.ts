@@ -36,5 +36,7 @@ export interface Festival extends RawFestival {
   sources: string[]
   themes: string[]
   popularity: number
+  /** 관광빅데이터 — 지난 회차 축제 기간 개최지 외지인 방문자 피크 ÷ 전후 4주 같은 요일 중앙값 */
+  visitorLift?: number | null
   translations: { langCode: 'en' | 'ja' | 'th'; name: string; summary: string | null; placeName: string | null }[]
 }

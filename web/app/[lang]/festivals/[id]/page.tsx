@@ -125,6 +125,11 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
           {f.category === 'MF' && (
             <span className="rounded-full border-2 border-brand px-3 py-1 text-[12px] font-black text-brand">{t(l, 'grade.mf')}</span>
           )}
+          {f.visitorLift != null && f.visitorLift >= 1.5 && (
+            <span className="rounded-full bg-tint-r px-3 py-1 text-[12px] font-black text-on-r" title={t(l, 'lift.note')}>
+              {t(l, 'lift.label', { x: f.visitorLift.toFixed(1) })}
+            </span>
+          )}
           {L.placeName && <span>{L.placeName}</span>}
         </div>
 

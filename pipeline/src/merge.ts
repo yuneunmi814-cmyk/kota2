@@ -138,6 +138,7 @@ const merged: Festival[] = groups.map((g) => {
     category: first(sorted.map((x) => x.category)),
     themes: [],
     popularity: 0,
+    visitorLift: null,
     translations: [],
   }
   f.themes = classifyThemes(f.name, `${f.summary ?? ''} ${f.category ?? ''}`)

@@ -39,7 +39,9 @@ export interface Festival {
   sources?: string[]
   lat?: number | null
   lng?: number | null
-  popularity?: number | null
+  popularity?: number
+  /** 관광빅데이터 유입 배율 — 지난 회차 개최지 외지인 방문자 피크 ÷ 평소 */
+  visitorLift?: number | null | null
   themes?: string[]
   region?: { name: string } | null
   translations?: Translation[]
