@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import type { Festival } from '@/lib/festivals'
-import { allFestivals, isAlwaysOn, localized, statusOf } from '@/lib/festivals'
+import { allFestivals, isAlwaysOn, isLongRun, localized, statusOf } from '@/lib/festivals'
 import { LANGS, SITE_URL, isLang, type Lang } from '@/lib/i18n'
 import { t } from '@/lib/ui'
 import { THEMES, themeDesc, themeLabel } from '@/lib/themes'
@@ -81,11 +81,14 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
     return out
   }
 
-  // 신뢰축 — 문체부 지정 문화관광축제. 시간축이 아니라 '검증된 축제' 축이라 30일로 자르지 않고
-  // 종료 안 된 37건 전체를 본다. 앞 행들이 지금 열리는 MF를 다 가져가면 이 행이 통째로 사라진다(실측).
-  const designated = all
-    .filter((f) => f.category === 'MF' && statusOf(f) !== 'ended')
-    .sort((a, b) => a.startDate.localeCompare(b.startDate) || showcase(a, b))
+  // 계획축 — 다음 달에 시작하는 축제. 여행은 몇 주 전에 정한다.
+  // '문화관광축제(문체부 지정)' 행을 여기 뒀다가 뺐다 — 지정은 진짜 신호지만(방문객 배율 중앙값
+  // 1.32배 vs 비지정 1.03배) 지금 열리는 MF가 1건뿐이라 두 달 뒤 축제로 행을 채우게 됐고,
+  // '문화관광축제'는 여행자가 아니라 주최자의 언어다. 신호는 카드·상세의 뱃지가 이미 전한다.
+  const nextMonthEnd = new Date(now + 45 * day).toISOString().slice(0, 10)
+  const nextMonth = all
+    .filter((f) => statusOf(f) === 'upcoming' && !isAlwaysOn(f) && !isLongRun(f) && f.startDate <= nextMonthEnd)
+    .sort(showcase)
 
   return (
     <>
@@ -158,9 +161,9 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
           moreLabel={t(l, 'row.more')}
         />
         <FestivalRow
-          title={t(l, 'row.designated')}
-          subtitle={t(l, 'row.designated.sub')}
-          items={take(designated)}
+          title={t(l, 'row.next')}
+          subtitle={t(l, 'row.next.sub')}
+          items={take(nextMonth)}
           lang={l}
           href={`/${l}/festivals/`}
           moreLabel={t(l, 'row.more')}
