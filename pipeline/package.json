@@ -7,12 +7,13 @@
     "sync": "tsx --env-file-if-exists=.env src/sync.ts",
     "merge": "tsx --env-file-if-exists=.env src/merge.ts",
     "translate": "tsx --env-file-if-exists=.env src/translate.ts",
-    "all": "npm run sync && npm run merge && npm run enrich && npm run gallery && npm run scrape && npm run popularity && npm run translate && npm run export",
+    "all": "npm run sync && npm run merge && npm run enrich && npm run gallery && npm run scrape && npm run region-photos && npm run popularity && npm run translate && npm run export",
     "enrich": "tsx --env-file-if-exists=.env src/enrich.ts",
     "export": "cp data/festivals.json ../web/data/festivals.json && echo \"→ web/data/festivals.json 갱신\"",
     "popularity": "tsx --env-file-if-exists=.env src/popularity.ts",
     "gallery": "tsx --env-file-if-exists=.env src/gallery.ts",
-    "scrape": "tsx --env-file-if-exists=.env src/scrape-images.ts"
+    "scrape": "tsx --env-file-if-exists=.env src/scrape-images.ts",
+    "region-photos": "tsx --env-file-if-exists=.env src/region-photos.ts"
   },
   "keywords": [],
   "author": "",

@@ -34,6 +34,8 @@ export interface RawFestival {
   booths?: { name: string; menu: { name: string; price: number | null }[] }[] | null
   /** TourAPI detailImage2 사진 갤러리. 전부 공공누리 3유형(출처표시·변경금지) */
   photos?: { url: string; thumb: string; name: string }[] | null
+  /** 포스터가 없을 때 쓰는 지역 사진(관광공사 포토코리아, 공공누리 1유형). 포스터가 아님을 화면에 밝힌다 */
+  regionPhoto?: { url: string; title: string; photographer: string } | null
   /** kfes 운영 메모 '먹거리 내용은 전년도 것' — 개요에서 떼어 먹거리 섹션에 표시한다 */
   boothsFromPastEdition?: boolean
   /** 관람 가능 연령·운영 시간(있는 것만) */

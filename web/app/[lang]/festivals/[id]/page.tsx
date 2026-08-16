@@ -174,7 +174,13 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
           style={{ height: 'clamp(210px, 52vw, 440px)' }}
         >
           <div className={`relative h-full overflow-hidden ${sideTiles.length ? 'sm:col-span-2' : ''}`}>
-            <Poster src={f.imageUrl} name={L.name} letterClass="text-[5em]" />
+            <Poster
+              src={f.imageUrl}
+              name={L.name}
+              letterClass="text-[5em]"
+              regionPhoto={f.imageUrl ? null : (f.regionPhoto?.url ?? null)}
+              regionLabel={t(l, 'photo.region')}
+            />
             {f.imageFrom === 'past' && (
               <span className="absolute bottom-3 left-3 rounded-full bg-ink/70 px-2.5 py-1 text-[11px] font-bold text-white backdrop-blur-sm">{t(l, 'poster.past')}</span>
             )}
@@ -220,6 +226,17 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
         {/* 2단 — 왼쪽 본문 / 오른쪽 sticky 정보 카드 */}
         <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_340px]">
           <div className="min-w-0">
+            {/* 지역 사진을 쓰는 경우 — 포스터로 오해하지 않게 먼저 밝힌다 */}
+            {!f.imageUrl && f.regionPhoto && (
+              <p className="mb-6 rounded-[var(--radius-card)] bg-tint-s px-4 py-3 text-[13px] leading-relaxed text-on-s">
+                {t(l, 'photo.region.note', { place: f.regionPhoto.title || L.placeName || '' })}
+                <span className="mt-1 block text-[11px] opacity-70">
+                  {t(l, 'photo.region.src')}
+                  {f.regionPhoto.photographer ? ` · ${f.regionPhoto.photographer}` : ''}
+                </span>
+              </p>
+            )}
+
             {/* 소개 */}
             {(L.summary || f.summary) && (
               <section className="mb-10">

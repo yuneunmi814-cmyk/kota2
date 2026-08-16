@@ -31,6 +31,8 @@ export default function FestivalCard({
         <Poster
           src={f.imageUrl}
           name={L.name}
+          regionPhoto={f.imageUrl ? null : (f.regionPhoto?.url ?? null)}
+          regionLabel={t(lang, 'photo.region')}
           className="transition-transform duration-500 group-hover:scale-[1.04]"
         />
         {st === 'ongoing' && !always && (

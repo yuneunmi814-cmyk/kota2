@@ -30,7 +30,7 @@ export default function FestivalListFallback({ items, lang }: { items: ListItem[
             className="lift group block overflow-hidden rounded-[var(--radius-card)] border border-line bg-surface hover:border-brand/40"
           >
             <div className="relative aspect-[4/3] overflow-hidden bg-surface">
-              <Poster src={f.img} name={f.n} />
+              <Poster src={f.img} name={f.n} regionPhoto={f.rp} regionLabel={t(lang, 'photo.region')} />
               {f.st === 'ongoing' && !f.al && (
                 <span className="sticker absolute left-3 top-3 rounded-full bg-y px-2.5 py-1 text-[11px] font-black text-on-y">
                   {t(lang, 'status.ongoing')}

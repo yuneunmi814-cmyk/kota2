@@ -202,6 +202,8 @@ export default function FestivalList({
                   <Poster
                     src={f.img}
                     name={f.n}
+                    regionPhoto={f.rp}
+                    regionLabel={t(lang, 'photo.region')}
                     className="transition-transform duration-500 group-hover:scale-[1.04]"
                   />
                   {f.st === 'ongoing' && !f.al && (

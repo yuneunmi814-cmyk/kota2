@@ -26,11 +26,16 @@ export default function Poster({
   name,
   className = '',
   letterClass = 'text-[2.4em]',
+  regionPhoto = null,
+  regionLabel,
 }: {
   src?: string | null
   name: string
   className?: string
   letterClass?: string
+  /** 포스터가 없을 때 쓰는 지역 사진 — 포스터인 척하면 안 되므로 라벨을 얹는다 */
+  regionPhoto?: string | null
+  regionLabel?: string
 }) {
   const [failed, setFailed] = useState(false)
   const tint = TINTS[hash(name) % TINTS.length]
@@ -49,6 +54,24 @@ export default function Poster({
           onError={() => setFailed(true)}
           className="absolute inset-0 h-full w-full object-cover"
         />
+      )}
+      {/* 포스터가 없을 때만 — 지역 풍경 사진. 살짝 어둡게 깔고 라벨을 얹어 포스터와 구분한다 */}
+      {!src && regionPhoto && !failed && (
+        <>
+          <img
+            src={regionPhoto}
+            alt=""
+            loading="lazy"
+            onError={() => setFailed(true)}
+            className="absolute inset-0 h-full w-full object-cover opacity-90"
+          />
+          <span className="absolute inset-0 bg-gradient-to-t from-ink/45 via-transparent to-transparent" />
+          {regionLabel && (
+            <span className="absolute bottom-2 left-2 rounded-full bg-ink/65 px-2 py-0.5 text-[10px] font-bold text-white backdrop-blur-sm">
+              {regionLabel}
+            </span>
+          )}
+        </>
       )}
     </div>
   )

@@ -22,6 +22,8 @@ export interface ListItem {
   img: string | null
   /** 지난 회차 포스터인가 */
   ip: boolean
+  /** 포스터가 없을 때 쓰는 지역 사진 URL — 포스터가 아니라는 라벨과 함께 쓴다 */
+  rp: string | null
   lat: number | null
   lng: number | null
   pop: number
@@ -44,6 +46,7 @@ export function listItems(lang: Lang): ListItem[] {
       th: f.themes ?? [],
       img: f.imageUrl ?? null,
       ip: f.imageFrom === 'past',
+      rp: f.imageUrl ? null : (f.regionPhoto?.url ?? null),
       lat: f.lat ?? null,
       lng: f.lng ?? null,
       pop: f.popularity ?? 0,

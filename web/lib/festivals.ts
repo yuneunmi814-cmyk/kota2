@@ -28,6 +28,7 @@ export interface Festival {
   imageUrl?: string | null
   imageFrom?: 'own' | 'past' | 'scraped' | null
   imageSource?: string | null
+  regionPhoto?: { url: string; title: string; photographer: string } | null
   /** 'MF' = 문체부 지정 문화관광축제 */
   category?: string | null
   homepage?: string | null
