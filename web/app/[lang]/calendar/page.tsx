@@ -102,7 +102,7 @@ export default async function CalendarPage({ params }: { params: Promise<{ lang:
                         </span>
                       </span>
                       {f.st === 'ongoing' && (
-                        <span className="shrink-0 sticker rounded-full bg-y px-2.5 py-1 text-[11px] font-black text-on-y">
+                        <span className="shrink-0 rounded-full bg-brand px-2.5 py-1 text-[11px] font-bold text-white">
                           {t(l, 'status.ongoing')}
                         </span>
                       )}

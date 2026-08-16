@@ -2,7 +2,7 @@ import { mkdirSync, writeFileSync } from 'node:fs'
 import { fetchKfes } from './sources/kfes.js'
 import { fetchTourapi } from './sources/tourapi.js'
 import { fetchStdfest } from './sources/stdfest.js'
-import { fetchMcst } from './sources/mcst.js'
+// import { fetchMcst } from './sources/mcst.js'  ⛔ 중단 — merge.ts 상단 참조
 import { fetchManual } from './sources/manual.js'
 import type { RawFestival } from './lib/types.js'
 
@@ -21,7 +21,7 @@ const jobs: [string, () => Promise<RawFestival[]> | RawFestival[]][] = [
   ['kfes', fetchKfes],
   ['tourapi', fetchTourapi],
   ['stdfest', fetchStdfest],
-  ['mcst', fetchMcst],
+  // ['mcst', fetchMcst],  ⛔ 시드 신뢰 불가로 중단 — 사유는 merge.ts 상단 참조
   ['manual', fetchManual],
 ]
 let failed = 0

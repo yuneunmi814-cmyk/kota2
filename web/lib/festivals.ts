@@ -138,3 +138,21 @@ export function distanceKm(a: { lat: number; lng: number }, b: { lat: number; ln
     Math.cos((a.lat * Math.PI) / 180) * Math.cos((b.lat * Math.PI) / 180) * Math.sin(dLng / 2) ** 2
   return R * 2 * Math.atan2(Math.sqrt(s), Math.sqrt(1 - s))
 }
+
+/**
+ * 시·도 안에서 방문객 배율 순위 — 트립어드바이저가 "서울의 즐길거리 1,619개 중 5위"를
+ * 놓는 자리다. 그쪽 순위는 리뷰 평점에서 나오지만 우리에겐 리뷰가 없다. 대신 통신사
+ * 방문자 실측(visitorLift)으로 매긴다. 근거의 성격이 다를 뿐 "이 지역에서 몇 번째로
+ * 사람이 몰리는 축제인가"라는 질문에는 오히려 더 곧게 답한다.
+ *
+ * 배율이 없는 축제(전체의 23%)는 순위에서 빼고, 모수도 '배율이 있는 축제 수'로 센다 —
+ * 425개 중 5위라고 해 놓고 실제로는 327개만 비교했다면 그 숫자가 거짓말이 된다.
+ */
+export function regionRank(f: Festival): { rank: number; total: number } | null {
+  if (f.visitorLift == null || !f.sido) return null
+  const peers = allFestivals().filter((x) => x.sido === f.sido && x.visitorLift != null)
+  if (peers.length < 3) return null // 두셋 중 1위는 순위라 할 게 못 된다
+  const sorted = [...peers].sort((a, b) => (b.visitorLift ?? 0) - (a.visitorLift ?? 0))
+  const i = sorted.findIndex((x) => x.externalId === f.externalId)
+  return i < 0 ? null : { rank: i + 1, total: sorted.length }
+}

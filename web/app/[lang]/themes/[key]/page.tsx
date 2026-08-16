@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { LANGS, SITE_URL, isLang, type Lang } from '@/lib/i18n'
-import { listItems, sidoOptions } from '@/lib/listData'
+import { listItems } from '@/lib/listData'
 import { THEMES, isTheme, themeDesc, themeLabel } from '@/lib/themes'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
@@ -42,7 +42,7 @@ export default async function ThemePage({ params }: { params: Promise<{ lang: st
       <Header lang={l} path={`themes/${key}`} />
       <main className="mx-auto max-w-6xl px-5 pb-24 pt-10">
         <div className="mb-8 flex items-center gap-4">
-          <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-tint-y text-on-y">
+          <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-brand">
             <Icon name={key} size={28} strokeWidth={1.6} />
           </span>
           <div>
@@ -65,7 +65,7 @@ export default async function ThemePage({ params }: { params: Promise<{ lang: st
           ))}
         </div>
 
-        <FestivalList items={items} lang={l} sidos={sidoOptions()} initialTheme={key} />
+        <FestivalList items={items} lang={l} initialTheme={key} />
       </main>
       <Footer lang={l} />
     </>

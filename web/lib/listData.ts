@@ -22,8 +22,6 @@ export interface ListItem {
   img: string | null
   /** 지난 회차 포스터인가 */
   ip: boolean
-  /** 포스터가 없을 때 쓰는 지역 사진 URL — 포스터가 아니라는 라벨과 함께 쓴다 */
-  rp: string | null
   lat: number | null
   lng: number | null
   pop: number
@@ -46,22 +44,11 @@ export function listItems(lang: Lang): ListItem[] {
       th: f.themes ?? [],
       img: f.imageUrl ?? null,
       ip: f.imageFrom === 'past',
-      rp: f.imageUrl ? null : (f.regionPhoto?.url ?? null),
       lat: f.lat ?? null,
       lng: f.lng ?? null,
       pop: f.popularity ?? 0,
     }
   })
-}
-
-/** 지역 필터 목록 — 실제 데이터에 있는 시·도만, 건수 많은 순 */
-export function sidoOptions(): { sido: string; count: number }[] {
-  const m = new Map<string, number>()
-  for (const f of allFestivals()) {
-    if (!f.sido) continue
-    m.set(f.sido, (m.get(f.sido) ?? 0) + 1)
-  }
-  return [...m.entries()].map(([sido, count]) => ({ sido, count })).sort((a, b) => b.count - a.count)
 }
 
 /** 날짜순 기본 정렬 — '가까운 날짜' 순.

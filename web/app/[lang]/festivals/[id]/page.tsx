@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { allFestivals, distanceKm, findByKey, isAlwaysOn, localized, statusOf } from '@/lib/festivals'
+import { allFestivals, distanceKm, findByKey, isAlwaysOn, isLongRun, localized, regionRank, statusOf } from '@/lib/festivals'
 import { LANGS, SITE_URL, isLang, type Lang } from '@/lib/i18n'
 import { t } from '@/lib/ui'
 import { sidoLabel } from '@/lib/sido'
@@ -61,6 +61,7 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
   const L = localized(f, l)
   const st = statusOf(f)
   const always = isAlwaysOn(f)
+  const rank = regionRank(f)
   const hasCoords = f.lat != null && f.lng != null
 
   const nearby = hasCoords
@@ -148,14 +149,18 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
         {/* 신뢰 줄 — 트립어드바이저의 '5.0 ●●●●● (10건) 327위' 자리. 우리는 공공 데이터 근거 */}
         <div className="mb-5 flex flex-wrap items-center gap-2 text-[13px] font-semibold text-muted">
           {st === 'ongoing' && !always && (
-            <span className="sticker rounded-full bg-y px-3 py-1 text-[12px] font-black text-on-y">{t(l, 'status.ongoing')}</span>
+            <span className="rounded-full bg-brand px-3 py-1 text-[12px] font-bold text-white">{t(l, 'status.ongoing')}</span>
           )}
           {always && <span className="rounded-full bg-surface px-3 py-1 text-[12px] font-bold text-muted">{t(l, 'status.always')}</span>}
+          {/* 기간이 두 달을 넘으면 매일 열리는 게 아니다 — 여기서 못 짚어주면 헛걸음이 된다 */}
+          {!always && isLongRun(f) && (
+            <span className="rounded-full bg-surface px-3 py-1 text-[12px] font-bold text-muted">{t(l, 'status.selectDates')}</span>
+          )}
           {f.category === 'MF' && (
             <span className="rounded-full border-2 border-brand px-3 py-1 text-[12px] font-black text-brand">{t(l, 'grade.mf')}</span>
           )}
           {f.visitorLift != null && f.visitorLift >= 1.5 && (
-            <span className="rounded-full bg-tint-r px-3 py-1 text-[12px] font-black text-on-r" title={t(l, 'lift.note')}>
+            <span className="rounded-full bg-brand-50 px-3 py-1 text-[12px] font-bold text-brand" title={t(l, 'lift.note')}>
               {t(l, 'lift.label', { x: f.visitorLift.toFixed(1) })}
             </span>
           )}
@@ -165,6 +170,15 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
             </span>
           )}
         </div>
+
+        {/* 지역 내 순위 — 트립어드바이저가 '서울의 즐길거리 1,619개 중에서 5위'를 놓는 자리.
+            그쪽 근거는 리뷰 평점이고 우리 근거는 통신사 방문자 실측이다. 뱃지가 아니라 문장으로
+            두는 이유: 이게 이 페이지에서 가장 무거운 한 줄이라 뱃지 무리에 섞이면 묻힌다. */}
+        {rank && (
+          <p className="mb-5 text-[15px] font-bold text-ink" title={t(l, 'rank.note')}>
+            {t(l, 'rank.region', { sido: sidoLabel(f.sido!, l), total: rank.total, rank: rank.rank })}
+          </p>
+        )}
 
         {/* 사진 그리드 — 큰 1 + 작은 2. 트립어드바이저 상세 상단. 옆 칸은 유튜브 썸네일·지도로 채운다 */}
         {/* 모바일은 히어로 한 장만(트립어드바이저와 같다). 390px에서 3열이면 옆 칸이 127px이라 아무것도 안 보인다.
@@ -178,8 +192,6 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
               src={f.imageUrl}
               name={L.name}
               letterClass="text-[5em]"
-              regionPhoto={f.imageUrl ? null : (f.regionPhoto?.url ?? null)}
-              regionLabel={t(l, 'photo.region')}
             />
             {f.imageFrom === 'past' && (
               <span className="absolute bottom-3 left-3 rounded-full bg-ink/70 px-2.5 py-1 text-[11px] font-bold text-white backdrop-blur-sm">{t(l, 'poster.past')}</span>
@@ -226,17 +238,6 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
         {/* 2단 — 왼쪽 본문 / 오른쪽 sticky 정보 카드 */}
         <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_340px]">
           <div className="min-w-0">
-            {/* 지역 사진을 쓰는 경우 — 포스터로 오해하지 않게 먼저 밝힌다 */}
-            {!f.imageUrl && f.regionPhoto && (
-              <p className="mb-6 rounded-[var(--radius-card)] bg-tint-s px-4 py-3 text-[13px] leading-relaxed text-on-s">
-                {t(l, 'photo.region.note', { place: f.regionPhoto.title || L.placeName || '' })}
-                <span className="mt-1 block text-[11px] opacity-70">
-                  {t(l, 'photo.region.src')}
-                  {f.regionPhoto.photographer ? ` · ${f.regionPhoto.photographer}` : ''}
-                </span>
-              </p>
-            )}
-
             {/* 소개 */}
             {(L.summary || f.summary) && (
               <section className="mb-10">
@@ -266,7 +267,7 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
                   </span>
                 </div>
                 {f.boothsFromPastEdition && (
-                  <p className="mb-3 rounded-lg bg-tint-y px-3 py-2 text-[13px] text-on-y">{t(l, 'detail.booth.past')}</p>
+                  <p className="mb-3 rounded-lg bg-brand-50 px-3 py-2 text-[13px] text-brand-600">{t(l, 'detail.booth.past')}</p>
                 )}
                 <div className="divide-y divide-line rounded-[var(--radius-card)] border border-line bg-surface">
                   {f.booths!.slice(0, 12).map((b) => (

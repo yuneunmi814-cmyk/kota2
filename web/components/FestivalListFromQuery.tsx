@@ -10,11 +10,9 @@ import FestivalList from './FestivalList'
 export default function FestivalListFromQuery({
   items,
   lang,
-  sidos,
 }: {
   items: ListItem[]
   lang: Lang
-  sidos: { sido: string; count: number }[]
 }) {
   const sp = useSearchParams()
   const sort = sp.get('sort')
@@ -23,7 +21,6 @@ export default function FestivalListFromQuery({
     <FestivalList
       items={items}
       lang={lang}
-      sidos={sidos}
       initialSort={sort === 'distance' || sort === 'popularity' ? sort : 'date'}
       initialTheme={theme && isTheme(theme) ? theme : null}
       initialQuery={sp.get('q') ?? ''}

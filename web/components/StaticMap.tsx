@@ -61,7 +61,7 @@ export default function StaticMap({ lat, lng, label }: { lat: number; lng: numbe
         </div>
         {/* 핀 — 짱구 빨강, 진갈 윤곽 */}
         <span
-          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-full text-r drop-shadow-[0_2px_0_var(--color-ink)]"
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-full text-r drop-shadow-[0_1px_2px_rgba(0,0,0,.35)]"
           aria-hidden
         >
           <Icon name="pin" size={34} strokeWidth={2.4} />

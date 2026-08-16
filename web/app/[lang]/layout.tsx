@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
-import { Gaegu } from 'next/font/google'
 import { HTML_LANG, LANGS, SITE_URL, isLang, type Lang } from '@/lib/i18n'
 import '../globals.css'
 
@@ -13,10 +12,6 @@ import '../globals.css'
 export function generateStaticParams() {
   return LANGS.map((lang) => ({ lang }))
 }
-
-// 손글씨 — 히어로 라틴 헤드라인 한 줄에만 쓴다(짱구 로고의 '크레용으로 쓴 손글씨' 문법).
-// 한·일·태 문자는 손글씨 폰트 품질이 낮아 표준 산세리프를 유지한다.
-const hand = Gaegu({ weight: '700', subsets: ['latin'], variable: '--font-hand', display: 'swap' })
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -32,7 +27,7 @@ export default async function LangLayout({
   const { lang } = await params
   const l: Lang = isLang(lang) ? lang : 'ko'
   return (
-    <html lang={HTML_LANG[l]} className={hand.variable}>
+    <html lang={HTML_LANG[l]}>
       <body className="bg-paper text-ink antialiased">{children}</body>
     </html>
   )

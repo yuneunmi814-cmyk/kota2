@@ -10,51 +10,34 @@
  * 축제 포스터가 주인공이므로 UI는 물러나 있어야 한다.
  */
 @theme {
-  /* 바탕은 크림 — 짱구 원본은 어두운 배경을 쓰지 않는다(공식 사이트 픽셀 실측: 흰·크림·파스텔).
-   * '즐거움은 명도가 만든다'(Valdez & Mehrabian 1994)와도 같은 방향이다.
-   * 딥그린은 바탕에서 물러나 제목·버튼·강조에만 남는다. */
+  /* 흰 바탕 + 브랜드 초록 하나. 트립어드바이저 홈의 문법이다 — 색은 브랜드 한 가지로 좁히고
+   * 나머지는 무채색으로 물러난다. 사진이 주인공인 화면에서 UI가 색을 쓰면 사진과 다툰다.
+   *
+   * 이전에는 크림 바탕 + 파스텔 4색 + 스티커 윤곽선(짱구 문법)이었다. 활기는 있었지만
+   * 축제 포스터 수백 장이 깔리는 목록에서는 배경까지 색을 내어 시끄러웠다. */
   --color-brand: #004027;
   --color-brand-600: #00593a;
   --color-brand-400: #0e8a5f;
-  --color-brand-50: #eef5f1;
+  --color-brand-50: #eff4f1;
 
-  --color-paper: #fffbe6; /* 크림 바탕 */
-  --color-paper-2: #f6efd2; /* 카드 테두리·구분 */
-  --color-surface: #ffffff; /* 카드 면 */
+  --color-paper: #ffffff;
+  --color-paper-2: #f5f5f4; /* 선택된 정렬 버튼 등 아주 옅은 면 */
+  --color-surface: #ffffff;
 
-  /* 짱구 4색 — 공식 포털 로고·한국판 로고 픽셀 실측. 의미를 고정해서 쓴다:
-   * 노랑=이번 주말·진행중 / 빨강=마감 임박 / 하늘=무료 / 초록=야외.
-   * 아무 데나 쓰면 시끄러워진다 — 화면당 포인트 색 3개까지. */
-  --color-y: #f7e61a;
-  --color-r: #e3002c;
-  --color-s: #5dc8f2;
-  --color-g: #38a828;
+  /* 무채색 — 갈색 기운을 뺀 중성. 흰 바탕 위 ink 15.8:1, muted 7.4:1, hint 2.9:1(장식용) */
+  --color-ink: #1b1b1a;
+  --color-muted: #5c5c58;
+  --color-hint: #9a9a94;
+  --color-line: #e5e5e2;
 
-  /* 태그는 뽀로로 방식(파스텔 틴트 위 진한 글자) — 원색 100% 태그 네 개가 나란히 서면
-   * 소음이 된다. 틴트 배경 + 진한 글자로 A의 활기는 두고 소음만 뺀다. 전부 AA(4.9~9.1). */
-  --color-tint-y: #fdf3b8;
-  --color-tint-r: #fde0e4;
-  --color-tint-s: #daf1fb;
-  --color-tint-g: #dff0d3;
-  --color-on-y: #6b4d00;
-  --color-on-r: #9c1030;
-  --color-on-s: #0a5b86;
-  --color-on-g: #1f6b13;
-
-  /* 짱구 사이트의 본문 글자는 검정이 아니라 진갈색(#4F3216) — 크레용 느낌을 내는 미세한 장치.
-   * 그대로 가져온다. 크림 위 11.2:1. */
-  --color-ink: #4f3216;
-  --color-muted: #7a6141;
-  --color-hint: #a08a6b;
-  --color-line: #ede6cc;
+  /* 관용적으로 빨강인 자리만 남긴다 — 유튜브 재생 버튼, 지도 핀. 쨍한 원색은 피한다 */
+  --color-r: #cf3b40;
 
   --font-sans:
     'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, 'Segoe UI', Roboto,
     'Helvetica Neue', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
-  /* 손글씨 — 히어로 라틴 한 줄에만. 한·일·태 문자는 손글씨 폰트 품질이 낮아 표준 산세리프 유지 */
-  --font-hand: 'Gaegu', 'Jua', var(--font-sans);
 
-  --radius-card: 18px;
+  --radius-card: 16px;
   --radius-pill: 999px;
 }
 
@@ -68,18 +51,7 @@ body {
   color: var(--color-ink);
 }
 
-/* 파스텔 콘페티 — 짱구 공식 포털 배경 방식(흰 바탕 위 삼각·원·네모 파스텔). 히어로에만 깐다 */
-.confetti {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Ccircle cx='22' cy='34' r='5' fill='%23F8C0C0'/%3E%3Crect x='96' y='84' width='9' height='9' fill='%23D0E8C8' transform='rotate(20 100 88)'/%3E%3Cpath d='M62 112l7 12h-14z' fill='%23F8E8C0'/%3E%3Ccircle cx='118' cy='22' r='4' fill='%23D8F0FC'/%3E%3C/svg%3E");
-}
 
-/* 스티커 뱃지 — 진갈 윤곽 + 오프셋 그림자 + 미세 회전. 짱구 로고의 '두꺼운 윤곽선' 문법.
- * 뱃지와 1차 CTA에만 쓴다. 카드·이미지에 두르면 소음이다(NN/g 네오브루탈리즘 권고). */
-.sticker {
-  border: 2px solid var(--color-ink);
-  box-shadow: 2px 2px 0 var(--color-ink);
-  transform: rotate(-3deg);
-}
 
 /* 가로 스크롤 줄(필터 칩·근처 축제)에서 스크롤바를 숨긴다.
  * [scrollbar-width:none]만 쓰면 Firefox에서만 먹고 Chrome·Safari엔 회색 막대가 남는다(실측). */
@@ -91,16 +63,16 @@ body {
   display: none;
 }
 
-/* 카드 호버 — 살짝 뜨며 1도 기운다. 180ms(NN/g 100~300ms). 움직임 줄이기 설정이면 색만 바뀐다 */
+/* 카드 호버 — 살짝 뜬다. 180ms(NN/g 100~300ms). 기울이지는 않는다 — 목록에서 카드마다
+ * 기울면 격자가 흔들려 보인다. 움직임 줄이기 설정이면 테두리 색만 바뀐다 */
 .lift {
   transition: transform 180ms ease-out, box-shadow 180ms ease-out, border-color 180ms ease-out;
 }
 .lift:hover {
-  transform: translateY(-4px) rotate(-0.6deg);
+  transform: translateY(-3px);
 }
 @media (prefers-reduced-motion: reduce) {
   .lift, .lift:hover { transform: none; transition: border-color 180ms ease-out; }
-  .sticker { transform: none; }
 }
 
 /* 헤드라인은 자간을 좁혀 덩어리로 보이게 한다 — 한글은 기본 자간이 넓어 크게 쓰면 흩어진다 */

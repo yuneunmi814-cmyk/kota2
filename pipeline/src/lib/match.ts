@@ -17,6 +17,32 @@ export function normalizeName(s: string): string {
     .toLowerCase()
 }
 
+/**
+ * 이름이 한쪽이 다른 쪽을 품는가 — 표준데이터는 축제명을 지자체가 줄여 적는다.
+ * ('맥주축제' ⊂ '동대문구 맥주축제', '황토갯벌축제' ⊂ '무안 황토 갯벌축제')
+ * 완전일치보다 훨씬 헐거우므로 호출부에서 반드시 같은 시군구 + 기간 실제 겹침을 함께 걸어야 한다.
+ *
+ * `forbidden`은 짧은 쪽이 이것과 같으면 판정을 거부하는 낱말들 — 지역명을 넘긴다.
+ * '페스티벌 광명'은 정규화하면 '광명'만 남아 같은 시의 '광명동굴 빛 축제'·'광명마당극축제'에
+ * 전부 걸린다(실측 오탐). 지역명만 남은 이름은 축제를 식별하지 못한다.
+ */
+export function nameContains(a: string, b: string, forbidden: (string | null | undefined)[] = []): boolean {
+  const x = normalizeName(a)
+  const y = normalizeName(b)
+  if (!x || !y) return false
+  if (x === y) return true
+  const [s, l] = x.length <= y.length ? [x, y] : [y, x]
+  if (s.length < 2 || !l.includes(s)) return false
+  const bad = new Set(forbidden.filter(Boolean).map((v) => normalizeName(v!)))
+  return !bad.has(s)
+}
+
+/** 화면에 쓸 이름 다듬기 — 앞머리 연도는 목록에서 잡음이다('2026 함평 물놀이 페스타' → '함평 물놀이 페스타') */
+export function displayName(s: string): string {
+  const t = s.replace(/^\s*20\d{2}\s*년?\s*/, '').trim()
+  return t.length >= 2 ? t : s.trim()
+}
+
 /** 두 기간이 겹치거나 30일 이내로 인접하면 같은 회차로 본다(소스마다 하루 이틀 어긋난다) */
 export function periodsOverlap(aS: string, aE: string, bS: string, bE: string, slackDays = 30): boolean {
   const day = 86_400_000

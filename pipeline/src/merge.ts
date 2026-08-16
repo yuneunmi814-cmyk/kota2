@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import type { Festival, RawFestival } from './lib/types.js'
-import { canonSido, normalizeName, periodsOverlap } from './lib/match.js'
+import { canonSido, displayName, nameContains, normalizeName, periodsOverlap } from './lib/match.js'
 import { classifyThemes } from './lib/themes.js'
 import { todayKst } from './lib/http.js'
 
@@ -22,8 +22,22 @@ function loadRaw(name: string): RawFestival[] {
   return (JSON.parse(readFileSync(p, 'utf-8')) as { rows: RawFestival[] }).rows
 }
 
+// ⛔ mcst(문체부 「지역축제 개최계획」 시드) 제외 — 2026-08-16 검증 결과 신뢰 불가.
+//
+// data/seed/mcst-festivals-2026.json의 출처를 추적할 수 없었다(원본 엑셀·zip이 어디에도 없음).
+// 표본 5건을 웹으로 실검증한 결과 3건이 틀렸다:
+//   · 남원 워터밤 페스티벌 — 2024년이 마지막. 2026년은 「요천 물축제」(8/1~8/10)로 개명됐다.
+//   · 춘천호수 드론라이트쇼 — 실제로는 2026-08-08 하루. 시드는 3/1~10/1 7개월로 적어 놨다.
+//   · 여름방학 곤충페스티벌 — 정식명은 「예천곤충페스티벌」(8/15~17). 기사 수식어가 이름에 섞였다.
+// 게다가 문체부 2026년판 개최계획은 애초에 공개된 적이 없다(공공데이터포털 최신본은
+// 2025-01-06 기준 「문화체육관광부_지역축제 정보」 1,214행 — data.go.kr/data/15143175).
+// 없는 자료를 출처로 단 263건이 목록의 38%를 차지하고 있었고, 그 263건은 이미지 33건·
+// 홈페이지 0건의 빈 껍데기였다. 빼면 425건이 남지만 이미지 비율이 41% → 67%로 오른다.
+//
+// 되살리려면: data.go.kr/data/15143175 실파일을 받아 시드를 다시 만들고, 개최연도가 과거인
+// 항목을 '예정'으로 표시하지 않도록 걸러낸 뒤 아래 배열에 'mcst'를 되돌린다.
 const today = todayKst()
-const raws = (['tourapi', 'kfes', 'stdfest', 'mcst', 'manual'] as const)
+const raws = (['tourapi', 'kfes', 'stdfest', 'manual'] as const)
   .flatMap(loadRaw)
   .filter((r) => r.endDate >= today && r.startDate && r.name)
 
@@ -77,22 +91,59 @@ groups.forEach(indexGroup)
 //    (TourAPI가 광주 금남로를 '전라남도'로 주거나, 서울→수원 능행차처럼 두 시·도에 걸치는 행사가 있다)
 //  - 이름이 같고 기간이 30일 안에서 인접하면 → 시·도가 같을 때만 합친다.
 //    (무창포는 9월·10월 두 번 열린다 — 이건 갈라야 한다)
+//  - 이름이 완전일치하지 않아도, 같은 시군구에서 기간이 실제로 겹치고 한 이름이 다른 이름을
+//    품으면 같은 축제로 본다. 표준데이터는 지자체가 축제명을 줄여 적는 일이 잦다
+//    ('맥주축제'/'동대문구 맥주축제', '황토갯벌축제'/'무안 황토 갯벌축제' — 실측 14쌍).
+//    포함 판정은 헐거우므로 시군구 일치와 기간 실제 겹침을 반드시 함께 건다.
 const sameFestival = (a: RawFestival, b: RawFestival) => {
-  if (normalizeName(a.name) !== normalizeName(b.name)) return false
-  if (periodsOverlap(a.startDate, a.endDate, b.startDate, b.endDate, 0)) return true
-  return (!a.sido || !b.sido || a.sido === b.sido) && periodsOverlap(a.startDate, a.endDate, b.startDate, b.endDate, 30)
+  const exact = normalizeName(a.name) === normalizeName(b.name)
+  if (exact) {
+    if (periodsOverlap(a.startDate, a.endDate, b.startDate, b.endDate, 0)) return true
+    return (!a.sido || !b.sido || a.sido === b.sido) && periodsOverlap(a.startDate, a.endDate, b.startDate, b.endDate, 30)
+  }
+  return (
+    !!a.sigungu &&
+    a.sigungu === b.sigungu &&
+    a.sido === b.sido &&
+    periodsOverlap(a.startDate, a.endDate, b.startDate, b.endDate, 0) &&
+    nameContains(a.name, b.name, placeWords(a))
+  )
 }
+
+/** 포함 판정에서 배제할 낱말 — 그 축제가 열리는 지역 이름('광명시'·'광명') */
+const bareRegion = (v: string) => v.replace(/(특별자치도|특별자치시|특별시|광역시|도|시|군|구)$/, '')
+const placeWords = (r: RawFestival) =>
+  [r.sigungu, r.sido].flatMap((v) => (v ? [v, bareRegion(v)] : []))
+
+// 시군구 인덱스 — 포함관계 후보는 이름 완전일치 인덱스로 찾을 수 없다
+const sgIndex = new Map<string, RawFestival[][]>()
+const indexSigungu = (g: RawFestival[]) => {
+  for (const r of g) {
+    if (!r.sigungu || !r.sido) continue
+    const k = `${r.sido}|${r.sigungu}`
+    const arr = sgIndex.get(k) ?? []
+    if (!arr.includes(g)) arr.push(g)
+    sgIndex.set(k, arr)
+  }
+}
+groups.forEach(indexSigungu)
 
 for (const r of rest) {
   const k = normalizeName(r.name)
-  const cands = k ? (nameIndex.get(k) ?? []) : []
+  const cands = [
+    ...(k ? (nameIndex.get(k) ?? []) : []),
+    ...(r.sigungu && r.sido ? (sgIndex.get(`${r.sido}|${r.sigungu}`) ?? []) : []),
+  ]
   const hit = cands.find((g) => g.some((x) => sameFestival(x, r)))
   if (hit) {
     hit.push(r)
+    indexGroup(hit) // 붙은 뒤 새 이름·시군구로도 찾히게
+    indexSigungu(hit)
   } else {
     const g = [r]
     groups.push(g)
     indexGroup(g)
+    indexSigungu(g)
   }
 }
 
@@ -111,7 +162,16 @@ const merged: Festival[] = groups.map((g) => {
   const startDate = sorted.map((x) => x.startDate).sort()[0]!
   const endDate = sorted.map((x) => x.endDate).sort().at(-1)!
   const withCoords = sorted.find((x) => x.lat != null && x.lng != null)
-  const name = bySrc('kfes')?.name ?? bySrc('tourapi')?.name ?? head.name
+  // 이름: 관광공사 공식 표기(kfes·tourapi)가 우선. 없으면 소스 순위가 아니라 '정보량'으로 고른다.
+  // 표준데이터는 '맥주축제'처럼 지역명을 빼고 적는데, 소스 순위(stdfest > mcst)를 그대로 쓰면
+  // 그 빈약한 이름이 '동대문구 맥주축제'를 이긴다. 긴 쪽이 대체로 지역명·주최를 담고 있다.
+  let name = displayName(bySrc('kfes')?.name ?? bySrc('tourapi')?.name ?? longest(sorted.map((x) => x.name)) ?? head.name)
+  // 회차는 매년 올라간다 — 소스마다 다르면 큰 쪽이 최신이다.
+  // (경산대추축제: 표준데이터가 작년치 '제15회'를 들고 있어 문체부의 '제16회'를 눌렀다)
+  const editions = sorted.map((x) => Number(x.name.match(/제?\s*(\d+)\s*회/)?.[1] ?? 0))
+  const maxEd = Math.max(...editions, 0)
+  const myEd = Number(name.match(/제?\s*(\d+)\s*회/)?.[1] ?? 0)
+  if (myEd > 0 && maxEd > myEd) name = name.replace(/제?\s*\d+\s*회/, `제${maxEd}회`)
 
   const f: Festival = {
     externalId: head.externalId,

@@ -27,6 +27,48 @@ const M: Record<string, Record<Lang, string>> = {
 
 export const sidoLabel = (sido: string, lang: Lang) => M[sido]?.[lang] ?? sido
 
+// 권역 — 17개 시·도를 7권역으로 묶는다.
+//
+// 425건에 시·도 칩 17개는 잘게 쪼갠 것이다. 하위 5개는 2~7건뿐이라 칩 하나를 차지할 값을
+// 못 하고, 가로 스크롤이 길어져 오른쪽 끝의 제주는 아예 눈에 띄지 않는다.
+//
+// 다만 권역만 남기면 부산·제주가 '경상'·'제주' 안에 묻힌다. 외국인 여행자에게 이 둘은
+// 서울 다음으로 인지도가 높은 목적지라, 권역을 고르면 그 안의 시·도가 두 번째 줄로 펼쳐지게 했다.
+// 인천은 별도 권역으로 두기엔 12건이라 수도권(경기)에 붙인다 — 여행 동선도 실제로 붙어 있다.
+export interface Region {
+  key: string
+  sidos: string[]
+  label: Record<Lang, string>
+}
+
+export const REGIONS: Region[] = [
+  { key: 'seoul', sidos: ['서울특별시'], label: { ko: '서울', en: 'Seoul', ja: 'ソウル', th: 'โซล' } },
+  {
+    key: 'gyeonggi',
+    sidos: ['경기도', '인천광역시'],
+    label: { ko: '경기·인천', en: 'Gyeonggi & Incheon', ja: '京畿・仁川', th: 'คยองกี·อินชอน' },
+  },
+  { key: 'gangwon', sidos: ['강원특별자치도'], label: { ko: '강원', en: 'Gangwon', ja: '江原', th: 'คังวอน' } },
+  {
+    key: 'chungcheong',
+    sidos: ['충청북도', '충청남도', '대전광역시', '세종특별자치시'],
+    label: { ko: '충청', en: 'Chungcheong', ja: '忠清', th: 'ชุงชอง' },
+  },
+  {
+    key: 'jeolla',
+    sidos: ['전북특별자치도', '전라남도', '광주광역시'],
+    label: { ko: '전라', en: 'Jeolla', ja: '全羅', th: 'ชอลลา' },
+  },
+  {
+    key: 'gyeongsang',
+    sidos: ['경상북도', '경상남도', '부산광역시', '대구광역시', '울산광역시'],
+    label: { ko: '경상', en: 'Gyeongsang', ja: '慶尚', th: 'คยองซัง' },
+  },
+  { key: 'jeju', sidos: ['제주특별자치도'], label: { ko: '제주', en: 'Jeju', ja: '済州', th: 'เชจู' } },
+]
+
+export const regionOf = (sido?: string | null) => (sido ? (REGIONS.find((r) => r.sidos.includes(sido)) ?? null) : null)
+
 /** 월 표기 — 태국어·일본어는 숫자+단위가 자연스럽다 */
 export function monthLabel(m: number, lang: Lang): string {
   if (lang === 'ko') return `${m}월`

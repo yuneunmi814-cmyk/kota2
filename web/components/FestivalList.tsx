@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { defaultOrder, type ListItem } from '@/lib/listData'
 import type { Lang } from '@/lib/i18n'
 import { t } from '@/lib/ui'
-import { monthLabel, sidoLabel } from '@/lib/sido'
+import { monthLabel, REGIONS, sidoLabel } from '@/lib/sido'
 import { THEMES, themeLabel, type Theme } from '@/lib/themes'
 import { distanceKm } from '@/lib/festivals'
 import Icon from './Icon'
@@ -27,19 +27,18 @@ const fmt = (d: string) => d.slice(5).replace('-', '.')
 export default function FestivalList({
   items,
   lang,
-  sidos,
   initialSort = 'date',
   initialTheme = null,
   initialQuery = '',
 }: {
   items: ListItem[]
   lang: Lang
-  sidos: { sido: string; count: number }[]
   initialSort?: Sort
   initialTheme?: Theme | null
   initialQuery?: string
 }) {
   const [period, setPeriod] = useState<Period>('all')
+  const [region, setRegion] = useState<string | null>(null)
   const [sido, setSido] = useState<string | null>(null)
   const [theme, setTheme] = useState<Theme | null>(initialTheme)
   const [sort, setSort] = useState<Sort>(initialSort)
@@ -65,6 +64,10 @@ export default function FestivalList({
     else if (typeof period === 'number') out = out.filter((f) => f.m.includes(period) && !f.al)
 
     if (sido) out = out.filter((f) => f.sd === sido)
+    else if (region) {
+      const rs = REGIONS.find((r) => r.key === region)?.sidos ?? []
+      out = out.filter((f) => f.sd != null && rs.includes(f.sd))
+    }
     if (theme) out = out.filter((f) => f.th.includes(theme))
 
     const needle = q.trim().toLowerCase()
@@ -87,13 +90,36 @@ export default function FestivalList({
     }
 
     return withKm
-  }, [items, period, sido, theme, q, sort, coords])
+  }, [items, period, region, sido, theme, q, sort, coords])
 
-  useEffect(() => setShown(PAGE), [period, sido, theme, q, sort])
+  useEffect(() => setShown(PAGE), [period, region, sido, theme, q, sort])
+
+  // 시기 필터가 걸리면 지역 개수도 따라 줄어야 한다 — 눌렀을 때 나오는 건수와 칩의 숫자가 어긋나면
+  // 사용자는 숫자를 못 믿는다
+  const countBySido = useMemo(() => {
+    let base = items.filter((f) => f.st !== 'ended')
+    if (period === 'ongoing') base = base.filter((f) => f.st === 'ongoing' && !f.al)
+    else if (period === 'upcoming') base = base.filter((f) => f.st === 'upcoming')
+    else if (typeof period === 'number') base = base.filter((f) => f.m.includes(period) && !f.al)
+    const m = new Map<string, number>()
+    for (const f of base) if (f.sd) m.set(f.sd, (m.get(f.sd) ?? 0) + 1)
+    return [...m.entries()].map(([sido, count]) => ({ sido, count })).sort((a, b) => b.count - a.count)
+  }, [items, period])
+
+  const subSidos = useMemo(() => {
+    const rs = REGIONS.find((r) => r.key === region)?.sidos
+    return rs ? countBySido.filter((x) => rs.includes(x.sido)) : []
+  }, [countBySido, region])
 
   const chip = (on: boolean) =>
     `shrink-0 rounded-full border px-4 py-2 text-[13px] font-bold transition ${
       on ? 'border-brand bg-brand text-white' : 'border-line bg-surface text-muted hover:border-brand/40 hover:text-brand'
+    }`
+
+  // 하위 칩은 한 단 낮은 위계로 — 권역 칩과 같은 무게면 어느 줄이 상위인지 읽히지 않는다
+  const subChip = (on: boolean) =>
+    `shrink-0 rounded-full px-3.5 py-1.5 text-[13px] font-bold transition ${
+      on ? 'bg-brand-50 text-brand' : 'text-hint hover:text-brand'
     }`
 
   return (
@@ -128,24 +154,59 @@ export default function FestivalList({
         ))}
       </div>
 
-      {/* 2축 — 지역 */}
+      {/* 2축 — 지역. 권역을 먼저 고르고, 고른 권역 안에서만 시·도로 좁힌다 */}
       <div className="-mx-5 mb-3 flex gap-2 overflow-x-auto px-5 pb-1 no-scrollbar">
-        <button className={chip(!sido)} onClick={() => setSido(null)}>
+        <button
+          className={chip(!region)}
+          onClick={() => {
+            setRegion(null)
+            setSido(null)
+          }}
+        >
           {lang === 'ko' ? '전국' : lang === 'ja' ? '全国' : lang === 'th' ? 'ทั่วประเทศ' : 'Nationwide'}
         </button>
-        {sidos.map(({ sido: s, count }) => (
-          <button key={s} className={chip(sido === s)} onClick={() => setSido(sido === s ? null : s)}>
-            {sidoLabel(s, lang)} <span className="ml-1 font-normal opacity-60">{count}</span>
-          </button>
-        ))}
+        {REGIONS.map((r) => {
+          const n = countBySido.filter((x) => r.sidos.includes(x.sido)).reduce((s, x) => s + x.count, 0)
+          if (n === 0) return null
+          return (
+            <button
+              key={r.key}
+              className={chip(region === r.key)}
+              onClick={() => {
+                setRegion(region === r.key ? null : r.key)
+                setSido(null) // 권역을 바꾸면 이전 권역의 시·도 선택은 무의미하다
+              }}
+            >
+              {r.label[lang]} <span className="ml-1 font-normal opacity-60">{n}</span>
+            </button>
+          )
+        })}
       </div>
+
+      {/* 고른 권역 안의 시·도 — 부산·제주처럼 그 자체가 목적지인 곳이 권역에 묻히지 않게 */}
+      {subSidos.length > 1 && (
+        <div className="-mx-5 mb-3 flex gap-2 overflow-x-auto px-5 pb-1 no-scrollbar">
+          <button className={subChip(!sido)} onClick={() => setSido(null)}>
+            {lang === 'ko' ? '전체' : lang === 'ja' ? 'すべて' : lang === 'th' ? 'ทั้งหมด' : 'All'}
+          </button>
+          {subSidos.map(({ sido: s, count }) => (
+            <button key={s} className={subChip(sido === s)} onClick={() => setSido(sido === s ? null : s)}>
+              {sidoLabel(s, lang)} <span className="ml-1 font-normal opacity-60">{count}</span>
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* 3축 — 목적 */}
       <div className="-mx-5 mb-6 flex gap-2 overflow-x-auto px-5 pb-1 no-scrollbar">
         {THEMES.map((k) => {
           // 개수는 '지금 걸린 다른 필터 기준'으로 센다 — 눌렀을 때 몇 건이 나오는지와 일치해야 한다
+          const rs = region ? (REGIONS.find((r) => r.key === region)?.sidos ?? []) : null
           const n = items.filter(
-            (f) => f.st !== 'ended' && f.th.includes(k) && (!sido || f.sd === sido),
+            (f) =>
+              f.st !== 'ended' &&
+              f.th.includes(k) &&
+              (sido ? f.sd === sido : !rs || (f.sd != null && rs.includes(f.sd))),
           ).length
           return (
             <button key={k} className={chip(theme === k)} onClick={() => setTheme(theme === k ? null : k)} disabled={n === 0}>
@@ -202,12 +263,11 @@ export default function FestivalList({
                   <Poster
                     src={f.img}
                     name={f.n}
-                    regionPhoto={f.rp}
-                    regionLabel={t(lang, 'photo.region')}
+                    pendingLabel={t(lang, 'photo.pending')}
                     className="transition-transform duration-500 group-hover:scale-[1.04]"
                   />
                   {f.st === 'ongoing' && !f.al && (
-                    <span className="absolute left-3 top-3 sticker rounded-full bg-y px-2.5 py-1 text-[11px] font-black text-on-y">
+                    <span className="absolute left-3 top-3 rounded-full bg-brand px-2.5 py-1 text-[11px] font-bold text-white">
                       {t(lang, 'status.ongoing')}
                     </span>
                   )}
@@ -230,6 +290,7 @@ export default function FestivalList({
                   <p className="text-[13px] tabular-nums text-hint">
                     {f.al ? t(lang, 'status.always') : `${fmt(f.s)} – ${fmt(f.e)}`}
                   </p>
+                  {!f.al && f.lr && <p className="mt-0.5 text-[12px] text-hint/80">{t(lang, 'status.selectDates')}</p>}
                 </div>
               </Link>
             ))}

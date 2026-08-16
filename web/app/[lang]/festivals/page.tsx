@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
 import { LANGS, SITE_URL, isLang, type Lang } from '@/lib/i18n'
-import { listItems, sidoOptions } from '@/lib/listData'
+import { listItems } from '@/lib/listData'
 import { t } from '@/lib/ui'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
@@ -34,7 +34,6 @@ export default async function FestivalsPage({ params }: { params: Promise<{ lang
   const { lang } = await params
   const l: Lang = isLang(lang) ? lang : 'ko'
   const items = listItems(l)
-  const sidos = sidoOptions()
 
   return (
     <>
@@ -47,7 +46,7 @@ export default async function FestivalsPage({ params }: { params: Promise<{ lang
             fallback이 null이면 빌드된 HTML에 카드가 0장이라 SEO와 첫 페인트를 다 잃는다 —
             첫 24장을 서버에서 같은 순서로 그려 둔다. */}
         <Suspense fallback={<FestivalListFallback items={items} lang={l} />}>
-          <FestivalListFromQuery items={items} lang={l} sidos={sidos} />
+          <FestivalListFromQuery items={items} lang={l} />
         </Suspense>
       </main>
       <Footer lang={l} />

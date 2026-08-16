@@ -30,9 +30,9 @@ export default function FestivalListFallback({ items, lang }: { items: ListItem[
             className="lift group block overflow-hidden rounded-[var(--radius-card)] border border-line bg-surface hover:border-brand/40"
           >
             <div className="relative aspect-[4/3] overflow-hidden bg-surface">
-              <Poster src={f.img} name={f.n} regionPhoto={f.rp} regionLabel={t(lang, 'photo.region')} />
+              <Poster src={f.img} name={f.n} pendingLabel={t(lang, 'photo.pending')} />
               {f.st === 'ongoing' && !f.al && (
-                <span className="sticker absolute left-3 top-3 rounded-full bg-y px-2.5 py-1 text-[11px] font-black text-on-y">
+                <span className="absolute left-3 top-3 rounded-full bg-brand px-2.5 py-1 text-[11px] font-bold text-white">
                   {t(lang, 'status.ongoing')}
                 </span>
               )}
@@ -46,8 +46,9 @@ export default function FestivalListFallback({ items, lang }: { items: ListItem[
               <div className="mb-1.5 truncate text-[12px] font-semibold text-muted">{f.p}</div>
               <h3 className="text-[15px] font-bold leading-[1.35] text-ink">{f.n}</h3>
               <div className="mt-1.5 text-[12px] text-hint">
-                {fmt(f.s)} – {fmt(f.e)}
+                {f.al ? t(lang, 'status.always') : `${fmt(f.s)} – ${fmt(f.e)}`}
               </div>
+              {!f.al && f.lr && <div className="mt-0.5 text-[12px] text-hint/80">{t(lang, 'status.selectDates')}</div>}
             </div>
           </Link>
         ))}
