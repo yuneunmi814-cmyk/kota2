@@ -59,7 +59,13 @@ try {
       return loc.includes(core(f.sigungu!)) && (!sidoCore || loc.includes(sidoCore.slice(0, 2)) || loc.includes(core(f.sigungu!)))
     })
     cache[key] = ok
-      ? { url: ok.galWebImageUrl!, title: (ok.galTitle ?? '').trim(), photographer: (ok.galPhotographer ?? '').trim() }
+      ? {
+          // 포토코리아가 http URL을 주는 경우가 있다 — HTTPS 페이지에서 mixed content로 차단되므로
+          // https로 바꿔 쓴다(같은 호스트가 https도 서비스한다, 실측)
+          url: ok.galWebImageUrl!.replace(/^http:/, 'https:'),
+          title: (ok.galTitle ?? '').trim(),
+          photographer: (ok.galPhotographer ?? '').trim(),
+        }
       : null
     if (ok) found += 1
     if (calls % 20 === 0) writeFileSync(CACHE, JSON.stringify(cache))
