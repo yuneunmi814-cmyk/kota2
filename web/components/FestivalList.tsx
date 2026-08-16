@@ -107,7 +107,7 @@ export default function FestivalList({
       </div>
 
       {/* 1축 — 시기. 축제는 '언제'가 먼저다 */}
-      <div className="-mx-5 mb-3 flex gap-2 overflow-x-auto px-5 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]{display:none}">
+      <div className="-mx-5 mb-3 flex gap-2 overflow-x-auto px-5 pb-1 no-scrollbar">
         <button className={chip(period === 'all')} onClick={() => setPeriod('all')}>
           {lang === 'ko' ? '전체' : lang === 'ja' ? 'すべて' : lang === 'th' ? 'ทั้งหมด' : 'All'}
         </button>
@@ -126,7 +126,7 @@ export default function FestivalList({
       </div>
 
       {/* 2축 — 지역 */}
-      <div className="-mx-5 mb-3 flex gap-2 overflow-x-auto px-5 pb-1 [scrollbar-width:none]">
+      <div className="-mx-5 mb-3 flex gap-2 overflow-x-auto px-5 pb-1 no-scrollbar">
         <button className={chip(!sido)} onClick={() => setSido(null)}>
           {lang === 'ko' ? '전국' : lang === 'ja' ? '全国' : lang === 'th' ? 'ทั่วประเทศ' : 'Nationwide'}
         </button>
@@ -138,7 +138,7 @@ export default function FestivalList({
       </div>
 
       {/* 3축 — 목적 */}
-      <div className="-mx-5 mb-6 flex gap-2 overflow-x-auto px-5 pb-1 [scrollbar-width:none]">
+      <div className="-mx-5 mb-6 flex gap-2 overflow-x-auto px-5 pb-1 no-scrollbar">
         {THEMES.map((k) => (
           <button key={k} className={chip(theme === k)} onClick={() => setTheme(theme === k ? null : k)}>
             <Icon name={k} size={14} className="mr-1 -mt-0.5" />

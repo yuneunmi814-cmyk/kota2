@@ -81,6 +81,16 @@ body {
   transform: rotate(-3deg);
 }
 
+/* 가로 스크롤 줄(필터 칩·근처 축제)에서 스크롤바를 숨긴다.
+ * [scrollbar-width:none]만 쓰면 Firefox에서만 먹고 Chrome·Safari엔 회색 막대가 남는다(실측). */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 /* 카드 호버 — 살짝 뜨며 1도 기운다. 180ms(NN/g 100~300ms). 움직임 줄이기 설정이면 색만 바뀐다 */
 .lift {
   transition: transform 180ms ease-out, box-shadow 180ms ease-out, border-color 180ms ease-out;

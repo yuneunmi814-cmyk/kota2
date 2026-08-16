@@ -63,7 +63,7 @@ export default async function CalendarPage({ params }: { params: Promise<{ lang:
         <p className="mb-8 text-[15px] text-muted">{t(l, 'month.title')}</p>
 
         {/* 월 점프 */}
-        <nav className="-mx-5 mb-10 flex gap-2 overflow-x-auto px-5 pb-1 [scrollbar-width:none]">
+        <nav className="-mx-5 mb-10 flex gap-2 overflow-x-auto px-5 pb-1 no-scrollbar">
           {byMonth.map(({ y, m, list }) => (
             <a
               key={`${y}-${m}`}
