@@ -14,6 +14,7 @@ import StaticMap from '@/components/StaticMap'
 import ReadMore from '@/components/detail/ReadMore'
 import ShareButton from '@/components/detail/ShareButton'
 import YouTube from '@/components/detail/YouTube'
+import Gallery from '@/components/detail/Gallery'
 
 // 축제 상세 — 뼈대는 트립어드바이저, 살은 구석구석.
 //
@@ -99,7 +100,12 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
 
   // 사진 그리드에 뭘 채울지 — 포스터, 유튜브 썸네일, 지도. 없는 칸은 접는다
   const ytId = f.youtube?.match(/(?:youtu\.be\/|v=|shorts\/|embed\/)([A-Za-z0-9_-]{11})/)?.[1] ?? null
-  const sideTiles = [ytId ? { kind: 'yt' as const, id: ytId } : null, hasCoords ? { kind: 'map' as const } : null].filter(Boolean)
+  // 옆 칸 우선순위: 실제 축제 사진 → 영상 → 지도. 사진이 있으면 그게 가장 정직한 대표 이미지다
+  const extraPhoto = f.photos?.[1] ?? null
+  const sideTiles = [
+    extraPhoto ? { kind: 'photo' as const, src: extraPhoto.thumb } : ytId ? { kind: 'yt' as const, id: ytId } : null,
+    hasCoords ? { kind: 'map' as const } : ytId && extraPhoto ? { kind: 'yt' as const, id: ytId } : null,
+  ].filter(Boolean)
 
   const sido = f.sido ? sidoLabel(f.sido, l) : null
 
@@ -176,7 +182,12 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
           {sideTiles.length > 0 && (
             <div className={`hidden h-full gap-2 sm:grid ${sideTiles.length === 2 ? 'grid-rows-2' : 'grid-rows-1'}`}>
               {sideTiles.map((tile) =>
-                tile!.kind === 'yt' ? (
+                tile!.kind === 'photo' ? (
+                  <a key="photo" href="#photos" className="group relative block overflow-hidden">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={tile!.src} alt="" loading="lazy" className="h-full w-full object-cover transition group-hover:scale-[1.03]" />
+                  </a>
+                ) : tile!.kind === 'yt' ? (
                   <a key="yt" href="#video" className="group relative block overflow-hidden bg-ink">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={`https://i.ytimg.com/vi/${tile!.id}/hqdefault.jpg`} alt="" className="h-full w-full object-cover opacity-90 transition group-hover:opacity-100" />
@@ -204,6 +215,14 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
               <section className="mb-10">
                 <h2 className="mb-3 text-[20px] font-black text-ink">{t(l, 'detail.about')}</h2>
                 <ReadMore text={L.summary ?? f.summary ?? ''} more={t(l, 'detail.more')} less={t(l, 'detail.less')} />
+              </section>
+            )}
+
+            {/* 사진 — TourAPI 갤러리. 263건이 평균 5장을 갖고 있다 */}
+            {f.photos && f.photos.length > 0 && (
+              <section id="photos" className="mb-10 scroll-mt-24">
+                <h2 className="mb-3 text-[20px] font-black text-ink">{t(l, 'detail.photos')}</h2>
+                <Gallery photos={f.photos} title={L.name} sourceLabel={t(l, 'detail.photos.src')} />
               </section>
             )}
 

@@ -30,6 +30,8 @@ export interface RawFestival {
   organizer?: string | null
   /** 먹거리 부스 — kfes boothInfoList. 부스별 메뉴·가격(원). 외국인 여행자에게 '얼마인지'가 핵심 */
   booths?: { name: string; menu: { name: string; price: number | null }[] }[] | null
+  /** TourAPI detailImage2 사진 갤러리. 전부 공공누리 3유형(출처표시·변경금지) */
+  photos?: { url: string; thumb: string; name: string }[] | null
   /** kfes 운영 메모 '먹거리 내용은 전년도 것' — 개요에서 떼어 먹거리 섹션에 표시한다 */
   boothsFromPastEdition?: boolean
   /** 관람 가능 연령·운영 시간(있는 것만) */
