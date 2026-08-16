@@ -60,3 +60,16 @@ export function sidoOptions(): { sido: string; count: number }[] {
   }
   return [...m.entries()].map(([sido, count]) => ({ sido, count })).sort((a, b) => b.count - a.count)
 }
+
+/** 날짜순 기본 정렬 — '가까운 날짜' 순.
+ * 진행중(단기)은 곧 끝나는 순, 예정은 곧 시작하는 순, 장기 → 상시 순으로 뒤로.
+ * 서버 fallback과 클라이언트 목록이 같은 순서를 써야 하이드레이션 때 화면이 안 튄다. */
+export function defaultOrder(items: ListItem[]): ListItem[] {
+  const rank = (x: ListItem) => (x.al ? 3 : x.lr ? 2 : x.st === 'ongoing' ? 0 : 1)
+  return [...items].sort((a, b) => {
+    const ra = rank(a)
+    const rb = rank(b)
+    if (ra !== rb) return ra - rb
+    return ra === 0 ? a.e.localeCompare(b.e) : a.s.localeCompare(b.s)
+  })
+}
