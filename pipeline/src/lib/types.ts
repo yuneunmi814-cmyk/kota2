@@ -16,7 +16,9 @@ export interface RawFestival {
   lng?: number | null
   imageUrl?: string | null
   /** 이미지 출처 — 'past'면 같은 축제의 지난 회차 포스터(TourAPI 검색으로 보강). 화면에서 표시한다 */
-  imageFrom?: 'own' | 'past' | null
+  imageFrom?: 'own' | 'past' | 'scraped' | null
+  /** 주최측·지자체 홈페이지에서 가져온 경우 그 출처 페이지 URL — 화면에 링크로 표기한다 */
+  imageSource?: string | null
   /** 산문 개요 — kfes가 준다. 다른 소스는 '공연+체험' 같은 조각뿐 */
   summary?: string | null
   /** 프로그램·요금·예약 등 상세 — 있는 소스만 */

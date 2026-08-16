@@ -178,6 +178,16 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
             {f.imageFrom === 'past' && (
               <span className="absolute bottom-3 left-3 rounded-full bg-ink/70 px-2.5 py-1 text-[11px] font-bold text-white backdrop-blur-sm">{t(l, 'poster.past')}</span>
             )}
+            {f.imageFrom === 'scraped' && f.imageSource && (
+              <a
+                href={f.imageSource}
+                target="_blank"
+                rel="noopener noreferrer nofollow"
+                className="absolute bottom-3 left-3 rounded-full bg-ink/70 px-2.5 py-1 text-[11px] font-bold text-white backdrop-blur-sm hover:bg-ink/85"
+              >
+                {t(l, 'img.src')}: {new URL(f.imageSource).hostname.replace(/^www\./, '')}
+              </a>
+            )}
           </div>
           {sideTiles.length > 0 && (
             <div className={`hidden h-full gap-2 sm:grid ${sideTiles.length === 2 ? 'grid-rows-2' : 'grid-rows-1'}`}>
@@ -286,6 +296,48 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
                 <h2 className="mb-3 text-[20px] font-black text-ink">{t(l, 'detail.location')}</h2>
                 <StaticMap lat={f.lat as number} lng={f.lng as number} label={f.address ?? L.placeName ?? L.name} />
                 {f.address && <p className="mt-2 text-[14px] text-muted">{f.address}</p>}
+              </section>
+            )}
+
+            {/* 공식 홈페이지 — 우리 데이터는 공공 API 스냅샷이라 일정 변경·예매는 주최측이 정확하다.
+                여행자가 마지막에 확인해야 할 곳이므로 본문 끝에 크게 놓는다. */}
+            {(f.homepage || f.instagram || f.tel) && (
+              <section className="mb-10 rounded-[var(--radius-card)] border-2 border-brand/25 bg-brand-50/60 p-5">
+                <h2 className="mb-1 text-[17px] font-black text-brand">{t(l, 'official.title')}</h2>
+                <p className="mb-4 text-[13px] leading-relaxed text-muted">{t(l, 'official.sub')}</p>
+                <div className="flex flex-wrap gap-2">
+                  {f.homepage && (
+                    <a
+                      href={f.homepage}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 rounded-full bg-brand px-5 py-2.5 text-[14px] font-bold text-white transition hover:bg-brand-600"
+                    >
+                      <Icon name="link" size={15} /> {t(l, 'official.visit')}
+                    </a>
+                  )}
+                  {f.instagram && (
+                    <a
+                      href={f.instagram}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-5 py-2.5 text-[14px] font-bold text-ink transition hover:border-brand/40 hover:text-brand"
+                    >
+                      {t(l, 'official.insta')}
+                    </a>
+                  )}
+                  {f.tel && (
+                    <a
+                      href={`tel:${f.tel}`}
+                      className="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-5 py-2.5 text-[14px] font-bold text-ink transition hover:border-brand/40 hover:text-brand"
+                    >
+                      <Icon name="phone" size={15} /> {f.tel}
+                    </a>
+                  )}
+                </div>
+                {f.homepage && (
+                  <p className="mt-3 truncate text-[12px] text-hint">{f.homepage.replace(/^https?:\/\//, '')}</p>
+                )}
               </section>
             )}
 

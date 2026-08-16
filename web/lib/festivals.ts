@@ -26,7 +26,8 @@ export interface Festival {
   sigungu?: string | null
   address?: string | null
   imageUrl?: string | null
-  imageFrom?: 'own' | 'past' | null
+  imageFrom?: 'own' | 'past' | 'scraped' | null
+  imageSource?: string | null
   /** 'MF' = 문체부 지정 문화관광축제 */
   category?: string | null
   homepage?: string | null
