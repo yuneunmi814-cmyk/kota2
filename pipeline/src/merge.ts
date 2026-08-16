@@ -166,6 +166,36 @@ const merged: Festival[] = groups.map((g) => {
 
 merged.sort((a, b) => a.startDate.localeCompare(b.startDate) || a.name.localeCompare(b.name))
 
+// ── 보강 캐시 되먹임 ────────────────────────────────────────
+// merge는 raw/*만 보고 festivals.json을 통째로 다시 만든다. 그래서 enrich 뒤에 merge를
+// 단독 실행하면 enrich가 채운 좌표·이미지가 조용히 사라진다(실측: 이미지 66건·좌표 140건 유실).
+// 캐시는 남아 있으니 여기서 바로 되먹인다 — API 호출 0, enrich를 다시 안 돌려도 된다.
+try {
+  const cp = new URL('../data/enrich-cache.json', import.meta.url)
+  if (existsSync(cp)) {
+    const cache = JSON.parse(readFileSync(cp, 'utf-8')) as Record<string, { lat?: number; lng?: number; imageUrl?: string; miss?: true }>
+    let g = 0
+    let i = 0
+    for (const f of merged) {
+      const c = cache[f.externalId]
+      if (!c || c.miss) continue
+      if (f.lat == null && c.lat != null) {
+        f.lat = c.lat
+        f.lng = c.lng ?? null
+        g += 1
+      }
+      if (!f.imageUrl && c.imageUrl) {
+        f.imageUrl = c.imageUrl
+        f.imageFrom = 'past'
+        i += 1
+      }
+    }
+    if (g || i) console.log(`   보강 캐시 되먹임: 좌표 +${g} · 이미지 +${i}`)
+  }
+} catch {
+  /* 캐시가 깨졌으면 무시 — enrich가 다시 만든다 */
+}
+
 // ── 저장 + 리포트 ─────────────────────────────────────────
 mkdirSync(new URL('../data/', import.meta.url), { recursive: true })
 writeFileSync(new URL('../data/festivals.json', import.meta.url), JSON.stringify({ exportedAt: new Date().toISOString(), items: merged }, null, 0))

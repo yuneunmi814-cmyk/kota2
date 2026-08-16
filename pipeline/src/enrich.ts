@@ -1,6 +1,7 @@
 import { readFileSync, writeFileSync, existsSync } from 'node:fs'
 import type { Festival } from './lib/types.js'
 import { QuotaError, getJson, serviceKey, sleep } from './lib/http.js'
+import { normalizeName } from './lib/match.js'
 
 // 보강 — 좌표·이미지가 없는 축제를 TourAPI 키워드 검색으로 채운다.
 //
@@ -45,10 +46,39 @@ function sameArea(hit: Hit, f: Festival): boolean {
   return false
 }
 
+// ── 0단계: kfes 아카이브에서 동명 축제 포스터 ─────────────────
+// kfes 615건 중 490건은 이미 끝난 축제다. 그 포스터는 같은 축제의 지난 회차인 경우가 많다
+// (실측 29건). API를 더 부르지 않고 이미 받아둔 raw/kfes.json만 뒤지면 된다.
+const kfesRows: { name: string; imageUrl?: string | null; startDate: string }[] = existsSync(
+  new URL('../data/raw/kfes.json', import.meta.url),
+)
+  ? (JSON.parse(readFileSync(new URL('../data/raw/kfes.json', import.meta.url), 'utf-8')) as { rows: typeof kfesRows }).rows
+  : []
+const kfesByName = new Map<string, { imageUrl: string; startDate: string }>()
+for (const r of kfesRows) {
+  if (!r.imageUrl) continue
+  const k = normalizeName(r.name)
+  const prev = kfesByName.get(k)
+  // 같은 이름이 여러 회차면 가장 최근 것
+  if (!prev || r.startDate > prev.startDate) kfesByName.set(k, { imageUrl: r.imageUrl, startDate: r.startDate })
+}
+
 const cache: Record<string, { lat?: number; lng?: number; imageUrl?: string; miss?: true }> = existsSync(CACHE)
   ? JSON.parse(readFileSync(CACHE, 'utf-8'))
   : {}
 const items = (JSON.parse(readFileSync(DATA, 'utf-8')) as { items: Festival[] }).items
+
+// kfes 아카이브 먼저 — 공짜고 정확도가 TourAPI 키워드 검색보다 높다(같은 축제명 그대로)
+let fromArchive = 0
+for (const f of items) {
+  if (f.imageUrl) continue
+  const hit = kfesByName.get(normalizeName(f.name))
+  if (!hit) continue
+  f.imageUrl = hit.imageUrl
+  f.imageFrom = 'past'
+  fromArchive += 1
+}
+if (fromArchive) console.log(`▶ kfes 아카이브에서 지난 회차 포스터 ${fromArchive}건`)
 
 // 살아 있는지 — 경복궁은 반드시 나온다
 if ((await search('경복궁', 12)).length === 0) {
