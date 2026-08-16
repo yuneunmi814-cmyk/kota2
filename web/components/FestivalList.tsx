@@ -142,12 +142,19 @@ export default function FestivalList({
 
       {/* 3축 — 목적 */}
       <div className="-mx-5 mb-6 flex gap-2 overflow-x-auto px-5 pb-1 no-scrollbar">
-        {THEMES.map((k) => (
-          <button key={k} className={chip(theme === k)} onClick={() => setTheme(theme === k ? null : k)}>
-            <Icon name={k} size={14} className="mr-1 -mt-0.5" />
-            {themeLabel(k, lang)}
-          </button>
-        ))}
+        {THEMES.map((k) => {
+          // 개수는 '지금 걸린 다른 필터 기준'으로 센다 — 눌렀을 때 몇 건이 나오는지와 일치해야 한다
+          const n = items.filter(
+            (f) => f.st !== 'ended' && f.th.includes(k) && (!sido || f.sd === sido),
+          ).length
+          return (
+            <button key={k} className={chip(theme === k)} onClick={() => setTheme(theme === k ? null : k)} disabled={n === 0}>
+              <Icon name={k} size={14} className="mr-1 -mt-0.5" />
+              {themeLabel(k, lang)}
+              <span className="ml-1 font-normal opacity-60">{n}</span>
+            </button>
+          )
+        })}
       </div>
 
       {/* 결과 수 + 정렬 */}

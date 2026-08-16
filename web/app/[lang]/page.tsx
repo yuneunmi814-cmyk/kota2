@@ -7,6 +7,7 @@ import { THEMES, themeDesc, themeLabel } from '@/lib/themes'
 import Header from '@/components/Header'
 import Icon from '@/components/Icon'
 import FestivalCard from '@/components/FestivalCard'
+import FestivalRow from '@/components/FestivalRow'
 import NearbyBlock from '@/components/NearbyBlock'
 import Footer from '@/components/Footer'
 import SearchBar from '@/components/SearchBar'
@@ -42,6 +43,28 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
   const popular = [...ongoing, ...upcomingSoon].sort((a, b) => (b.popularity ?? 0) - (a.popularity ?? 0)).slice(0, 8)
 
   const themeCount = (k: string) => all.filter((f) => f.themes?.includes(k)).length
+
+  // 시간축 두 개 — 여행자가 실제로 묻는 것은 '지금 갈 수 있나', '주말에 뭐 있나'다.
+  const now = Date.now()
+  const day = 86_400_000
+  const endingSoon = ongoing
+    .filter((f) => new Date(f.endDate).getTime() - now <= 7 * day)
+    .sort((a, b) => a.endDate.localeCompare(b.endDate))
+
+  // 다음 토·일 — 오늘이 주말이면 이번 주말, 아니면 돌아오는 주말
+  const today = new Date()
+  const dow = today.getUTCDay() // 0=일
+  const satOffset = dow === 0 ? 0 : 6 - dow
+  const sat = new Date(now + satOffset * day).toISOString().slice(0, 10)
+  const sun = new Date(now + (satOffset + (dow === 0 ? 0 : 1)) * day).toISOString().slice(0, 10)
+  const weekend = [...ongoing, ...upcomingSoon]
+    .filter((f) => f.startDate <= sun && f.endDate >= sat)
+    .sort((a, b) => (b.popularity ?? 0) - (a.popularity ?? 0))
+
+  // 신뢰축 — 문체부 지정 문화관광축제. 공식 근거라 '왜 이 축제냐'에 답이 된다
+  const designated = [...ongoing, ...upcomingSoon]
+    .filter((f) => f.category === 'MF')
+    .sort((a, b) => a.startDate.localeCompare(b.startDate))
 
   return (
     <>
@@ -88,25 +111,38 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
           </div>
         </section>
 
-        {/* 인기 — kfes의 랭킹에 해당. 관광공사 방문자 데이터 기반 */}
-        {popular.length > 0 && (
-          <section className="mx-auto max-w-6xl px-5 pb-16">
-            <div className="mb-5 flex items-end justify-between gap-4">
-              <h2 className="h-display text-[26px] text-ink sm:text-[30px]">{t(l, 'popular.title')}</h2>
-              <Link
-                href={`/${l}/festivals/?sort=popularity`}
-                className="flex shrink-0 items-center gap-1 text-[14px] font-bold text-brand hover:underline"
-              >
-                <Icon name="arrow" size={15} />
-              </Link>
-            </div>
-            <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-              {popular.slice(0, 4).map((f) => (
-                <FestivalCard key={f.externalId} f={f} lang={l} />
-              ))}
-            </div>
-          </section>
-        )}
+        {/* 시간축·신뢰축 행 — 트립어드바이저 둘러보기의 '카테고리별 가로 행' 문법 */}
+        <FestivalRow
+          title={t(l, 'popular.title')}
+          items={popular}
+          lang={l}
+          href={`/${l}/festivals/?sort=popularity`}
+          moreLabel={t(l, 'row.more')}
+        />
+        <FestivalRow
+          title={t(l, 'row.ending')}
+          subtitle={t(l, 'row.ending.sub')}
+          items={endingSoon}
+          lang={l}
+          href={`/${l}/festivals/?period=ongoing`}
+          moreLabel={t(l, 'row.more')}
+        />
+        <FestivalRow
+          title={t(l, 'row.weekend')}
+          subtitle={t(l, 'row.weekend.sub')}
+          items={weekend}
+          lang={l}
+          href={`/${l}/festivals/`}
+          moreLabel={t(l, 'row.more')}
+        />
+        <FestivalRow
+          title={t(l, 'row.designated')}
+          subtitle={t(l, 'row.designated.sub')}
+          items={designated}
+          lang={l}
+          href={`/${l}/festivals/`}
+          moreLabel={t(l, 'row.more')}
+        />
       </main>
 
       <Footer lang={l} />
