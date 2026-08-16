@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import type { Festival } from '@/lib/festivals'
 import { allFestivals, isAlwaysOn, localized, statusOf } from '@/lib/festivals'
 import { LANGS, SITE_URL, isLang, type Lang } from '@/lib/i18n'
 import { t } from '@/lib/ui'
@@ -40,7 +41,12 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
   // 인기 — 진행 중 + 30일 안에 시작하는 축제. 진행 중만 보면 비수기엔 소규모가 상위에 뜬다(실측)
   const soon = Date.now() + 30 * 86_400_000
   const upcomingSoon = all.filter((f) => statusOf(f) === 'upcoming' && !isAlwaysOn(f) && new Date(f.startDate).getTime() <= soon)
-  const popular = [...ongoing, ...upcomingSoon].sort((a, b) => (b.popularity ?? 0) - (a.popularity ?? 0)).slice(0, 8)
+  // 홈 행의 동점 가르기 — 홈은 진열창이라 사진 없는 카드가 앞에 오면 안 된다.
+  // '곧 끝나요'는 오늘 끝나는 것만 35건이라 종료일만으로는 변별이 안 된다(실측).
+  const showcase = (a: Festival, b: Festival) =>
+    (b.imageUrl ? 1 : 0) - (a.imageUrl ? 1 : 0) || (b.popularity ?? 0) - (a.popularity ?? 0)
+
+  const popular = [...ongoing, ...upcomingSoon].sort(showcase)
 
   const themeCount = (k: string) => all.filter((f) => f.themes?.includes(k)).length
 
@@ -49,7 +55,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
   const day = 86_400_000
   const endingSoon = ongoing
     .filter((f) => new Date(f.endDate).getTime() - now <= 7 * day)
-    .sort((a, b) => a.endDate.localeCompare(b.endDate))
+    .sort((a, b) => a.endDate.localeCompare(b.endDate) || showcase(a, b))
 
   // 다음 토·일 — 오늘이 주말이면 이번 주말, 아니면 돌아오는 주말
   const today = new Date()
@@ -59,12 +65,27 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
   const sun = new Date(now + (satOffset + (dow === 0 ? 0 : 1)) * day).toISOString().slice(0, 10)
   const weekend = [...ongoing, ...upcomingSoon]
     .filter((f) => f.startDate <= sun && f.endDate >= sat)
-    .sort((a, b) => (b.popularity ?? 0) - (a.popularity ?? 0))
+    .sort(showcase)
 
-  // 신뢰축 — 문체부 지정 문화관광축제. 공식 근거라 '왜 이 축제냐'에 답이 된다
-  const designated = [...ongoing, ...upcomingSoon]
-    .filter((f) => f.category === 'MF')
-    .sort((a, b) => a.startDate.localeCompare(b.startDate))
+  // 행끼리 겹치면 4개 행이 사실상 한 행이 된다 — 상위 축제는 모든 축에서 1등이라 그렇다(실측:
+  // 통영한산대첩·둔내고랭지토마토가 네 행에 전부 등장). 먼저 나온 행이 가져가고 뒤는 다음 것을 쓴다.
+  const used = new Set<string>()
+  const take = (list: Festival[], n = 4) => {
+    const out: Festival[] = []
+    for (const f of list) {
+      if (used.has(f.externalId)) continue
+      used.add(f.externalId)
+      out.push(f)
+      if (out.length === n) break
+    }
+    return out
+  }
+
+  // 신뢰축 — 문체부 지정 문화관광축제. 시간축이 아니라 '검증된 축제' 축이라 30일로 자르지 않고
+  // 종료 안 된 37건 전체를 본다. 앞 행들이 지금 열리는 MF를 다 가져가면 이 행이 통째로 사라진다(실측).
+  const designated = all
+    .filter((f) => f.category === 'MF' && statusOf(f) !== 'ended')
+    .sort((a, b) => a.startDate.localeCompare(b.startDate) || showcase(a, b))
 
   return (
     <>
@@ -111,18 +132,12 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
           </div>
         </section>
 
-        {/* 시간축·신뢰축 행 — 트립어드바이저 둘러보기의 '카테고리별 가로 행' 문법 */}
-        <FestivalRow
-          title={t(l, 'popular.title')}
-          items={popular}
-          lang={l}
-          href={`/${l}/festivals/?sort=popularity`}
-          moreLabel={t(l, 'row.more')}
-        />
+        {/* 시간축·신뢰축 행 — 트립어드바이저 둘러보기의 '카테고리별 가로 행' 문법.
+            순서는 여행자가 묻는 순서다: 지금 갈 수 있나 → 주말에 뭐 있나 → 뭘 많이 가나 → 검증된 건 뭔가 */}
         <FestivalRow
           title={t(l, 'row.ending')}
           subtitle={t(l, 'row.ending.sub')}
-          items={endingSoon}
+          items={take(endingSoon)}
           lang={l}
           href={`/${l}/festivals/?period=ongoing`}
           moreLabel={t(l, 'row.more')}
@@ -130,15 +145,22 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
         <FestivalRow
           title={t(l, 'row.weekend')}
           subtitle={t(l, 'row.weekend.sub')}
-          items={weekend}
+          items={take(weekend)}
           lang={l}
           href={`/${l}/festivals/`}
           moreLabel={t(l, 'row.more')}
         />
         <FestivalRow
+          title={t(l, 'popular.title')}
+          items={take(popular)}
+          lang={l}
+          href={`/${l}/festivals/?sort=popularity`}
+          moreLabel={t(l, 'row.more')}
+        />
+        <FestivalRow
           title={t(l, 'row.designated')}
           subtitle={t(l, 'row.designated.sub')}
-          items={designated}
+          items={take(designated)}
           lang={l}
           href={`/${l}/festivals/`}
           moreLabel={t(l, 'row.more')}
