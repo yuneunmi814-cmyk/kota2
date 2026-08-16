@@ -80,8 +80,19 @@ export default function FestivalList({
 
     if (sort === 'distance' && coords) withKm.sort((a, b) => (a.km ?? Infinity) - (b.km ?? Infinity))
     else if (sort === 'popularity') withKm.sort((a, b) => b.f.pop - a.f.pop)
-    // 시작일순 — 상시 행사는 뒤로 보낸다. 앞에 몰리면 '지금 갈 곳'이 안 보인다
-    else withKm.sort((a, b) => Number(a.f.al) - Number(b.f.al) || a.f.s.localeCompare(b.f.s))
+    // 날짜순 — '가까운 날짜' 순이다. 시작일 오름차순으로 두면 3월에 시작한 연간 프로그램이
+    // 최상단을 점령한다(실측: 상위 8건이 전부 이미지 없는 3~12월짜리 상설 전시).
+    // 진행중은 곧 끝나는 순(놓치면 안 되는 것 먼저), 예정은 곧 시작하는 순.
+    // 장기(60일 초과)와 상시는 뒤로 — 언제 가도 되는 것들이다.
+    else
+      withKm.sort((a, b) => {
+        const rank = (x: ListItem) => (x.al ? 3 : x.lr ? 2 : x.st === 'ongoing' ? 0 : 1)
+        const ra = rank(a.f)
+        const rb = rank(b.f)
+        if (ra !== rb) return ra - rb
+        // 진행중 그룹은 종료일, 나머지는 시작일 기준
+        return ra === 0 ? a.f.e.localeCompare(b.f.e) : a.f.s.localeCompare(b.f.s)
+      })
 
     return withKm
   }, [items, period, sido, theme, q, sort, coords])

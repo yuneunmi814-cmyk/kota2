@@ -89,6 +89,14 @@ const DAY = 86_400_000
  * 기준을 300일로 잡는 이유: 1/1~12/31은 364일이라 '365일 이상'으로 하면 빠져나간다.
  * 실측으로 그 사이(300~364일)에 놓이는 축제는 전부 연중 상설 행사였다.
  */
+/** 기간이 60일을 넘으면 축제라기보다 상설 프로그램·전시·투어다.
+ * 실측 경계: 31~60일은 계절 축제(세미원 연꽃 53일, 춘천 썸머워터 45일, 태백 해바라기 32일),
+ * 91일 넘어가면 상설 전시·정기공연·연간 투어가 대부분(41건). 목록에서 뒤로 보낸다. */
+export function isLongRun(f: Festival): boolean {
+  const days = (new Date(f.endDate).getTime() - new Date(f.startDate).getTime()) / 86_400_000 + 1
+  return days > 60
+}
+
 export function isAlwaysOn(f: Festival): boolean {
   return new Date(f.endDate).getTime() - new Date(f.startDate).getTime() >= 300 * DAY
 }
