@@ -123,7 +123,15 @@ export default function Reviews({
         <form onSubmit={submit} className="mb-8 rounded-[var(--radius-card)] border border-line p-4">
           <div className="mb-3 flex items-center gap-3">
             <Stars value={rating} onChange={setRating} />
-            <span className="text-[12px] text-hint">{email}</span>
+            <span className="truncate text-[12px] text-hint">{email}</span>
+            {/* 누구로 쓰고 있는지 보여줬으면 빠져나갈 문도 있어야 한다 — 가족·지인과 기기를 같이 쓰는 경우가 흔하다 */}
+            <button
+              type="button"
+              onClick={() => browserSupabase().auth.signOut()}
+              className="ml-auto shrink-0 text-[12px] font-semibold text-hint underline underline-offset-2 hover:text-ink"
+            >
+              {t(lang, 'review.signOut')}
+            </button>
           </div>
           <textarea
             value={body}
