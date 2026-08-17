@@ -11,7 +11,6 @@ import NearbyBlock from '@/components/NearbyBlock'
 import Footer from '@/components/Footer'
 import SearchBar from '@/components/SearchBar'
 import RotatingPromo from '@/components/RotatingPromo'
-import PromoBanner from '@/components/PromoBanner'
 import { curatedPromos } from '@/lib/reviews'
 import RegionRail from '@/components/RegionRail'
 import ThemeRail from '@/components/ThemeRail'
@@ -159,16 +158,17 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
           href={`/${l}/festivals/?sort=popularity`}
           moreLabel={t(l, 'row.more')}
         />
-        <FestivalRow
-          title={t(l, 'row.next')}
-          subtitle={t(l, 'row.next.sub')}
-          items={take(nextMonth)}
-          lang={l}
-          href={`/${l}/festivals/`}
-          moreLabel={t(l, 'row.more')}
-        />
-        {/* 문화관광축제 — 트립어드바이저 Travellers' Choice 어워드 자리(맨 아래) */}
-        <PromoBanner all={all} lang={l} />
+        {/* 다음 달 행 — 2026-08-17 숨김. 홈이 길어져 잠시 내렸다.
+            되살리려면 아래 주석만 풀면 된다.
+        // <FestivalRow
+        // title={t(l, 'row.next')}
+        // subtitle={t(l, 'row.next.sub')}
+        // items={take(nextMonth)}
+        // lang={l}
+        // href={`/${l}/festivals/`}
+        // moreLabel={t(l, 'row.more')}
+        // />
+        */}
 
         {/* 내 주변 — 진입 즉시 위치를 묻는다 */}
         <div className="pb-16">

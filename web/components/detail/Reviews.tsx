@@ -5,6 +5,7 @@ import { browserSupabase } from '@/lib/supabase-browser'
 import { t } from '@/lib/ui'
 import type { Lang } from '@/lib/i18n'
 import Icon from '../Icon'
+import SocialLogin from '../SocialLogin'
 
 // 축제 리뷰 — 읽기는 서버가 미리 그려 넘기고, 쓰기와 로그인만 여기서 한다.
 //
@@ -12,7 +13,8 @@ import Icon from '../Icon'
 // 버그로 오해하고 두 번, 세 번 쓴다. 검토를 두는 이유는 심사 기간에 악성 글 하나가
 // 그대로 심사 화면이 되는 것을 막기 위해서다.
 //
-// 로그인은 지금 이메일 링크 방식뿐이다. 카카오·구글은 키가 준비되면 여기에 버튼만 붙인다.
+// 로그인은 카카오·구글·이메일 셋이다. 소셜 제공자는 Supabase에서 켠 것만 버튼이 뜬다 —
+// 눌리는데 안 되는 버튼은 없느니만 못하다.
 
 const STARS = [1, 2, 3, 4, 5]
 
@@ -149,6 +151,7 @@ export default function Reviews({
       ) : (
         <form onSubmit={sendLink} className="mb-8 rounded-[var(--radius-card)] border border-line p-4">
           <p className="mb-3 text-[14px] font-semibold text-ink">{t(lang, 'review.loginTitle')}</p>
+          <SocialLogin lang={lang} />
           <div className="flex flex-col gap-2 sm:flex-row">
             <input
               type="email"

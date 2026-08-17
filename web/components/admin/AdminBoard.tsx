@@ -1,6 +1,7 @@
 'use client'
 import { useCallback, useEffect, useState } from 'react'
 import { browserSupabase } from '@/lib/supabase-browser'
+import SocialLogin from '../SocialLogin'
 
 // 관리자 보드 — 배너 큐레이션과 리뷰 검토.
 //
@@ -135,6 +136,7 @@ export default function AdminBoard() {
     return (
       <main className="mx-auto max-w-md px-5 py-24">
         <h1 className="h-display mb-6 text-[28px] text-ink">KOTA 관리자</h1>
+        <SocialLogin lang="ko" />
         {sent ? (
           <p className="rounded-[var(--radius-card)] bg-brand-50 px-4 py-3 text-[14px] text-brand">
             메일함을 확인해 주세요. 링크를 누르면 이 화면으로 돌아옵니다.

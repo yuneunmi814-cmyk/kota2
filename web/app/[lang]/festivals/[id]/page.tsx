@@ -163,7 +163,15 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
             <h1 className="h-display text-[28px] leading-[1.15] text-brand sm:text-[36px]">{L.name}</h1>
             {l !== 'ko' && L.name !== f.name && <p className="mt-1 text-[14px] text-hint">{f.name}</p>}
           </div>
-          <ShareButton title={L.name} label={t(l, 'detail.share')} copied={t(l, 'detail.copied')} />
+          <ShareButton
+            title={L.name}
+            label={t(l, 'detail.share')}
+            copied={t(l, 'detail.copied')}
+            festivalId={f.externalId}
+            image={f.imageUrl}
+            description={L.summary}
+            labels={{ copy: t(l, 'share.copy'), kakao: t(l, 'share.kakao'), more: t(l, 'share.more') }}
+          />
         </div>
 
         {/* 신뢰 줄 — 트립어드바이저의 '5.0 ●●●●● (10건) 327위' 자리. 우리는 공공 데이터 근거 */}
