@@ -7,6 +7,7 @@ import { t } from '@/lib/ui'
 import { sidoLabel } from '@/lib/sido'
 import { ratingOf, reviewsOf } from '@/lib/reviews'
 import Reviews from '@/components/detail/Reviews'
+import TrackView from '@/components/TrackView'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import Poster from '@/components/Poster'
@@ -121,6 +122,7 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
       <Header lang={l} path={`festivals/${f.externalId}`} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
+      <TrackView festivalId={f.externalId} lang={l} />
       <main className="mx-auto max-w-6xl px-5 pb-24 pt-5">
         {/* 빵부스러기 — 트립어드바이저: 유럽 › 영국 › 런던 › 즐길거리 › 이름 */}
         <nav aria-label="breadcrumb" className="mb-4 flex flex-wrap items-center gap-1 text-[12px] text-hint">

@@ -7,6 +7,7 @@ import { t } from '@/lib/ui'
 import { monthLabel, REGIONS, sidoLabel } from '@/lib/sido'
 import { THEMES, themeLabel, type Theme } from '@/lib/themes'
 import { distanceKm } from '@/lib/festivals'
+import { track } from '@/lib/track'
 import Icon from './Icon'
 import Poster from './Poster'
 
@@ -95,6 +96,21 @@ export default function FestivalList({
   }, [items, period, region, sido, theme, q, sort, coords])
 
   useEffect(() => setShown(PAGE), [period, region, sido, theme, q, sort])
+
+  // 검색어 — 타이핑이 멎고 800ms 뒤에 한 번만 남긴다. 글자마다 남기면 '강','강릉','강릉불'이
+  // 전부 쌓여 무엇을 찾았는지 알 수 없게 된다. 결과 수도 함께 남겨서 '찾았는데 없더라'를 본다.
+  useEffect(() => {
+    const needle = q.trim()
+    if (needle.length < 2) return
+    const id = setTimeout(() => track('search', { payload: { q: needle, results: list.length }, lang }), 800)
+    return () => clearTimeout(id)
+  }, [q, list.length, lang])
+
+  // 필터 — 무엇으로 좁히는지. 아무것도 안 걸린 기본 상태는 남기지 않는다.
+  useEffect(() => {
+    if (!region && !sido && !theme && period === 'all') return
+    track('filter', { payload: { region, sido, theme, period }, lang })
+  }, [region, sido, theme, period, lang])
 
   // 시기 필터가 걸리면 지역 개수도 따라 줄어야 한다 — 눌렀을 때 나오는 건수와 칩의 숫자가 어긋나면
   // 사용자는 숫자를 못 믿는다
