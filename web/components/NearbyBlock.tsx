@@ -45,7 +45,7 @@ export default function NearbyBlock({ all, lang }: { all: Festival[]; lang: Lang
           <p className="text-[15px] text-muted">{t(lang, 'nearby.denied')}</p>
           <button
             onClick={ask}
-            className="shrink-0 rounded-full bg-brand px-5 py-2.5 text-[14px] font-bold text-brand-ink transition hover:bg-brand-600"
+            className="shrink-0 rounded-full bg-brand px-5 py-2.5 text-[14px] font-bold text-white transition hover:bg-brand-600"
           >
             {t(lang, 'nearby.retry')}
           </button>

@@ -83,7 +83,7 @@ export default function ReportError({ festivalId, lang }: { festivalId: string; 
             type="button"
             onClick={() => setKind(k)}
             className={`rounded-full px-3 py-1.5 text-[13px] font-bold transition ${
-              kind === k ? 'bg-brand text-brand-ink' : 'bg-paper-2 text-muted hover:text-ink'
+              kind === k ? 'bg-brand text-white' : 'bg-paper-2 text-muted hover:text-ink'
             }`}
           >
             {t(lang, `report.kind.${k}`)}
@@ -114,7 +114,7 @@ export default function ReportError({ festivalId, lang }: { festivalId: string; 
         <button
           type="submit"
           disabled={state === 'sending'}
-          className="rounded-full bg-brand px-5 py-2.5 text-[14px] font-bold text-brand-ink transition hover:bg-brand-600 disabled:opacity-50"
+          className="rounded-full bg-brand px-5 py-2.5 text-[14px] font-bold text-white transition hover:bg-brand-600 disabled:opacity-50"
         >
           {t(lang, 'report.submit')}
         </button>

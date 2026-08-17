@@ -60,7 +60,7 @@ export default async function ThemePage({ params }: { params: Promise<{ lang: st
               key={k}
               href={`/${l}/themes/${k}/`}
               className={`inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-[13px] font-bold transition ${
-                k === key ? 'border-brand bg-brand text-brand-ink' : 'border-line text-muted hover:border-brand/40 hover:text-brand-deep'
+                k === key ? 'border-brand bg-brand text-white' : 'border-line text-muted hover:border-brand/40 hover:text-brand-deep'
               }`}
             >
               <Icon name={k} size={14} /> {themeLabel(k, l)}

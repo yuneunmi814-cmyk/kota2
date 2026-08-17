@@ -187,7 +187,7 @@ export default function AdminBoard() {
               placeholder="관리자 이메일"
               className="rounded-full border border-line px-4 py-3 text-[15px] outline-none focus:border-brand"
             />
-            <button type="submit" className="rounded-full bg-brand px-5 py-3 text-[15px] font-bold text-brand-ink">
+            <button type="submit" className="rounded-full bg-brand px-5 py-3 text-[15px] font-bold text-white">
               로그인 링크 받기
             </button>
             {msg && <p className="text-[13px] text-r">{msg}</p>}
@@ -391,7 +391,7 @@ export default function AdminBoard() {
                 <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-ink">{c.body}</p>
                 {c.contact && <p className="mt-2 text-[13px] text-muted">답신: {c.contact}</p>}
                 <div className="mt-3 flex gap-2">
-                  <button onClick={() => closeFix(c.id, 'fixed')} className="rounded-full bg-brand px-4 py-2 text-[13px] font-bold text-brand-ink">
+                  <button onClick={() => closeFix(c.id, 'fixed')} className="rounded-full bg-brand px-4 py-2 text-[13px] font-bold text-white">
                     고쳤어요
                   </button>
                   <button
@@ -431,7 +431,7 @@ export default function AdminBoard() {
               <div className="mt-3 flex gap-2">
                 <button
                   onClick={() => judge(r.id, 'published')}
-                  className="rounded-full bg-brand px-4 py-2 text-[13px] font-bold text-brand-ink"
+                  className="rounded-full bg-brand px-4 py-2 text-[13px] font-bold text-white"
                 >
                   공개
                 </button>

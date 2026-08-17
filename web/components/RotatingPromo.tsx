@@ -14,9 +14,11 @@ import { toSlug } from '@/lib/slug'
 // 눈에 띄는 자리가 여기다. 'KOTA's Pick'이라고 이름 붙이되 무엇을 기준으로 골랐는지는
 // 부제에 밝힌다 — 고른 기준을 감추면 그건 추천이 아니라 광고로 읽힌다.
 //
-// 색은 이제 여기만의 것이 아니다. 이 배너의 형광 초록이 서비스 전체의 축이 되면서
-// --color-brand 가 됐다(globals.css). 그래서 색을 직접 박지 않고 토큰을 쓴다 —
-// 나중에 색을 조정할 때 이 파일을 잊고 여기만 옛 색으로 남는 일을 막는다.
+// 형광 초록(--color-signal)은 사이트에서 여기 한 자리에만 쓴다.
+//
+// 한때 이 색을 brand 로 올려 버튼·칩·배지까지 전부 칠한 적이 있는데, 목록마다 형광 칩이
+// 깔리니 정작 이 배너가 묻혔다. 형광은 화면에서 한 번 나올 때만 힘이 있다.
+// 다른 곳에서 bg-signal 을 쓰고 싶어지면, 그건 대개 이 배너의 몫을 뺏는 것이다.
 //
 // 자동으로 넘어가되 멈출 수 있어야 한다. 움직이는 것을 못 멈추는 화면은 접근성 위반이고,
 // 시스템에서 '동작 줄이기'를 켠 사람에게는 처음부터 돌리지 않는다.
@@ -58,7 +60,7 @@ export default function RotatingPromo({
 
   return (
     <section className="mx-auto max-w-6xl px-5 pb-16">
-      <div className="overflow-hidden rounded-[var(--radius-card)] bg-brand">
+      <div className="overflow-hidden rounded-[var(--radius-card)] bg-signal">
         <div className="grid items-stretch md:grid-cols-2">
           {/* 사진 — 넘어갈 때 부드럽게 교차 */}
           <div className="relative aspect-[16/10] md:aspect-auto md:min-h-[340px]">
@@ -78,7 +80,7 @@ export default function RotatingPromo({
             {/* 트립어드바이저가 @작성자를 놓는 자리 — 우리는 축제 이름과 배율 */}
             <Link
               href={`/${lang}/festivals/${toSlug(cur.id)}/`}
-              className="absolute bottom-3 left-3 max-w-[calc(100%-1.5rem)] rounded-full bg-brand px-3 py-1.5 text-[12px] font-bold text-ink transition hover:bg-white"
+              className="absolute bottom-3 left-3 max-w-[calc(100%-1.5rem)] rounded-full bg-signal px-3 py-1.5 text-[12px] font-bold text-ink transition hover:bg-white"
             >
               <span className="line-clamp-1">
                 {cur.lift ? `×${cur.lift.toFixed(1)} · ` : ''}

@@ -197,7 +197,7 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
             </span>
           )}
           {st === 'ongoing' && !always && (
-            <span className="rounded-full bg-brand px-3 py-1 text-[12px] font-bold text-brand-ink">{t(l, 'status.ongoing')}</span>
+            <span className="rounded-full bg-brand px-3 py-1 text-[12px] font-bold text-white">{t(l, 'status.ongoing')}</span>
           )}
           {always && <span className="rounded-full bg-surface px-3 py-1 text-[12px] font-bold text-muted">{t(l, 'status.always')}</span>}
           {/* 기간이 두 달을 넘으면 매일 열리는 게 아니다 — 여기서 못 짚어주면 헛걸음이 된다 */}
@@ -390,7 +390,7 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
                       href={f.homepage}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 rounded-full bg-brand px-5 py-2.5 text-[14px] font-bold text-brand-ink transition hover:bg-brand-600"
+                      className="inline-flex items-center gap-2 rounded-full bg-brand px-5 py-2.5 text-[14px] font-bold text-white transition hover:bg-brand-600"
                     >
                       <Icon name="link" size={15} /> {t(l, 'official.visit')}
                     </a>

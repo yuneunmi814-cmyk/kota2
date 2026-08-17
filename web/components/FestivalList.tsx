@@ -157,7 +157,7 @@ export default function FestivalList({
 
   const chip = (on: boolean) =>
     `shrink-0 rounded-full border px-4 py-2 text-[13px] font-bold transition ${
-      on ? 'border-brand bg-brand text-brand-ink' : 'border-line bg-surface text-muted hover:border-brand/40 hover:text-brand-deep'
+      on ? 'border-brand bg-brand text-white' : 'border-line bg-surface text-muted hover:border-brand/40 hover:text-brand-deep'
     }`
 
   // 하위 칩은 한 단 낮은 위계로 — 권역 칩과 같은 무게면 어느 줄이 상위인지 읽히지 않는다

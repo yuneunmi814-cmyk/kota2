@@ -146,7 +146,7 @@ export default function Reviews({
             <button
               type="submit"
               disabled={state === 'sending'}
-              className="rounded-full bg-brand px-5 py-2.5 text-[14px] font-bold text-brand-ink transition hover:bg-brand-600 disabled:opacity-50"
+              className="rounded-full bg-brand px-5 py-2.5 text-[14px] font-bold text-white transition hover:bg-brand-600 disabled:opacity-50"
             >
               {t(lang, 'review.submit')}
             </button>
@@ -172,7 +172,7 @@ export default function Reviews({
             <button
               type="submit"
               disabled={state === 'sending'}
-              className="shrink-0 rounded-full bg-brand px-5 py-2.5 text-[14px] font-bold text-brand-ink transition hover:bg-brand-600 disabled:opacity-50"
+              className="shrink-0 rounded-full bg-brand px-5 py-2.5 text-[14px] font-bold text-white transition hover:bg-brand-600 disabled:opacity-50"
             >
               {t(lang, 'review.sendLink')}
             </button>
