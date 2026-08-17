@@ -97,7 +97,7 @@ export default function KakaoMap({
         <div ref={box} className="aspect-[16/9] w-full bg-[#f2f2f0]" />
         <figcaption className="flex items-center justify-between gap-3 px-3 py-2 text-[12px] text-hint">
           <span className="truncate">{label}</span>
-          <a href={href} target="_blank" rel="noopener noreferrer" className="shrink-0 font-bold text-brand hover:underline">
+          <a href={href} target="_blank" rel="noopener noreferrer" className="shrink-0 font-bold text-brand-deep hover:underline">
             {linkLabel}
           </a>
         </figcaption>
@@ -117,14 +117,14 @@ export default function KakaoMap({
       onClick={() => festivalId && track('outbound', { festivalId, payload: { to: 'kakaomap' } })}
       className="lift group flex items-center gap-4 rounded-[var(--radius-card)] border border-line bg-surface p-5 hover:border-brand/40"
     >
-      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand">
+      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-deep">
         <Icon name="pin" size={22} />
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-[15px] font-bold text-ink group-hover:text-brand">{label}</span>
+        <span className="block truncate text-[15px] font-bold text-ink group-hover:text-brand-deep">{label}</span>
         <span className="mt-0.5 block text-[13px] text-hint">{linkLabel}</span>
       </span>
-      <span className="shrink-0 text-hint transition group-hover:translate-x-0.5 group-hover:text-brand">
+      <span className="shrink-0 text-hint transition group-hover:translate-x-0.5 group-hover:text-brand-deep">
         <Icon name="arrow" size={18} />
       </span>
     </a>

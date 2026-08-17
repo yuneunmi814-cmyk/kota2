@@ -31,7 +31,7 @@ export default function SearchBar({ lang }: { lang: Lang }) {
       />
       <button
         type="submit"
-        className="shrink-0 rounded-full bg-brand px-6 py-3 text-[15px] font-bold text-white transition hover:bg-brand-600"
+        className="shrink-0 rounded-full bg-brand px-6 py-3 text-[15px] font-bold text-brand-ink transition hover:bg-brand-600"
       >
         {t(lang, 'search.button')}
       </button>

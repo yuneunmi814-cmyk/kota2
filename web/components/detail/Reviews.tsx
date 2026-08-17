@@ -29,7 +29,7 @@ function Stars({ value, onChange }: { value: number; onChange?: (n: number) => v
           onClick={() => onChange?.(n)}
           aria-label={`${n}점`}
           className={`${onChange ? 'cursor-pointer' : 'cursor-default'} text-[18px] leading-none transition ${
-            n <= value ? 'text-brand' : 'text-line'
+            n <= value ? 'text-brand-deep' : 'text-line'
           }`}
         >
           ★
@@ -116,7 +116,7 @@ export default function Reviews({
 
       {/* 쓰기 */}
       {state === 'submitted' ? (
-        <p className="mb-8 rounded-[var(--radius-card)] bg-brand-50 px-4 py-3 text-[14px] font-semibold text-brand">
+        <p className="mb-8 rounded-[var(--radius-card)] bg-brand-50 px-4 py-3 text-[14px] font-semibold text-brand-deep">
           {t(lang, 'review.thanks')}
         </p>
       ) : email ? (
@@ -146,14 +146,14 @@ export default function Reviews({
             <button
               type="submit"
               disabled={state === 'sending'}
-              className="rounded-full bg-brand px-5 py-2.5 text-[14px] font-bold text-white transition hover:bg-brand-600 disabled:opacity-50"
+              className="rounded-full bg-brand px-5 py-2.5 text-[14px] font-bold text-brand-ink transition hover:bg-brand-600 disabled:opacity-50"
             >
               {t(lang, 'review.submit')}
             </button>
           </div>
         </form>
       ) : state === 'sent' ? (
-        <p className="mb-8 rounded-[var(--radius-card)] bg-brand-50 px-4 py-3 text-[14px] text-brand">
+        <p className="mb-8 rounded-[var(--radius-card)] bg-brand-50 px-4 py-3 text-[14px] text-brand-deep">
           {t(lang, 'review.linkSent')}
         </p>
       ) : (
@@ -172,7 +172,7 @@ export default function Reviews({
             <button
               type="submit"
               disabled={state === 'sending'}
-              className="shrink-0 rounded-full bg-brand px-5 py-2.5 text-[14px] font-bold text-white transition hover:bg-brand-600 disabled:opacity-50"
+              className="shrink-0 rounded-full bg-brand px-5 py-2.5 text-[14px] font-bold text-brand-ink transition hover:bg-brand-600 disabled:opacity-50"
             >
               {t(lang, 'review.sendLink')}
             </button>

@@ -162,7 +162,7 @@ export default function AdminBoard() {
         <h1 className="h-display mb-6 text-[28px] text-ink">KOTA 관리자</h1>
         <SocialLogin lang="ko" />
         {sent ? (
-          <p className="rounded-[var(--radius-card)] bg-brand-50 px-4 py-3 text-[14px] text-brand">
+          <p className="rounded-[var(--radius-card)] bg-brand-50 px-4 py-3 text-[14px] text-brand-deep">
             메일함을 확인해 주세요. 링크를 누르면 이 화면으로 돌아옵니다.
           </p>
         ) : (
@@ -186,7 +186,7 @@ export default function AdminBoard() {
               placeholder="관리자 이메일"
               className="rounded-full border border-line px-4 py-3 text-[15px] outline-none focus:border-brand"
             />
-            <button type="submit" className="rounded-full bg-brand px-5 py-3 text-[15px] font-bold text-white">
+            <button type="submit" className="rounded-full bg-brand px-5 py-3 text-[15px] font-bold text-brand-ink">
               로그인 링크 받기
             </button>
             {msg && <p className="text-[13px] text-r">{msg}</p>}
@@ -202,7 +202,7 @@ export default function AdminBoard() {
         <p className="text-[15px] text-muted">
           {email} 계정에는 관리자 권한이 없어요.
         </p>
-        <button onClick={() => sb.auth.signOut()} className="mt-4 text-[14px] font-bold text-brand hover:underline">
+        <button onClick={() => sb.auth.signOut()} className="mt-4 text-[14px] font-bold text-brand-deep hover:underline">
           다른 계정으로 로그인
         </button>
       </main>
@@ -221,7 +221,7 @@ export default function AdminBoard() {
       </div>
 
       {msg && (
-        <p className="mb-6 rounded-[var(--radius-card)] bg-brand-50 px-4 py-2.5 text-[14px] font-semibold text-brand">{msg}</p>
+        <p className="mb-6 rounded-[var(--radius-card)] bg-brand-50 px-4 py-2.5 text-[14px] font-semibold text-brand-deep">{msg}</p>
       )}
 
       {/* ── 배너 ── */}
@@ -258,7 +258,7 @@ export default function AdminBoard() {
                         {f.start_date} ~ {f.end_date}
                       </span>
                     </span>
-                    <span className="shrink-0 text-[13px] font-bold text-brand">추가</span>
+                    <span className="shrink-0 text-[13px] font-bold text-brand-deep">추가</span>
                   </button>
                 </li>
               ))}
@@ -381,7 +381,7 @@ export default function AdminBoard() {
                     href={`/ko/festivals/${c.festival_id}/`}
                     target="_blank"
                     rel="noreferrer"
-                    className="font-semibold text-brand hover:underline"
+                    className="font-semibold text-brand-deep hover:underline"
                   >
                     {names[c.festival_id]?.name ?? c.festival_id}
                   </a>
@@ -390,7 +390,7 @@ export default function AdminBoard() {
                 <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-ink">{c.body}</p>
                 {c.contact && <p className="mt-2 text-[13px] text-muted">답신: {c.contact}</p>}
                 <div className="mt-3 flex gap-2">
-                  <button onClick={() => closeFix(c.id, 'fixed')} className="rounded-full bg-brand px-4 py-2 text-[13px] font-bold text-white">
+                  <button onClick={() => closeFix(c.id, 'fixed')} className="rounded-full bg-brand px-4 py-2 text-[13px] font-bold text-brand-ink">
                     고쳤어요
                   </button>
                   <button
@@ -422,7 +422,7 @@ export default function AdminBoard() {
           {reviews.map((r) => (
             <li key={r.id} className="rounded-[var(--radius-card)] border border-line p-4">
               <div className="mb-2 flex flex-wrap items-center gap-2 text-[12px] text-hint">
-                <span className="font-bold text-brand">{'★'.repeat(r.rating)}</span>
+                <span className="font-bold text-brand-deep">{'★'.repeat(r.rating)}</span>
                 <span>{names[r.festival_id]?.name ?? r.festival_id}</span>
                 <span>{r.created_at.slice(0, 10)}</span>
               </div>
@@ -430,7 +430,7 @@ export default function AdminBoard() {
               <div className="mt-3 flex gap-2">
                 <button
                   onClick={() => judge(r.id, 'published')}
-                  className="rounded-full bg-brand px-4 py-2 text-[13px] font-bold text-white"
+                  className="rounded-full bg-brand px-4 py-2 text-[13px] font-bold text-brand-ink"
                 >
                   공개
                 </button>

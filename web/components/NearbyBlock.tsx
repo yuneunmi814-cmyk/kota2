@@ -45,7 +45,7 @@ export default function NearbyBlock({ all, lang }: { all: Festival[]; lang: Lang
           <p className="text-[15px] text-muted">{t(lang, 'nearby.denied')}</p>
           <button
             onClick={ask}
-            className="shrink-0 rounded-full bg-brand px-5 py-2.5 text-[14px] font-bold text-white transition hover:bg-brand-600"
+            className="shrink-0 rounded-full bg-brand px-5 py-2.5 text-[14px] font-bold text-brand-ink transition hover:bg-brand-600"
           >
             {t(lang, 'nearby.retry')}
           </button>
@@ -84,7 +84,7 @@ export default function NearbyBlock({ all, lang }: { all: Festival[]; lang: Lang
         </div>
         <Link
           href={`/${lang}/festivals/?sort=distance`}
-          className="hidden shrink-0 items-center gap-1 text-[14px] font-bold text-brand hover:underline sm:flex"
+          className="hidden shrink-0 items-center gap-1 text-[14px] font-bold text-brand-deep hover:underline sm:flex"
         >
           {t(lang, 'nearby.seeAll')} <Icon name="arrow" size={15} />
         </Link>
@@ -101,7 +101,7 @@ export default function NearbyBlock({ all, lang }: { all: Festival[]; lang: Lang
       {near.length === 0 && (
         <Link
           href={`/${lang}/festivals/?sort=distance`}
-          className="inline-flex items-center gap-1 text-[15px] font-bold text-brand hover:underline"
+          className="inline-flex items-center gap-1 text-[15px] font-bold text-brand-deep hover:underline"
         >
           {t(lang, 'nearby.seeAll')} <Icon name="arrow" size={16} />
         </Link>

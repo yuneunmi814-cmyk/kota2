@@ -47,7 +47,7 @@ export default function FestivalCard({
         <div className="mb-1.5 flex items-center gap-2 text-[12px] font-semibold text-muted">
           <span className="truncate">{L.placeName}</span>
           {f.visitorLift != null && f.visitorLift >= 2 && (
-            <span className="shrink-0 rounded-full bg-brand-50 px-1.5 py-0.5 text-[10px] font-bold text-brand" title={t(lang, 'lift.note')}>
+            <span className="shrink-0 rounded-full bg-brand-50 px-1.5 py-0.5 text-[10px] font-bold text-brand-deep" title={t(lang, 'lift.note')}>
               {t(lang, 'lift.label', { x: f.visitorLift.toFixed(1) })}
             </span>
           )}

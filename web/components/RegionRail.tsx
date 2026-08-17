@@ -64,7 +64,7 @@ export default function RegionRail({
                 </span>
               )}
             </div>
-            <p className="mt-2.5 text-center text-[14px] font-bold text-ink group-hover:text-brand">
+            <p className="mt-2.5 text-center text-[14px] font-bold text-ink group-hover:text-brand-deep">
               {region.label[lang]}
             </p>
             <p className="text-center text-[12px] text-hint">{count}</p>
@@ -73,7 +73,7 @@ export default function RegionRail({
       </div>
 
       <div className="mt-5 text-center lg:hidden">
-        <Link href={`/${lang}/festivals/`} className="inline-flex items-center gap-1 text-[13px] font-bold text-brand hover:underline">
+        <Link href={`/${lang}/festivals/`} className="inline-flex items-center gap-1 text-[13px] font-bold text-brand-deep hover:underline">
           {title}
           <Icon name="arrow" size={14} />
         </Link>

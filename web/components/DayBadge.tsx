@@ -21,7 +21,7 @@ export default function DayBadge({ badge, lang }: { badge: Badge; lang: Lang }) 
   return (
     <span
       className={`absolute left-3 top-3 rounded-full px-2.5 py-1 text-[11px] font-bold tabular-nums ${
-        urgent ? 'bg-r text-white' : 'bg-brand text-white'
+        urgent ? 'bg-r text-white' : 'bg-brand text-brand-ink'
       }`}
     >
       {label}

@@ -156,13 +156,13 @@ export default function FestivalList({
 
   const chip = (on: boolean) =>
     `shrink-0 rounded-full border px-4 py-2 text-[13px] font-bold transition ${
-      on ? 'border-brand bg-brand text-white' : 'border-line bg-surface text-muted hover:border-brand/40 hover:text-brand'
+      on ? 'border-brand bg-brand text-brand-ink' : 'border-line bg-surface text-muted hover:border-brand/40 hover:text-brand-deep'
     }`
 
   // 하위 칩은 한 단 낮은 위계로 — 권역 칩과 같은 무게면 어느 줄이 상위인지 읽히지 않는다
   const subChip = (on: boolean) =>
     `shrink-0 rounded-full px-3.5 py-1.5 text-[13px] font-bold transition ${
-      on ? 'bg-brand-50 text-brand' : 'text-hint hover:text-brand'
+      on ? 'bg-brand-50 text-brand-deep' : 'text-hint hover:text-brand-deep'
     }`
 
   return (
@@ -273,7 +273,7 @@ export default function FestivalList({
               key={s}
               onClick={() => setSort(s)}
               className={`rounded-full px-3 py-1.5 text-[13px] font-bold transition ${
-                sort === s ? 'bg-paper-2 text-brand' : 'text-hint hover:text-muted'
+                sort === s ? 'bg-paper-2 text-brand-deep' : 'text-hint hover:text-muted'
               }`}
             >
               {s === 'date'
@@ -342,7 +342,7 @@ export default function FestivalList({
             <div className="mt-10 text-center">
               <button
                 onClick={() => setShown((n) => n + PAGE)}
-                className="rounded-full border border-line px-8 py-3 text-[15px] font-bold text-brand transition hover:border-brand hover:bg-brand-50"
+                className="rounded-full border border-line px-8 py-3 text-[15px] font-bold text-brand-deep transition hover:border-brand hover:bg-brand-50"
               >
                 {lang === 'ko' ? '더 보기' : lang === 'ja' ? 'もっと見る' : lang === 'th' ? 'ดูเพิ่ม' : 'Show more'}{' '}
                 <span className="font-normal text-hint">

@@ -10,28 +10,51 @@
  * 축제 포스터가 주인공이므로 UI는 물러나 있어야 한다.
  */
 @theme {
-  /* 흰 바탕 + 브랜드 초록 하나. 트립어드바이저 홈의 문법이다 — 색은 브랜드 한 가지로 좁히고
-   * 나머지는 무채색으로 물러난다. 사진이 주인공인 화면에서 UI가 색을 쓰면 사진과 다툰다.
+  /* 흰 바탕 + 초록 하나. 트립어드바이저 홈의 문법이다 — 색은 한 가지로 좁히고 나머지는
+   * 무채색으로 물러난다. 사진이 주인공인 화면에서 UI가 색을 쓰면 사진과 다툰다.
    *
-   * 이전에는 크림 바탕 + 파스텔 4색 + 스티커 윤곽선(짱구 문법)이었다. 활기는 있었지만
-   * 축제 포스터 수백 장이 깔리는 목록에서는 배경까지 색을 내어 시끄러웠다. */
-  --color-brand: #004027;
-  --color-brand-600: #00593a;
-  --color-brand-400: #0e8a5f;
-  --color-brand-50: #eff4f1;
+   * 축은 회전 배너의 형광 초록(#00EB5B)이다. 딥그린(#004027)이 중심이던 때는 화면이
+   * 차분하다 못해 어두웠다 — 축제를 파는 화면에서 그건 손해다.
+   *
+   * 다만 이 형광은 채움으로만 쓴다. 위에 흰 글씨를 얹으면 대비가 1.7:1로 안 읽히고,
+   * 짙은 글씨를 얹으면 9:1로 아주 잘 읽힌다. 그래서 초록을 역할로 셋을 나눈다.
+   *
+   *   brand      채움 — 버튼·배너·배지. 위에 얹는 글씨는 반드시 brand-ink
+   *   brand-deep 흰 바탕 위 글씨·링크·포커스 링 (5.2:1, AA 통과)
+   *   brand-ink  형광 위에 얹는 글씨 (9.1:1)
+   *
+   * 이 구분을 지키지 않으면 — 예를 들어 bg-brand에 text-white를 얹으면 —
+   * 화면은 그럴듯한데 글씨만 안 보이는 상태가 된다. 눈으로는 잘 안 잡힌다. */
+  --color-brand: #00eb5b;
+  --color-brand-600: #00d452; /* 채움의 hover */
+  --color-brand-400: #00b85f; /* 밝은 보조 — 큰 아이콘·구분선 */
+  --color-brand-deep: #007d44; /* 흰 바탕 위 글씨 */
+  --color-brand-ink: #04301b; /* 형광 위 글씨 */
+  --color-brand-50: #e9fcf0; /* 아주 옅은 민트 면 */
 
   --color-paper: #ffffff;
-  --color-paper-2: #f5f5f4; /* 선택된 정렬 버튼 등 아주 옅은 면 */
+  --color-paper-2: #f4f6f5; /* 선택된 정렬 버튼 등 아주 옅은 면 */
   --color-surface: #ffffff;
 
-  /* 무채색 — 갈색 기운을 뺀 중성. 흰 바탕 위 ink 15.8:1, muted 7.4:1, hint 2.9:1(장식용) */
-  --color-ink: #1b1b1a;
-  --color-muted: #5c5c58;
-  --color-hint: #9a9a94;
-  --color-line: #e5e5e2;
+  /* 무채색 — 초록 쪽으로 아주 살짝 기울인 중성. 순회색을 그냥 쓰면 형광 초록 옆에서
+   * 색이 빠진 것처럼 보인다. 흰 바탕 위 ink 16.6:1, muted 6.3:1, hint 3.1:1(장식용) */
+  --color-ink: #111917;
+  --color-muted: #57635c;
+  --color-hint: #8a958f;
+  --color-line: #e2e8e4;
 
   /* 관용적으로 빨강인 자리만 남긴다 — 유튜브 재생 버튼, 지도 핀. 쨍한 원색은 피한다 */
   --color-r: #cf3b40;
+
+  /* 밖으로 나가는 버튼은 목적지의 색을 입는다.
+   *
+   * 우리 초록으로 통일해 두면 화면은 깔끔한데, 누르는 사람은 어디로 가는지 눌러봐야 안다.
+   * 카카오 노랑과 인스타그램 분홍은 한국 이용자가 이미 학습을 마친 신호다 — 그 학습을
+   * 버리고 우리 색을 새로 가르치는 건 우리 편의지 이용자 편의가 아니다.
+   * 안에 머무는 버튼(후기 남기기, 목록 보기)은 계속 brand 를 쓴다. */
+  --color-kakao: #fee500;
+  --color-kakao-ink: #191600;
+  --color-insta: #e4405f;
 
   --font-sans:
     'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, 'Segoe UI', Roboto,
@@ -84,7 +107,7 @@ body {
 
 /* 키보드 사용자에게만 보이는 포커스 링 — 마우스 클릭 때는 뜨지 않는다 */
 :focus-visible {
-  outline: 2px solid var(--color-brand);
+  outline: 2px solid var(--color-brand-deep);
   outline-offset: 2px;
   border-radius: 6px;
 }

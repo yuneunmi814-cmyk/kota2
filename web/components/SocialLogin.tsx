@@ -39,7 +39,7 @@ export default function SocialLogin({ lang, redirectTo }: { lang: Lang; redirect
             type="button"
             onClick={() => go('kakao')}
             disabled={!!busy}
-            className="flex flex-1 items-center justify-center gap-2 rounded-full bg-[#FEE500] px-5 py-3 text-[15px] font-bold text-[#191600] transition hover:brightness-95 disabled:opacity-60"
+            className="flex flex-1 items-center justify-center gap-2 rounded-full bg-kakao px-5 py-3 text-[15px] font-bold text-kakao-ink transition hover:brightness-95 disabled:opacity-60"
           >
             <svg width="18" height="17" viewBox="0 0 18 17" aria-hidden fill="currentColor">
               <path d="M9 0C4.03 0 0 3.13 0 6.99c0 2.5 1.68 4.69 4.2 5.92-.18.65-.67 2.42-.77 2.8-.12.47.17.46.36.34.15-.1 2.37-1.6 3.33-2.25.61.09 1.24.14 1.88.14 4.97 0 9-3.13 9-6.99C18 3.13 13.97 0 9 0Z" />

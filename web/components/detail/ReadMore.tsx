@@ -10,7 +10,7 @@ export default function ReadMore({ text, more, less }: { text: string; more: str
     <div>
       <p className={`whitespace-pre-line text-[16px] leading-[1.75] text-ink/85 ${!open && long ? 'line-clamp-5' : ''}`}>{text}</p>
       {long && (
-        <button type="button" onClick={() => setOpen((v) => !v)} className="mt-2 text-[14px] font-bold text-brand underline-offset-4 hover:underline">
+        <button type="button" onClick={() => setOpen((v) => !v)} className="mt-2 text-[14px] font-bold text-brand-deep underline-offset-4 hover:underline">
           {open ? less : more}
         </button>
       )}

@@ -42,7 +42,7 @@ export default async function FestivalsPage({ params }: { params: Promise<{ lang
     <>
       <Header lang={l} path="festivals" />
       <main className="mx-auto max-w-6xl px-5 pb-24 pt-10">
-        <h1 className="h-display mb-8 text-[30px] text-brand sm:text-[36px]">
+        <h1 className="h-display mb-8 text-[30px] text-brand-deep sm:text-[36px]">
           {l === 'ko' ? '전국 축제' : l === 'ja' ? '韓国の祭り' : l === 'th' ? 'เทศกาลทั่วเกาหลี' : 'Festivals in Korea'}
         </h1>
         {/* useSearchParams는 정적 내보내기에서 Suspense 경계가 필요하다.

@@ -64,7 +64,7 @@ export default function ThemeRail({
               )}
             </div>
             <div className="p-3">
-              <p className="text-[14px] font-bold text-ink group-hover:text-brand">{themeLabel(key, lang)}</p>
+              <p className="text-[14px] font-bold text-ink group-hover:text-brand-deep">{themeLabel(key, lang)}</p>
               <p className="text-[12px] text-hint">{count}</p>
             </div>
           </Link>

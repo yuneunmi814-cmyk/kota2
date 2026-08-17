@@ -45,11 +45,11 @@ export default async function ThemePage({ params }: { params: Promise<{ lang: st
       <Header lang={l} path={`themes/${key}`} />
       <main className="mx-auto max-w-6xl px-5 pb-24 pt-10">
         <div className="mb-8 flex items-center gap-4">
-          <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-brand">
+          <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-deep">
             <Icon name={key} size={28} strokeWidth={1.6} />
           </span>
           <div>
-            <h1 className="h-display text-[30px] text-brand sm:text-[36px]">{themeLabel(key, l)}</h1>
+            <h1 className="h-display text-[30px] text-brand-deep sm:text-[36px]">{themeLabel(key, l)}</h1>
             <p className="mt-1 text-[15px] text-muted">{themeDesc(key, l)}</p>
           </div>
         </div>
@@ -60,7 +60,7 @@ export default async function ThemePage({ params }: { params: Promise<{ lang: st
               key={k}
               href={`/${l}/themes/${k}/`}
               className={`inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-[13px] font-bold transition ${
-                k === key ? 'border-brand bg-brand text-white' : 'border-line text-muted hover:border-brand/40 hover:text-brand'
+                k === key ? 'border-brand bg-brand text-brand-ink' : 'border-line text-muted hover:border-brand/40 hover:text-brand-deep'
               }`}
             >
               <Icon name={k} size={14} /> {themeLabel(k, l)}

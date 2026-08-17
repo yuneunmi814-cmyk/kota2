@@ -49,7 +49,7 @@ export default function AnchorTabs({ anchors, lang }: { anchors: Anchor[]; lang:
             key={a.id}
             href={`#${a.id}`}
             className={`shrink-0 border-b-2 px-3 py-3 text-[14px] font-bold transition ${
-              active === a.id ? 'border-brand text-brand' : 'border-transparent text-muted hover:text-ink'
+              active === a.id ? 'border-brand text-brand-deep' : 'border-transparent text-muted hover:text-ink'
             }`}
           >
             {a.label}

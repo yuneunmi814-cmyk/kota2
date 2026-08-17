@@ -122,7 +122,7 @@ export default function ShareButton({
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
-        className="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-4 py-2 text-[14px] font-bold text-ink transition hover:border-brand/40 hover:text-brand"
+        className="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-4 py-2 text-[14px] font-bold text-ink transition hover:border-brand/40 hover:text-brand-deep"
       >
         <Icon name="share" size={16} /> {done ? copied : label}
       </button>
@@ -136,7 +136,7 @@ export default function ShareButton({
 
           {KAKAO_KEY && (
             <button type="button" onClick={kakao} disabled={!kakaoReady} className={`${item} disabled:opacity-50`}>
-              <span className="flex h-4 w-4 items-center justify-center rounded-[3px] bg-[#FEE500] text-[9px] font-black text-[#191600]">
+              <span className="flex h-4 w-4 items-center justify-center rounded-[3px] bg-kakao text-[9px] font-black text-kakao-ink">
                 K
               </span>
               {labels.kakao}
