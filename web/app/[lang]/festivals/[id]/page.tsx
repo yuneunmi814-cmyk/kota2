@@ -9,6 +9,7 @@ import { ratingOf, reviewsOf } from '@/lib/reviews'
 import Reviews from '@/components/detail/Reviews'
 import TrackView from '@/components/TrackView'
 import AnchorTabs from '@/components/detail/AnchorTabs'
+import ReportError from '@/components/detail/ReportError'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import Poster from '@/components/Poster'
@@ -454,6 +455,7 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
         {/* 리뷰 — 트립어드바이저에서 본문의 8할을 차지하는 자리 */}
         <section className="mx-auto max-w-6xl px-5 pb-16">
           <Reviews festivalId={f.externalId} lang={l} initial={reviews} />
+          <ReportError festivalId={f.externalId} lang={l} />
         </section>
 
         {/* 근처 — 트립어드바이저 하단 가로 스크롤 추천 */}

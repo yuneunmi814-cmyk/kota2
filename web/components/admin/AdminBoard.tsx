@@ -26,6 +26,15 @@ interface Row {
   end_date: string
   image_url: string | null
 }
+interface Correction {
+  id: number
+  festival_id: string
+  kind: string
+  body: string
+  contact: string | null
+  status: string
+  created_at: string
+}
 interface Review {
   id: number
   festival_id: string
@@ -45,6 +54,7 @@ export default function AdminBoard() {
   const [promos, setPromos] = useState<Promo[]>([])
   const [names, setNames] = useState<Record<string, Row>>({})
   const [reviews, setReviews] = useState<Review[]>([])
+  const [fixes, setFixes] = useState<Correction[]>([])
   const [q, setQ] = useState('')
   const [found, setFound] = useState<Row[]>([])
   const [msg, setMsg] = useState<string | null>(null)
@@ -65,19 +75,27 @@ export default function AdminBoard() {
     const { data: pr } = await sb.from('promos').select('*').order('ord')
     const list = (pr ?? []) as unknown as Promo[]
     setPromos(list)
-    if (list.length) {
-      const { data: fs } = await sb
-        .from('festivals')
-        .select('id, name, start_date, end_date, image_url')
-        .in('id', list.map((p) => p.festival_id))
-      setNames(Object.fromEntries(((fs ?? []) as unknown as Row[]).map((f) => [f.id, f])))
-    }
     const { data: rv } = await sb
       .from('reviews')
       .select('id, festival_id, rating, body, status, created_at')
       .eq('status', 'pending')
       .order('created_at', { ascending: false })
     setReviews((rv ?? []) as unknown as Review[])
+
+    const { data: cx } = await sb
+      .from('corrections')
+      .select('id, festival_id, kind, body, contact, status, created_at')
+      .eq('status', 'open')
+      .order('created_at', { ascending: false })
+    const fixList = (cx ?? []) as unknown as Correction[]
+    setFixes(fixList)
+
+    // 배너·리뷰·신고에 걸린 축제 이름을 한 번에 채운다
+    const ids = [...new Set([...list.map((p) => p.festival_id), ...((rv ?? []) as unknown as Review[]).map((r) => r.festival_id), ...fixList.map((c) => c.festival_id)])]
+    if (ids.length) {
+      const { data: fs } = await sb.from('festivals').select('id, name, start_date, end_date, image_url').in('id', ids)
+      setNames(Object.fromEntries(((fs ?? []) as unknown as Row[]).map((f) => [f.id, f])))
+    }
   }, [sb])
 
   useEffect(() => {
@@ -122,6 +140,12 @@ export default function AdminBoard() {
   async function remove(id: number) {
     const { error } = await sb.from('promos').delete().eq('id', id)
     if (error) return flash(`실패: ${error.message}`)
+    void load()
+  }
+  async function closeFix(id: number, status: 'fixed' | 'rejected') {
+    const { error } = await sb.from('corrections').update({ status }).eq('id', id)
+    if (error) return flash(`실패: ${error.message}`)
+    flash(status === 'fixed' ? '고쳤다고 표시했어요' : '반영 안 함으로 닫았어요')
     void load()
   }
   async function judge(id: number, status: 'published' | 'hidden') {
@@ -324,6 +348,57 @@ export default function AdminBoard() {
                       삭제
                     </button>
                   </div>
+                </div>
+              </li>
+            )
+          })}
+        </ul>
+      </section>
+
+      {/* ── 정보 수정 요청 ── */}
+      <section className="mb-16">
+        <h2 className="text-[20px] font-bold text-ink">
+          정보 수정 요청
+          {fixes.length > 0 && <span className="ml-2 rounded-full bg-r px-2 py-0.5 text-[12px] font-bold text-white">{fixes.length}</span>}
+        </h2>
+        <p className="mt-1 text-[13px] text-hint">
+          방문자가 알려준 오류예요. 고친 뒤 닫으면 목록에서 사라져요.
+        </p>
+
+        <ul className="mt-5 space-y-3">
+          {fixes.length === 0 && (
+            <li className="rounded-[var(--radius-card)] border border-dashed border-line px-5 py-8 text-center text-[14px] text-hint">
+              들어온 요청이 없어요
+            </li>
+          )}
+          {fixes.map((c) => {
+            const KIND: Record<string, string> = { dates: '날짜', place: '장소', canceled: '취소·중단', photo: '사진', link: '홈페이지', other: '기타' }
+            return (
+              <li key={c.id} className="rounded-[var(--radius-card)] border border-line p-4">
+                <div className="mb-2 flex flex-wrap items-center gap-2 text-[12px]">
+                  <span className="rounded-full bg-paper-2 px-2 py-0.5 font-bold text-ink">{KIND[c.kind] ?? c.kind}</span>
+                  <a
+                    href={`/ko/festivals/${c.festival_id}/`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-semibold text-brand hover:underline"
+                  >
+                    {names[c.festival_id]?.name ?? c.festival_id}
+                  </a>
+                  <span className="text-hint">{c.created_at.slice(0, 10)}</span>
+                </div>
+                <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-ink">{c.body}</p>
+                {c.contact && <p className="mt-2 text-[13px] text-muted">답신: {c.contact}</p>}
+                <div className="mt-3 flex gap-2">
+                  <button onClick={() => closeFix(c.id, 'fixed')} className="rounded-full bg-brand px-4 py-2 text-[13px] font-bold text-white">
+                    고쳤어요
+                  </button>
+                  <button
+                    onClick={() => closeFix(c.id, 'rejected')}
+                    className="rounded-full border border-line px-4 py-2 text-[13px] font-bold text-muted hover:border-r hover:text-r"
+                  >
+                    반영 안 함
+                  </button>
                 </div>
               </li>
             )
