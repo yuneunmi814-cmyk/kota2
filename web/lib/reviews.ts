@@ -71,3 +71,22 @@ export const ratingOf = cache(async (festivalId: string): Promise<Rating | null>
   if (error || !data) return null
   return { average: Number(data.rating), count: Number(data.review_count) }
 })
+
+/**
+ * 관리자가 고른 배너 슬롯 — 없으면 빈 배열이고, 그때는 홈이 자동으로 채운다.
+ *
+ * 관리 없이도 돌아가는 게 기본값이어야 한다. 사람이 매주 손대야만 그림이 나오는 화면은
+ * 결국 빈 채로 방치된다. 큐레이션은 그 위에 얹는 것이지 전제가 아니다.
+ */
+export const curatedPromos = cache(async (): Promise<{ festivalId: string; sponsored: boolean }[]> => {
+  const { data, error } = await supabase
+    .from('promos')
+    .select('festival_id, sponsored')
+    .order('ord')
+    .limit(6)
+  if (error) return [] // 표가 아직 없거나 정책이 막으면 자동으로 떨어진다
+  return (data as unknown as { festival_id: string; sponsored: boolean }[]).map((p) => ({
+    festivalId: p.festival_id,
+    sponsored: p.sponsored,
+  }))
+})

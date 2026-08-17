@@ -12,6 +12,7 @@ import Footer from '@/components/Footer'
 import SearchBar from '@/components/SearchBar'
 import RotatingPromo from '@/components/RotatingPromo'
 import PromoBanner from '@/components/PromoBanner'
+import { curatedPromos } from '@/lib/reviews'
 import RegionRail from '@/components/RegionRail'
 import ThemeRail from '@/components/ThemeRail'
 
@@ -75,8 +76,11 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
 
   // 회전 배너 = 이번 주말. 여행자가 가장 먼저 묻는 것이므로 가장 눈에 띄는 자리에 둔다.
   // 사진이 없으면 배너에 못 올린다(빈 상자가 도는 것보다 넉 장이 낫다).
-  const weekendPicks = weekend.filter((f) => f.imageUrl)
-  const promoSlides = weekendPicks
+  // 관리자가 고른 게 있으면 그것으로, 없으면 이번 주말 축제로 자동으로 채운다
+  const curated = await curatedPromos()
+  const byId = new Map(all.map((f) => [f.externalId, f]))
+  const picked = curated.map((c) => byId.get(c.festivalId)).filter((f): f is Festival => !!f && !!f.imageUrl)
+  const promoSlides = (picked.length > 0 ? picked : weekend.filter((f) => f.imageUrl))
     .slice(0, 4)
     .map((f) => ({
       id: f.externalId,
@@ -128,7 +132,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
         </section>
 
         {/* 회전 배너 — 트립어드바이저 히어로 바로 아래의 형광 초록 자리 */}
-        <RotatingPromo slides={promoSlides} total={weekend.length} lang={l} />
+        <RotatingPromo slides={promoSlides} total={weekend.length} curated={picked.length > 0} lang={l} />
 
         {/* 무엇을 — 트립어드바이저 '내 관심사에 맞는 즐길거리' 자리 */}
         <ThemeRail all={all} lang={l} title={t(l, 'purpose.title')} subtitle={t(l, 'purpose.sub')} />

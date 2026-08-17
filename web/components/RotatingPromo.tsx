@@ -30,7 +30,17 @@ export interface PromoSlide {
 
 const INTERVAL = 5000
 
-export default function RotatingPromo({ slides, total, lang }: { slides: PromoSlide[]; total: number; lang: Lang }) {
+export default function RotatingPromo({
+  slides,
+  total,
+  curated = false,
+  lang,
+}: {
+  slides: PromoSlide[]
+  total: number
+  curated?: boolean
+  lang: Lang
+}) {
   const [i, setI] = useState(0)
   const [paused, setPaused] = useState(false)
 
@@ -79,7 +89,9 @@ export default function RotatingPromo({ slides, total, lang }: { slides: PromoSl
           {/* 말 — 초록 위 검정. 트립어드바이저와 같은 대비 */}
           <div className="flex flex-col justify-center p-7 sm:p-10">
             <h2 className="h-display text-[26px] leading-tight text-ink sm:text-[34px]">{t(lang, 'promo.title')}</h2>
-            <p className="mt-3 text-[15px] leading-relaxed text-ink/75">{t(lang, 'promo.sub', { n: total })}</p>
+            <p className="mt-3 text-[15px] leading-relaxed text-ink/75">
+              {curated ? t(lang, 'promo.subCurated') : t(lang, 'promo.sub', { n: total })}
+            </p>
             <Link
               href={`/${lang}/festivals/?period=weekend`}
               className="mt-6 inline-flex w-fit items-center rounded-full bg-ink px-6 py-3 text-[15px] font-bold text-white transition hover:bg-ink/85"
