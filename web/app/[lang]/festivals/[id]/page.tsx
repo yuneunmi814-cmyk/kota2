@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { allFestivals, distanceKm, findByKey, isAlwaysOn, isLongRun, localized, regionRank, statusOf } from '@/lib/festivals'
+import { allFestivals, distanceKm, feeKind, findByKey, isAlwaysOn, isLongRun, isPublicData, localized, regionRank, statusOf } from '@/lib/festivals'
 import { fromSlug, toSlug } from '@/lib/slug'
 import { LANGS, SITE_URL, isLang, type Lang } from '@/lib/i18n'
 import { t } from '@/lib/ui'
@@ -69,6 +69,7 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
 
   const L = localized(f, l)
   const st = statusOf(f)
+  const fee = feeKind(f)
   const always = isAlwaysOn(f)
   const rank = await regionRank(f)
   const [rating, reviews] = await Promise.all([ratingOf(f.externalId), reviewsOf(f.externalId)])
@@ -116,7 +117,9 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
     },
     ...(f.imageUrl ? { image: [f.imageUrl] } : {}),
     ...(f.organizer ? { organizer: { '@type': 'Organization', name: f.organizer } } : {}),
-    isAccessibleForFree: !f.fee || /무료|free/i.test(f.fee),
+    // 모르면 아예 말하지 않는다. 요금을 모르는 축제에 isAccessibleForFree: true 를 넣으면
+    // 검색엔진에도 "무료"라고 알리는 셈이고, 그건 화면의 거짓말이 검색결과까지 번지는 것이다.
+    ...(fee === 'unknown' ? {} : { isAccessibleForFree: fee === 'free' }),
     url: `${SITE_URL}/${l}/festivals/${toSlug(f.externalId)}/`,
   }
 
@@ -420,7 +423,9 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
               </section>
             )}
 
-            <p className="text-[12px] leading-relaxed text-hint">{t(l, 'detail.source')}</p>
+            <p className="text-[12px] leading-relaxed text-hint">
+            {t(l, isPublicData(f) ? 'detail.source' : 'detail.source.manual')}
+          </p>
           </div>
 
           {/* 오른쪽 — sticky 정보 카드. 트립어드바이저의 '시간' 카드 자리 */}
@@ -432,8 +437,15 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
                   <span className="tabular-nums font-semibold">{fmt(f.startDate)} – {fmt(f.endDate)}</span>
                 </Row>
                 {f.hours && <Row icon="clock" label={t(l, 'detail.hours')}>{f.hours}</Row>}
+                {/* 요금은 셋이다 — 무료 / 유료 / 모름. 모르는 것을 「무료」라고 하지 않는다.
+                    공공 API가 요금을 안 준 축제가 425건 중 300건이고, 그건 공짜라는 뜻이
+                    아니다. 유료 축제를 싣기 시작하면 이 단정이 실제 피해가 된다. */}
                 <Row icon="ticket" label={t(l, 'detail.fee')}>
-                  <span className={!f.fee || /무료|free/i.test(f.fee) ? 'font-bold text-brand' : ''}>{f.fee ?? t(l, 'detail.free')}</span>
+                  {fee === 'unknown' ? (
+                    <span className="text-hint">{t(l, 'detail.feeUnknown')}</span>
+                  ) : (
+                    <span className={fee === 'free' ? 'font-bold text-brand' : ''}>{f.fee}</span>
+                  )}
                 </Row>
                 {(f.address || L.placeName) && (
                   <Row icon="pin" label={t(l, 'detail.place')}>

@@ -66,6 +66,40 @@ export const key = (f: Festival) => f.externalId
 /** 주소에 쓰는 형태 — 콜론이 카카오 공유를 막는다. 자세한 사정은 lib/slug.ts */
 export { toSlug, fromSlug } from './slug'
 
+// 요금 — 셋으로 가른다. 둘이 아니라 셋인 이유는 '모른다'가 다수이기 때문이다.
+//
+// 425건 중 fee 값이 있는 건 125건뿐이다(29%). 나머지 300건은 공공 API가 요금을
+// 안 준 것이지 공짜라는 뜻이 아니다. 그런데 화면은 `f.fee ?? '무료'` 로 그 300건을
+// 전부 「무료」라고 단정하고 있었다. 지금도 틀렸고, 유료 티켓 축제를 싣기 시작하면
+// 2만원짜리 행사를 공짜라고 알리는 일이 생긴다.
+//
+// 판정 규칙은 하나다 — '무료'라는 말이 들어 있으면 그건 입장료 이야기다.
+// 실제 데이터로 검산했다:
+//   "입장료 무료 (먹거리 유료)"          → free  (입장은 공짜, 부대비용은 따로 적혀 있다)
+//   "무료입장 및 기타체험비 유료"          → free
+//   "입장료 유료 (8,000원/시민 6,000원)"  → paid
+//   "유료(2,000원)"                     → paid
+export type FeeKind = 'free' | 'paid' | 'unknown'
+
+export function feeKind(f: Pick<Festival, 'fee'>): FeeKind {
+  const s = f.fee?.trim()
+  if (!s) return 'unknown'
+  return /무료|free/i.test(s) ? 'free' : 'paid'
+}
+
+// 누가 여는가 — 공공이 연 것인가, 우리가 직접 확인해 넣은 것인가.
+//
+// 가격과는 다른 축이다. 춘천 썸머워터 페스티벌은 8,000원이지만 지자체 축제이고,
+// 무료 브랜드 행사도 있다. 가격으로 가르면 엉뚱하게 갈린다.
+//
+// 새 컬럼이 필요 없다 — sources 에 이미 답이 있다. 이 구분을 화면에 밝히는 것이
+// 우리가 파는 것(데이터 신뢰)의 설명이기도 하다.
+const PUBLIC_SOURCES = ['tourapi', 'kfes', 'stdfest']
+
+export function isPublicData(f: Pick<Festival, 'sources'>): boolean {
+  return (f.sources ?? []).some((s) => PUBLIC_SOURCES.includes(s))
+}
+
 /** DB 행(snake_case) → 화면이 쓰는 Festival(camelCase) */
 interface Row {
   id: string
