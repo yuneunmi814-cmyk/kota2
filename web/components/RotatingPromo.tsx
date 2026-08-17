@@ -6,9 +6,12 @@ import { t } from '@/lib/ui'
 
 // 히어로 아래 회전 배너 — 트립어드바이저 홈의 형광 초록 배너를 그대로.
 //
-// 그쪽은 여행자가 올린 사진 넉 장을 돌리고 사진마다 @작성자를 얹는다. 우리는 축제 사진을
-// 돌리고 그 자리에 축제 이름과 방문객 배율을 얹는다 — 사진이 누구 것인지보다
-// 그 축제에 얼마나 몰렸는지가 우리가 가진 이야기다.
+// 그쪽은 여행자가 올린 사진 넉 장을 돌리고 사진마다 @작성자를 얹는다. 우리는 이번 주말에
+// 열리는 축제를 돌리고 그 자리에 이름과 방문객 배율을 얹는다.
+//
+// 여기에 '이번 주말'을 놓는 이유: 여행자가 가장 먼저 묻는 게 그것이고, 화면에서 가장
+// 눈에 띄는 자리가 여기다. 'KOTA's Pick'이라고 이름 붙이되 무엇을 기준으로 골랐는지는
+// 부제에 밝힌다 — 고른 기준을 감추면 그건 추천이 아니라 광고로 읽힌다.
 //
 // 색(#00EB5B)은 트립어드바이저 것을 그대로 쓴다. 화면 전체를 흰 바탕으로 정리해 둔 터라
 // 이 한 자리만 형광으로 튀는데, 그게 이 구간의 역할이다 — 목록이 이어지는 흐름을
@@ -27,7 +30,7 @@ export interface PromoSlide {
 
 const INTERVAL = 5000
 
-export default function RotatingPromo({ slides, lang }: { slides: PromoSlide[]; lang: Lang }) {
+export default function RotatingPromo({ slides, total, lang }: { slides: PromoSlide[]; total: number; lang: Lang }) {
   const [i, setI] = useState(0)
   const [paused, setPaused] = useState(false)
 
@@ -76,9 +79,9 @@ export default function RotatingPromo({ slides, lang }: { slides: PromoSlide[]; 
           {/* 말 — 초록 위 검정. 트립어드바이저와 같은 대비 */}
           <div className="flex flex-col justify-center p-7 sm:p-10">
             <h2 className="h-display text-[26px] leading-tight text-ink sm:text-[34px]">{t(lang, 'promo.title')}</h2>
-            <p className="mt-3 text-[15px] leading-relaxed text-ink/75">{t(lang, 'promo.sub')}</p>
+            <p className="mt-3 text-[15px] leading-relaxed text-ink/75">{t(lang, 'promo.sub', { n: total })}</p>
             <Link
-              href={`/${lang}/festivals/?sort=popularity`}
+              href={`/${lang}/festivals/?period=weekend`}
               className="mt-6 inline-flex w-fit items-center rounded-full bg-ink px-6 py-3 text-[15px] font-bold text-white transition hover:bg-ink/85"
             >
               {t(lang, 'promo.cta')}

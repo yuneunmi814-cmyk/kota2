@@ -54,19 +54,6 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
 
   const popular = [...ongoing, ...upcomingSoon].sort(showcase)
 
-  // 회전 배너 — '얼마나 몰렸나'가 이야기이므로 방문객 배율 순으로 고른다.
-  // 사진이 없으면 배너에 못 올린다(빈 상자가 돌아가는 것보다 넉 장이 낫다).
-  const promoSlides = all
-    .filter((f) => f.imageUrl && f.visitorLift != null && f.endDate >= new Date().toISOString().slice(0, 10))
-    .sort((a, b) => (b.visitorLift ?? 0) - (a.visitorLift ?? 0))
-    .slice(0, 4)
-    .map((f) => ({
-      id: f.externalId,
-      name: localized(f, l).name,
-      image: f.imageUrl!,
-      place: localized(f, l).placeName ?? '',
-      lift: f.visitorLift ?? null,
-    }))
 
 
   // 시간축 두 개 — 여행자가 실제로 묻는 것은 '지금 갈 수 있나', '주말에 뭐 있나'다.
@@ -85,6 +72,19 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
   const weekend = [...ongoing, ...upcomingSoon]
     .filter((f) => f.startDate <= sun && f.endDate >= sat)
     .sort(showcase)
+
+  // 회전 배너 = 이번 주말. 여행자가 가장 먼저 묻는 것이므로 가장 눈에 띄는 자리에 둔다.
+  // 사진이 없으면 배너에 못 올린다(빈 상자가 도는 것보다 넉 장이 낫다).
+  const weekendPicks = weekend.filter((f) => f.imageUrl)
+  const promoSlides = weekendPicks
+    .slice(0, 4)
+    .map((f) => ({
+      id: f.externalId,
+      name: localized(f, l).name,
+      image: f.imageUrl!,
+      place: localized(f, l).placeName ?? '',
+      lift: f.visitorLift ?? null,
+    }))
 
   // 행끼리 겹치면 4개 행이 사실상 한 행이 된다 — 상위 축제는 모든 축에서 1등이라 그렇다(실측:
   // 통영한산대첩·둔내고랭지토마토가 네 행에 전부 등장). 먼저 나온 행이 가져가고 뒤는 다음 것을 쓴다.
@@ -128,7 +128,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
         </section>
 
         {/* 회전 배너 — 트립어드바이저 히어로 바로 아래의 형광 초록 자리 */}
-        <RotatingPromo slides={promoSlides} lang={l} />
+        <RotatingPromo slides={promoSlides} total={weekend.length} lang={l} />
 
         {/* 무엇을 — 트립어드바이저 '내 관심사에 맞는 즐길거리' 자리 */}
         <ThemeRail all={all} lang={l} title={t(l, 'purpose.title')} subtitle={t(l, 'purpose.sub')} />
@@ -146,14 +146,6 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
           items={take(endingSoon)}
           lang={l}
           href={`/${l}/festivals/?period=ongoing`}
-          moreLabel={t(l, 'row.more')}
-        />
-        <FestivalRow
-          title={t(l, 'row.weekend')}
-          subtitle={t(l, 'row.weekend.sub')}
-          items={take(weekend)}
-          lang={l}
-          href={`/${l}/festivals/`}
           moreLabel={t(l, 'row.more')}
         />
         <FestivalRow

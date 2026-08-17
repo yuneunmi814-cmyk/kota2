@@ -28,6 +28,7 @@ export default function FestivalListFromQuery({
       initialQuery={sp.get('q') ?? ''}
       initialRegion={REGIONS.some((r) => r.key === region) ? region : null}
       initialGraded={sp.get('graded') === '1'}
+      initialPeriod={(['ongoing', 'upcoming', 'weekend'] as const).find((x) => x === sp.get('period')) ?? 'all'}
     />
   )
 }

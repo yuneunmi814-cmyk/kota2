@@ -20,11 +20,23 @@ import DayBadgeChip from './DayBadge'
 // '시기'를 첫 축으로 둔 이유: 축제는 '언제 하느냐'가 갈 수 있냐를 결정한다.
 // 지역부터 고르게 하면 이미 끝난 축제를 한참 보다가 돌아 나온다.
 
-type Period = 'all' | 'ongoing' | 'upcoming' | number // number = 월(1~12)
+type Period = 'all' | 'ongoing' | 'upcoming' | 'weekend' | number // number = 월(1~12)
 type Sort = 'date' | 'distance' | 'popularity'
 const PAGE = 24
 
 const fmt = (d: string) => d.slice(5).replace('-', '.')
+
+/** 이번 주말(토·일) — 오늘이 일요일이면 오늘, 아니면 돌아오는 토·일. 홈 배너와 같은 규칙 */
+function thisWeekend(): [string, string] {
+  const now = Date.now()
+  const day = 86_400_000
+  const dow = new Date().getUTCDay()
+  const off = dow === 0 ? 0 : 6 - dow
+  return [
+    new Date(now + off * day).toISOString().slice(0, 10),
+    new Date(now + (off + (dow === 0 ? 0 : 1)) * day).toISOString().slice(0, 10),
+  ]
+}
 
 export default function FestivalList({
   items,
@@ -34,6 +46,7 @@ export default function FestivalList({
   initialQuery = '',
   initialRegion = null,
   initialGraded = false,
+  initialPeriod = 'all',
 }: {
   items: ListItem[]
   lang: Lang
@@ -42,8 +55,9 @@ export default function FestivalList({
   initialQuery?: string
   initialRegion?: string | null
   initialGraded?: boolean
+  initialPeriod?: Period
 }) {
-  const [period, setPeriod] = useState<Period>('all')
+  const [period, setPeriod] = useState<Period>(initialPeriod)
   const [region, setRegion] = useState<string | null>(initialRegion)
   const [graded, setGraded] = useState(initialGraded)
   const [sido, setSido] = useState<string | null>(null)
@@ -68,7 +82,10 @@ export default function FestivalList({
 
     if (period === 'ongoing') out = out.filter((f) => f.st === 'ongoing' && !f.al)
     else if (period === 'upcoming') out = out.filter((f) => f.st === 'upcoming')
-    else if (typeof period === 'number') out = out.filter((f) => f.m.includes(period) && !f.al)
+    else if (period === 'weekend') {
+      const [sat, sun] = thisWeekend()
+      out = out.filter((f) => f.s <= sun && f.e >= sat && !f.al)
+    } else if (typeof period === 'number') out = out.filter((f) => f.m.includes(period) && !f.al)
 
     if (sido) out = out.filter((f) => f.sd === sido)
     else if (region) {
@@ -123,7 +140,10 @@ export default function FestivalList({
     let base = items.filter((f) => f.st !== 'ended')
     if (period === 'ongoing') base = base.filter((f) => f.st === 'ongoing' && !f.al)
     else if (period === 'upcoming') base = base.filter((f) => f.st === 'upcoming')
-    else if (typeof period === 'number') base = base.filter((f) => f.m.includes(period) && !f.al)
+    else if (period === 'weekend') {
+      const [sat, sun] = thisWeekend()
+      base = base.filter((f) => f.s <= sun && f.e >= sat && !f.al)
+    } else if (typeof period === 'number') base = base.filter((f) => f.m.includes(period) && !f.al)
     const m = new Map<string, number>()
     for (const f of base) if (f.sd) m.set(f.sd, (m.get(f.sd) ?? 0) + 1)
     return [...m.entries()].map(([sido, count]) => ({ sido, count })).sort((a, b) => b.count - a.count)
@@ -168,6 +188,9 @@ export default function FestivalList({
         </button>
         <button className={chip(period === 'upcoming')} onClick={() => setPeriod('upcoming')}>
           {t(lang, 'status.upcoming')}
+        </button>
+        <button className={chip(period === 'weekend')} onClick={() => setPeriod('weekend')}>
+          {t(lang, 'row.weekend')}
         </button>
         <span className="mx-1 w-px shrink-0 self-stretch bg-line" />
         {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
