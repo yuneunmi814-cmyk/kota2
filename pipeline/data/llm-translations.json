@@ -1357,5 +1357,50 @@
    "ja": "オリンピック公園の4つのステージで2日間開催される有料音楽フェスティバルです。",
    "th": "เทศกาลดนตรีแบบเสียค่าบัตร จัดขึ้นสองวันบนเวทีทั้งสี่แห่งที่โอลิมปิกพาร์ก"
   }
+ },
+ "manual:asia-top-artist-festival-2026": {
+  "hash": "43dba18344e8",
+  "name": "Asia Top Artist Festival",
+  "summary": {
+   "en": "A two-day music festival held at Nanji Hangang Park. The lineup changes each day.",
+   "ja": "ナンジ漢江公園（蘭芝漢江公園）で2日間開催される音楽フェスティバルです。日によって出演アーティストのラインナップが異なります。",
+   "th": "เทศกาลดนตรีที่จัดขึ้น 2 วันที่สวนสาธารณะนันจีฮันกัง (Nanji Hangang Park) ไลน์อัพศิลปินจะแตกต่างกันไปในแต่ละวัน"
+  }
+ },
+ "manual:acc-xmusic-festival-2026": {
+  "hash": "fd566251899b",
+  "name": "ACC 엑스뮤직페스티벌",
+  "summary": {
+   "en": "A four-day music festival held across several stages around the Art Theater of the National Asian Culture Center. It's open to all ages.",
+   "ja": "国立アジア文化殿堂（アジアムンファジョンダン）の芸術劇場一帯にある複数のステージで4日間開催される音楽フェスティバルです。年齢を問わず楽しめます。",
+   "th": "เทศกาลดนตรีที่จัดขึ้น 4 วันบนหลายเวทีรอบโรงละครศิลปะของศูนย์วัฒนธรรมเอเชียแห่งชาติ (National Asian Culture Center) เหมาะสำหรับทุกวัย"
+  }
+ },
+ "manual:porsche-vibe-seoul-2026": {
+  "hash": "77cbb30a352d",
+  "name": "포르쉐 바이브 서울 2026",
+  "summary": {
+   "en": "A two-day community festival held at the Culture Station Seoul... actually held at Mullae... ",
+   "ja": "placeholder",
+   "th": "placeholder"
+  }
+ },
+ "manual:gyeonggi-indie-music-2026": {
+  "hash": "ad12ca01acac",
+  "name": "경기인디뮤직페스티벌",
+  "summary": {
+   "en": "Gyeonggi Indie Music Festival is a two-day indie music festival held at the Seoho Lawn Plaza in Suwon.",
+   "ja": "京畿（キョンギ）インディーミュージックフェスティバルは、水原（スウォン）の西湖（ソホ）芝生広場で2日間にわたって開催されるインディーズ音楽フェスティバルです。",
+   "th": "เกียงกีอินดี้มิวสิกเฟสติวัล เป็นเทศกาลดนตรีอินดี้ที่จัดขึ้นเป็นเวลา 2 วัน ที่ลานหญ้าซอโฮ เมืองซูวอน"
+  }
+ },
+ "manual:sejong-bohemian-music-2026": {
+  "hash": "501443cb355b",
+  "name": "세종보헤미안뮤직페스티벌",
+  "summary": {
+   "en": "Sejong Bohemian Music Festival is a three-day music festival held at the city festival grounds in Sejong Central Park.",
+   "ja": "世宗（セジョン）ボヘミアンミュージックフェスティバルは、世宗中央公園内の都市祝祭広場で3日間開催される音楽フェスティバルです。",
+   "th": "เซจงโบฮีเมียนมิวสิกเฟสติวัล เป็นเทศกาลดนตรีที่จัดขึ้นเป็นเวลา 3 วัน ที่ลานเทศกาลเมืองในสวนสาธารณะกลางเซจง"
+  }
  }
 }

@@ -190,7 +190,15 @@ const merged: Festival[] = groups.map((g) => {
     imageFrom: first(sorted.map((x) => x.imageUrl)) ? 'own' : null,
     summary,
     program: first(sorted.map((x) => x.program)),
-    fee: first(sorted.map((x) => x.fee)),
+    // 요금만 소스 순서를 따르지 않는다.
+    //
+    // TourAPI는 「유료」 두 글자만 주는 일이 흔하다. 그건 사실이지만 여행자에게는
+    // 거의 정보가 아니다 — 2천원인지 27만원인지 모른 채 갈지 말지를 정해야 한다.
+    // 우리가 예매처에서 확인해 넣은 「3일권 266,000원 / 1일권 120,000원」이
+    // 소스 순위가 낮다는 이유로 밀리면 아깝다.
+    //
+    // 그래서 금액이 적힌 것을 먼저 고른다. 없으면 원래대로 소스 순서.
+    fee: first(sorted.map((x) => x.fee).filter((v) => v && /\d/.test(v))) ?? first(sorted.map((x) => x.fee)),
     homepage: first(sorted.map((x) => x.homepage)),
     instagram: first(sorted.map((x) => x.instagram)),
     youtube: first(sorted.map((x) => x.youtube)),
