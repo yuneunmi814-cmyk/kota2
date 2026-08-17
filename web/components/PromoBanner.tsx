@@ -45,15 +45,15 @@ export default function PromoBanner({ all, lang }: { all: Festival[]; lang: Lang
             <p className="mb-3 inline-block rounded-full border border-white/35 px-3 py-1 text-[12px] font-bold text-white/85">
               {t(lang, 'grade.mf')}
             </p>
-            <h2 className="h-display text-[26px] leading-tight text-white sm:text-[32px]">{t(lang, 'promo.title')}</h2>
+            <h2 className="h-display text-[26px] leading-tight text-white sm:text-[32px]">{t(lang, 'graded.title')}</h2>
             <p className="mt-3 text-[15px] leading-relaxed text-white/80">
-              {t(lang, 'promo.sub', { n: graded.length })}
+              {t(lang, 'graded.sub', { n: graded.length })}
             </p>
             <Link
               href={`/${lang}/festivals/?graded=1`}
               className="mt-6 inline-flex items-center rounded-full bg-white px-6 py-3 text-[15px] font-bold text-brand transition hover:bg-white/90"
             >
-              {t(lang, 'promo.cta')}
+              {t(lang, 'graded.cta')}
             </Link>
           </div>
         </div>

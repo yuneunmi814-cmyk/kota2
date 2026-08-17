@@ -10,10 +10,11 @@ import FestivalRow from '@/components/FestivalRow'
 import NearbyBlock from '@/components/NearbyBlock'
 import Footer from '@/components/Footer'
 import SearchBar from '@/components/SearchBar'
-import HeroBand from '@/components/HeroBand'
+import RotatingPromo from '@/components/RotatingPromo'
+import PromoBanner from '@/components/PromoBanner'
 import RegionRail from '@/components/RegionRail'
 import ThemeRail from '@/components/ThemeRail'
-import PromoBanner from '@/components/PromoBanner'
+
 
 // 1시간마다 다시 굽는다 — 축제 데이터는 주 1회만 바뀌므로 요청마다 DB를 볼 이유가 없다
 export const revalidate = 3600
@@ -53,7 +54,20 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
 
   const popular = [...ongoing, ...upcomingSoon].sort(showcase)
 
-  const themeCount = (k: string) => all.filter((f) => f.themes?.includes(k)).length
+  // 회전 배너 — '얼마나 몰렸나'가 이야기이므로 방문객 배율 순으로 고른다.
+  // 사진이 없으면 배너에 못 올린다(빈 상자가 돌아가는 것보다 넉 장이 낫다).
+  const promoSlides = all
+    .filter((f) => f.imageUrl && f.visitorLift != null && f.endDate >= new Date().toISOString().slice(0, 10))
+    .sort((a, b) => (b.visitorLift ?? 0) - (a.visitorLift ?? 0))
+    .slice(0, 4)
+    .map((f) => ({
+      id: f.externalId,
+      name: localized(f, l).name,
+      image: f.imageUrl!,
+      place: localized(f, l).placeName ?? '',
+      lift: f.visitorLift ?? null,
+    }))
+
 
   // 시간축 두 개 — 여행자가 실제로 묻는 것은 '지금 갈 수 있나', '주말에 뭐 있나'다.
   const now = Date.now()
@@ -113,8 +127,8 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
           </div>
         </section>
 
-        {/* 사진 띠 — 트립어드바이저가 홈을 여는 방식. 지금 열리는 축제 넉 장 */}
-        <HeroBand items={[...ongoing, ...upcomingSoon].sort(showcase)} lang={l} />
+        {/* 회전 배너 — 트립어드바이저 히어로 바로 아래의 형광 초록 자리 */}
+        <RotatingPromo slides={promoSlides} lang={l} />
 
         {/* 무엇을 — 트립어드바이저 '내 관심사에 맞는 즐길거리' 자리 */}
         <ThemeRail all={all} lang={l} title={t(l, 'purpose.title')} subtitle={t(l, 'purpose.sub')} />
@@ -123,8 +137,6 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
         {/* 어디로 — 트립어드바이저 '놓칠 수 없는 명소' 자리 */}
         <RegionRail all={all} lang={l} title={t(l, 'region.title')} subtitle={t(l, 'region.sub')} />
 
-        {/* 중앙 프로모션 — 트립어드바이저 홈 한가운데의 큰 배너 자리 */}
-        <PromoBanner all={all} lang={l} />
 
         {/* 시간축·신뢰축 행 — 트립어드바이저 둘러보기의 '카테고리별 가로 행' 문법.
             순서는 여행자가 묻는 순서다: 지금 갈 수 있나 → 주말에 뭐 있나 → 뭘 많이 가나 → 검증된 건 뭔가 */}
@@ -159,6 +171,9 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
           href={`/${l}/festivals/`}
           moreLabel={t(l, 'row.more')}
         />
+        {/* 문화관광축제 — 트립어드바이저 Travellers' Choice 어워드 자리(맨 아래) */}
+        <PromoBanner all={all} lang={l} />
+
         {/* 내 주변 — 진입 즉시 위치를 묻는다 */}
         <div className="pb-16">
           <NearbyBlock all={all} lang={l} />
