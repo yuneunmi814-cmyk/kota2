@@ -43,6 +43,11 @@ jobs:
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
       - run: npm run export
+      # 화면이 읽는 건 이제 DB다 — 여기서 밀어 넣지 않으면 사이트는 지난주 데이터를 계속 보여준다
+      - run: npm run push
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
       - name: 변경분 커밋
         working-directory: .
         run: |

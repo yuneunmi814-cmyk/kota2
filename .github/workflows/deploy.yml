@@ -4,9 +4,10 @@ name: deploy-web
 # basePath는 저장소 이름(/kota2). 도메인을 사면 NEXT_PUBLIC_BASE_PATH를 비우고
 # NEXT_PUBLIC_SITE_URL을 새 도메인으로 바꾼다.
 
+# ⛔ 2026-08-17 중단 — 사이트가 동적(Next.js + Supabase)으로 바뀌어 정적 내보내기가 없다.
+# 배포는 Vercel이 맡는다(main에 push되면 자동). 이 파일은 수동 실행만 남겨 두되 실제로는 실패한다.
+# GitHub Pages 주소로 들어오던 방문자는 Vercel 배포가 안정되면 리다이렉트로 넘긴다.
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 permissions:
