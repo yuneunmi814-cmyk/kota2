@@ -10,6 +10,7 @@ import { distanceKm } from '@/lib/festivals'
 import { track } from '@/lib/track'
 import Icon from './Icon'
 import Poster from './Poster'
+import DayBadgeChip from './DayBadge'
 
 // 축제 목록 — 시기 × 지역 × 목적 3축 필터와 3정렬.
 //
@@ -284,11 +285,7 @@ export default function FestivalList({
                     pendingLabel={t(lang, 'photo.pending')}
                     className="transition-transform duration-500 group-hover:scale-[1.04]"
                   />
-                  {f.st === 'ongoing' && !f.al && (
-                    <span className="absolute left-3 top-3 rounded-full bg-brand px-2.5 py-1 text-[11px] font-bold text-white">
-                      {t(lang, 'status.ongoing')}
-                    </span>
-                  )}
+                  <DayBadgeChip badge={f.db} lang={lang} />
                   {f.ip && (
                     <span className="absolute bottom-2 right-2 rounded-full bg-ink/70 px-2 py-0.5 text-[10px] font-bold text-white backdrop-blur-sm">
                       {t(lang, 'poster.past')}

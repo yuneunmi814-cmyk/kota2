@@ -8,6 +8,7 @@ import { sidoLabel } from '@/lib/sido'
 import { ratingOf, reviewsOf } from '@/lib/reviews'
 import Reviews from '@/components/detail/Reviews'
 import TrackView from '@/components/TrackView'
+import AnchorTabs from '@/components/detail/AnchorTabs'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import Poster from '@/components/Poster'
@@ -69,6 +70,7 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
   const always = isAlwaysOn(f)
   const rank = await regionRank(f)
   const [rating, reviews] = await Promise.all([ratingOf(f.externalId), reviewsOf(f.externalId)])
+
   const hasCoords = f.lat != null && f.lng != null
 
   const nearby = hasCoords
@@ -83,6 +85,16 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
   const mapHref = hasCoords ? `https://map.kakao.com/link/to/${encodeURIComponent(f.name)},${f.lat},${f.lng}` : null
   const boothCount = f.booths?.length ?? 0
   const menuCount = f.booths?.reduce((n, b) => n + b.menu.length, 0) ?? 0
+
+  // 목차 — 그 섹션이 실제로 그려질 때만 넣는다
+  const anchors = [
+    L.summary ? { id: 'about', label: t(l, 'detail.about') } : null,
+    (f.photos?.length ?? 0) > 0 ? { id: 'photos', label: t(l, 'detail.photos') } : null,
+    f.program ? { id: 'program', label: t(l, 'detail.program') } : null,
+    hasCoords ? { id: 'location', label: t(l, 'detail.location') } : null,
+    { id: 'reviews', label: t(l, 'review.title') },
+    nearby.length > 0 ? { id: 'nearby', label: t(l, 'detail.nearby') } : null,
+  ].filter((x): x is { id: string; label: string } => x !== null)
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -253,12 +265,14 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
           )}
         </div>
 
+        <AnchorTabs anchors={anchors} lang={l} />
+
         {/* 2단 — 왼쪽 본문 / 오른쪽 sticky 정보 카드 */}
         <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_340px]">
           <div className="min-w-0">
             {/* 소개 */}
             {(L.summary || f.summary) && (
-              <section className="mb-10">
+              <section id="about" className="mb-10 scroll-mt-24">
                 <h2 className="mb-3 text-[20px] font-black text-ink">{t(l, 'detail.about')}</h2>
                 <ReadMore text={L.summary ?? f.summary ?? ''} more={t(l, 'detail.more')} less={t(l, 'detail.less')} />
               </section>
@@ -312,7 +326,7 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
 
             {/* 프로그램 */}
             {f.program && (
-              <section className="mb-10">
+              <section id="program" className="mb-10 scroll-mt-24">
                 <h2 className="mb-3 text-[20px] font-black text-ink">{t(l, 'detail.program')}</h2>
                 <p className="whitespace-pre-line rounded-[var(--radius-card)] bg-surface p-5 text-[15px] leading-relaxed text-ink/85">{f.program}</p>
               </section>
@@ -436,7 +450,7 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
 
         {/* 근처 — 트립어드바이저 하단 가로 스크롤 추천 */}
         {nearby.length > 0 && (
-          <section className="mt-16">
+          <section id="nearby" className="mt-16 scroll-mt-24">
             <h2 className="h-display mb-5 text-[22px] text-ink">{t(l, 'detail.nearby')}</h2>
             <div className="-mx-5 flex snap-x gap-4 overflow-x-auto px-5 pb-2 no-scrollbar">
               {nearby.map(({ x, km }) => (

@@ -1,4 +1,4 @@
-import { allFestivals, isAlwaysOn, isLongRun, localized, monthsOf, statusOf, type Festival } from './festivals'
+import { allFestivals, dayBadge, isAlwaysOn, isLongRun, localized, monthsOf, statusOf, type DayBadge, type Festival } from './festivals'
 import type { Lang } from './i18n'
 
 // 목록 화면에 넘길 최소 데이터.
@@ -16,6 +16,7 @@ export interface ListItem {
   st: 'ongoing' | 'upcoming' | 'ended'
   al: boolean // 상시 여부
   lr: boolean // 장기(60일 초과) — 상설 프로그램에 가깝다
+  db: DayBadge // 오늘 종료 / D-N / 진행중
   m: number[] // 걸쳐 있는 달
   sd: string | null // 시·도(지역 필터용, 한국어 정식명)
   th: string[] // 목적 테마
@@ -39,6 +40,7 @@ export async function listItems(lang: Lang): Promise<ListItem[]> {
       st: statusOf(f),
       al: isAlwaysOn(f),
       lr: isLongRun(f),
+      db: dayBadge(f),
       m: monthsOf(f),
       sd: f.sido ?? null,
       th: f.themes ?? [],

@@ -1,12 +1,10 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
 import type { Festival } from '@/lib/festivals'
 import { allFestivals, isAlwaysOn, isLongRun, localized, statusOf } from '@/lib/festivals'
 import { LANGS, SITE_URL, isLang, type Lang } from '@/lib/i18n'
 import { t } from '@/lib/ui'
-import { THEMES, themeDesc, themeLabel } from '@/lib/themes'
+import { themeLabel } from '@/lib/themes'
 import Header from '@/components/Header'
-import Icon from '@/components/Icon'
 import FestivalCard from '@/components/FestivalCard'
 import FestivalRow from '@/components/FestivalRow'
 import NearbyBlock from '@/components/NearbyBlock'
@@ -14,6 +12,7 @@ import Footer from '@/components/Footer'
 import SearchBar from '@/components/SearchBar'
 import HeroBand from '@/components/HeroBand'
 import RegionRail from '@/components/RegionRail'
+import ThemeRail from '@/components/ThemeRail'
 
 // 1시간마다 다시 굽는다 — 축제 데이터는 주 1회만 바뀌므로 요청마다 DB를 볼 이유가 없다
 export const revalidate = 3600
@@ -116,32 +115,9 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
         {/* 사진 띠 — 트립어드바이저가 홈을 여는 방식. 지금 열리는 축제 넉 장 */}
         <HeroBand items={[...ongoing, ...upcomingSoon].sort(showcase)} lang={l} />
 
-        {/* 내 주변 — 진입 즉시 위치를 묻는다 */}
-        <div className="pb-16">
-          <NearbyBlock all={all} lang={l} />
-        </div>
+        {/* 무엇을 — 트립어드바이저 '내 관심사에 맞는 즐길거리' 자리 */}
+        <ThemeRail all={all} lang={l} title={t(l, 'purpose.title')} subtitle={t(l, 'purpose.sub')} />
 
-        {/* 목적 — '뭐 하러 가는지'가 여행 계획의 시작이라는 인터뷰에서 나온 축 */}
-        <section className="mx-auto max-w-6xl px-5 pb-16">
-          <h2 className="h-display text-[26px] text-ink sm:text-[30px]">{t(l, 'purpose.title')}</h2>
-          <p className="mt-1 text-[14px] text-muted">{t(l, 'purpose.sub')}</p>
-
-          <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-            {THEMES.map((k) => (
-              <Link
-                key={k}
-                href={`/${l}/themes/${k}/`}
-                className="lift group flex flex-col gap-3 rounded-[var(--radius-card)] border border-line bg-surface p-5 hover:border-brand/40"
-              >
-                <span className="text-brand transition group-hover:scale-110">
-                  <Icon name={k} size={26} strokeWidth={1.6} />
-                </span>
-                <span className="text-[15px] font-bold text-ink">{themeLabel(k, l)}</span>
-                <span className="text-[12px] text-hint">{themeCount(k)}</span>
-              </Link>
-            ))}
-          </div>
-        </section>
 
         {/* 어디로 — 트립어드바이저 '놓칠 수 없는 명소' 자리 */}
         <RegionRail all={all} lang={l} title={t(l, 'region.title')} subtitle={t(l, 'region.sub')} />
@@ -179,6 +155,10 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
           href={`/${l}/festivals/`}
           moreLabel={t(l, 'row.more')}
         />
+        {/* 내 주변 — 진입 즉시 위치를 묻는다 */}
+        <div className="pb-16">
+          <NearbyBlock all={all} lang={l} />
+        </div>
       </main>
 
       <Footer lang={l} />

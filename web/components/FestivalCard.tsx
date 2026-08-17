@@ -1,5 +1,6 @@
 import Link from 'next/link'
-import { localized, statusOf, isAlwaysOn, isLongRun, type Festival } from '@/lib/festivals'
+import { localized, statusOf, isAlwaysOn, isLongRun, dayBadge, type Festival } from '@/lib/festivals'
+import DayBadgeChip from './DayBadge'
 import { t } from '@/lib/ui'
 import type { Lang } from '@/lib/i18n'
 import Poster from './Poster'
@@ -34,11 +35,7 @@ export default function FestivalCard({
           pendingLabel={t(lang, 'photo.pending')}
           className="transition-transform duration-500 group-hover:scale-[1.04]"
         />
-        {st === 'ongoing' && !always && (
-          <span className="absolute left-3 top-3 rounded-full bg-brand px-2.5 py-1 text-[11px] font-bold text-white">
-            {t(lang, 'status.ongoing')}
-          </span>
-        )}
+        <DayBadgeChip badge={dayBadge(f)} lang={lang} />
         {f.imageFrom === 'past' && (
           <span className="absolute bottom-2 right-2 rounded-full bg-ink/70 px-2 py-0.5 text-[10px] font-bold text-white backdrop-blur-sm">
             {t(lang, 'poster.past')}

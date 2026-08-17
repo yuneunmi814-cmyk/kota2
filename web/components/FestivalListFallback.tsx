@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import Poster from './Poster'
+import DayBadgeChip from './DayBadge'
 import { defaultOrder, type ListItem } from '@/lib/listData'
 import { t } from '@/lib/ui'
 import type { Lang } from '@/lib/i18n'
@@ -31,11 +32,7 @@ export default function FestivalListFallback({ items, lang }: { items: ListItem[
           >
             <div className="relative aspect-[4/3] overflow-hidden bg-surface">
               <Poster src={f.img} name={f.n} pendingLabel={t(lang, 'photo.pending')} />
-              {f.st === 'ongoing' && !f.al && (
-                <span className="absolute left-3 top-3 rounded-full bg-brand px-2.5 py-1 text-[11px] font-bold text-white">
-                  {t(lang, 'status.ongoing')}
-                </span>
-              )}
+              <DayBadgeChip badge={f.db} lang={lang} />
               {f.ip && (
                 <span className="absolute bottom-2 right-2 rounded-full bg-ink/70 px-2 py-0.5 text-[10px] font-bold text-white backdrop-blur-sm">
                   {t(lang, 'poster.past')}

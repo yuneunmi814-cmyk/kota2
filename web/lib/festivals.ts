@@ -246,3 +246,25 @@ export async function regionRank(f: Festival): Promise<{ rank: number; total: nu
   const i = sorted.findIndex((x) => x.externalId === f.externalId)
   return i < 0 ? null : { rank: i + 1, total: sorted.length }
 }
+
+/**
+ * 카드에 붙일 시간 뱃지 — T맵 「가볼만한 축제」가 쓰는 문법.
+ *
+ * '진행중'만으로는 급한 정도가 안 보인다. 오늘 끝나는 축제와 다음 주까지 하는 축제가
+ * 같은 얼굴을 하고 있으면 여행자는 어느 쪽을 서둘러야 할지 모른다.
+ *
+ * 우선순위는 다급한 순이다: 오늘 끝남 > 곧 시작(D-N) > 진행중.
+ * D-N은 2주 안쪽만 붙인다 — 'D-113'은 정보가 아니라 소음이다.
+ */
+export type DayBadge = { kind: 'endsToday' | 'countdown' | 'ongoing'; days?: number } | null
+
+export function dayBadge(f: Festival, today = new Date()): DayBadge {
+  if (isAlwaysOn(f)) return null
+  const t = new Date(today.toISOString().slice(0, 10)).getTime()
+  const s = new Date(f.startDate).getTime()
+  const e = new Date(f.endDate).getTime()
+  if (t > e) return null
+  if (t >= s) return e === t ? { kind: 'endsToday' } : { kind: 'ongoing' }
+  const days = Math.round((s - t) / DAY)
+  return days <= 14 ? { kind: 'countdown', days } : null
+}
