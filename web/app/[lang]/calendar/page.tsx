@@ -61,7 +61,7 @@ export default async function CalendarPage({ params }: { params: Promise<{ lang:
     <>
       <Header lang={l} path="calendar" />
       <main className="mx-auto max-w-6xl px-5 pb-24 pt-10">
-        <h1 className="h-display mb-2 text-[30px] text-brand-deep sm:text-[36px]">
+        <h1 className="h-display mb-2 text-[30px] text-brand sm:text-[36px]">
           {l === 'ko' ? '축제 달력' : l === 'ja' ? '祭りカレンダー' : l === 'th' ? 'ปฏิทินเทศกาล' : 'Festival calendar'}
         </h1>
         <p className="mb-8 text-[15px] text-muted">{t(l, 'month.title')}</p>
@@ -73,7 +73,7 @@ export default async function CalendarPage({ params }: { params: Promise<{ lang:
               key={`${y}-${m}`}
               href={`#m-${y}-${m}`}
               className={`shrink-0 rounded-full border px-4 py-2 text-[13px] font-bold transition ${
-                list.length ? 'border-line text-muted hover:border-brand/40 hover:text-brand-deep' : 'border-line/50 text-hint/60'
+                list.length ? 'border-line text-muted hover:border-brand/40 hover:text-brand' : 'border-line/50 text-hint/60'
               }`}
             >
               {monthLabel(m, l)} <span className="ml-1 font-normal opacity-60">{list.length}</span>
@@ -95,7 +95,7 @@ export default async function CalendarPage({ params }: { params: Promise<{ lang:
                       href={`/${l}/festivals/${toSlug(f.k)}/`}
                       className="flex items-center gap-4 px-4 py-3 transition hover:bg-surface"
                     >
-                      <span className="w-14 shrink-0 text-[13px] font-bold tabular-nums text-brand-deep">{fmt(f.s)}</span>
+                      <span className="w-14 shrink-0 text-[13px] font-bold tabular-nums text-brand">{fmt(f.s)}</span>
                       <span className="h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-surface">
                         <Poster src={f.img} name={f.n} letterClass="text-[1.3em]" />
                       </span>

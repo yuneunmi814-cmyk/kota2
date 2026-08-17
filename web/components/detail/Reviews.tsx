@@ -29,7 +29,7 @@ function Stars({ value, onChange }: { value: number; onChange?: (n: number) => v
           onClick={() => onChange?.(n)}
           aria-label={`${n}점`}
           className={`${onChange ? 'cursor-pointer' : 'cursor-default'} text-[18px] leading-none transition ${
-            n <= value ? 'text-brand-deep' : 'text-line'
+            n <= value ? 'text-brand' : 'text-line'
           }`}
         >
           ★
@@ -116,7 +116,7 @@ export default function Reviews({
 
       {/* 쓰기 */}
       {state === 'submitted' ? (
-        <p className="mb-8 rounded-[var(--radius-card)] bg-brand-50 px-4 py-3 text-[14px] font-semibold text-brand-deep">
+        <p className="mb-8 rounded-[var(--radius-card)] bg-brand-50 px-4 py-3 text-[14px] font-semibold text-brand">
           {t(lang, 'review.thanks')}
         </p>
       ) : email ? (
@@ -153,7 +153,7 @@ export default function Reviews({
           </div>
         </form>
       ) : state === 'sent' ? (
-        <p className="mb-8 rounded-[var(--radius-card)] bg-brand-50 px-4 py-3 text-[14px] text-brand-deep">
+        <p className="mb-8 rounded-[var(--radius-card)] bg-brand-50 px-4 py-3 text-[14px] text-brand">
           {t(lang, 'review.linkSent')}
         </p>
       ) : (

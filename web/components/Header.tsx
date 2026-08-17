@@ -13,14 +13,14 @@ export default function Header({ lang, path = '' }: { lang: Lang; path?: string 
   return (
     <header className="sticky top-0 z-30 border-b border-line bg-paper/90 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5">
-        <Link href={`/${lang}/`} className="text-[21px] font-black tracking-tight text-brand-deep">
+        <Link href={`/${lang}/`} className="text-[21px] font-black tracking-tight text-brand">
           KOTA
         </Link>
 
         <nav className="flex items-center gap-1">
           <Link
             href={`/${lang}/calendar/`}
-            className="hidden items-center gap-1.5 rounded-full px-3 py-2 text-[14px] font-bold text-muted transition hover:bg-paper-2 hover:text-brand-deep sm:flex"
+            className="hidden items-center gap-1.5 rounded-full px-3 py-2 text-[14px] font-bold text-muted transition hover:bg-paper-2 hover:text-brand sm:flex"
           >
             <Icon name="calendar" size={16} />
             {lang === 'ko' ? '축제 달력' : lang === 'ja' ? '祭りカレンダー' : lang === 'th' ? 'ปฏิทิน' : 'Calendar'}
@@ -30,7 +30,7 @@ export default function Header({ lang, path = '' }: { lang: Lang; path?: string 
           <div className="group relative">
             <button
               type="button"
-              className="flex items-center gap-1.5 rounded-full px-3 py-2 text-[14px] font-bold text-muted transition hover:bg-paper-2 hover:text-brand-deep"
+              className="flex items-center gap-1.5 rounded-full px-3 py-2 text-[14px] font-bold text-muted transition hover:bg-paper-2 hover:text-brand"
               aria-haspopup="true"
             >
               <Icon name="globe" size={16} />
@@ -43,7 +43,7 @@ export default function Header({ lang, path = '' }: { lang: Lang; path?: string 
                     href={`/${l}/${clean ? `${clean}/` : ''}`}
                     hrefLang={l}
                     className={`block px-4 py-2 text-[14px] transition hover:bg-paper-2 ${
-                      l === lang ? 'font-bold text-brand-deep' : 'text-muted'
+                      l === lang ? 'font-bold text-brand' : 'text-muted'
                     }`}
                   >
                     {LANG_NAME[l]}

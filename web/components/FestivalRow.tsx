@@ -34,7 +34,7 @@ export default function FestivalRow({
           {subtitle && <p className="mt-1 text-[13px] text-muted">{subtitle}</p>}
         </div>
         {href && (
-          <Link href={href} className="flex shrink-0 items-center gap-1 text-[13px] font-bold text-brand-deep hover:underline">
+          <Link href={href} className="flex shrink-0 items-center gap-1 text-[13px] font-bold text-brand hover:underline">
             {moreLabel}
             <Icon name="arrow" size={14} />
           </Link>

@@ -51,7 +51,7 @@ export default function PromoBanner({ all, lang }: { all: Festival[]; lang: Lang
             </p>
             <Link
               href={`/${lang}/festivals/?graded=1`}
-              className="mt-6 inline-flex items-center rounded-full bg-white px-6 py-3 text-[15px] font-bold text-brand-deep transition hover:bg-white/90"
+              className="mt-6 inline-flex items-center rounded-full bg-white px-6 py-3 text-[15px] font-bold text-brand transition hover:bg-white/90"
             >
               {t(lang, 'graded.cta')}
             </Link>

@@ -122,7 +122,7 @@ export default function ShareButton({
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
-        className="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-4 py-2 text-[14px] font-bold text-ink transition hover:border-brand/40 hover:text-brand-deep"
+        className="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-4 py-2 text-[14px] font-bold text-ink transition hover:border-brand/40 hover:text-brand"
       >
         <Icon name="share" size={16} /> {done ? copied : label}
       </button>

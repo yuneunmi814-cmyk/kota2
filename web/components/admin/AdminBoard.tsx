@@ -163,7 +163,7 @@ export default function AdminBoard() {
         <h1 className="h-display mb-6 text-[28px] text-ink">KOTA 관리자</h1>
         <SocialLogin lang="ko" />
         {sent ? (
-          <p className="rounded-[var(--radius-card)] bg-brand-50 px-4 py-3 text-[14px] text-brand-deep">
+          <p className="rounded-[var(--radius-card)] bg-brand-50 px-4 py-3 text-[14px] text-brand">
             메일함을 확인해 주세요. 링크를 누르면 이 화면으로 돌아옵니다.
           </p>
         ) : (
@@ -203,7 +203,7 @@ export default function AdminBoard() {
         <p className="text-[15px] text-muted">
           {email} 계정에는 관리자 권한이 없어요.
         </p>
-        <button onClick={() => sb.auth.signOut()} className="mt-4 text-[14px] font-bold text-brand-deep hover:underline">
+        <button onClick={() => sb.auth.signOut()} className="mt-4 text-[14px] font-bold text-brand hover:underline">
           다른 계정으로 로그인
         </button>
       </main>
@@ -222,7 +222,7 @@ export default function AdminBoard() {
       </div>
 
       {msg && (
-        <p className="mb-6 rounded-[var(--radius-card)] bg-brand-50 px-4 py-2.5 text-[14px] font-semibold text-brand-deep">{msg}</p>
+        <p className="mb-6 rounded-[var(--radius-card)] bg-brand-50 px-4 py-2.5 text-[14px] font-semibold text-brand">{msg}</p>
       )}
 
       {/* ── 배너 ── */}
@@ -259,7 +259,7 @@ export default function AdminBoard() {
                         {f.start_date} ~ {f.end_date}
                       </span>
                     </span>
-                    <span className="shrink-0 text-[13px] font-bold text-brand-deep">추가</span>
+                    <span className="shrink-0 text-[13px] font-bold text-brand">추가</span>
                   </button>
                 </li>
               ))}
@@ -382,7 +382,7 @@ export default function AdminBoard() {
                     href={`/ko/festivals/${toSlug(c.festival_id)}/`}
                     target="_blank"
                     rel="noreferrer"
-                    className="font-semibold text-brand-deep hover:underline"
+                    className="font-semibold text-brand hover:underline"
                   >
                     {names[c.festival_id]?.name ?? c.festival_id}
                   </a>
@@ -423,7 +423,7 @@ export default function AdminBoard() {
           {reviews.map((r) => (
             <li key={r.id} className="rounded-[var(--radius-card)] border border-line p-4">
               <div className="mb-2 flex flex-wrap items-center gap-2 text-[12px] text-hint">
-                <span className="font-bold text-brand-deep">{'★'.repeat(r.rating)}</span>
+                <span className="font-bold text-brand">{'★'.repeat(r.rating)}</span>
                 <span>{names[r.festival_id]?.name ?? r.festival_id}</span>
                 <span>{r.created_at.slice(0, 10)}</span>
               </div>

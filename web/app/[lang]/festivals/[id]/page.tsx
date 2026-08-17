@@ -148,9 +148,9 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
       <main className="mx-auto max-w-6xl px-5 pb-24 pt-5">
         {/* 빵부스러기 — 트립어드바이저: 유럽 › 영국 › 런던 › 즐길거리 › 이름 */}
         <nav aria-label="breadcrumb" className="mb-4 flex flex-wrap items-center gap-1 text-[12px] text-hint">
-          <Link href={`/${l}/`} className="hover:text-brand-deep">{t(l, 'crumb.home')}</Link>
+          <Link href={`/${l}/`} className="hover:text-brand">{t(l, 'crumb.home')}</Link>
           <span>›</span>
-          <Link href={`/${l}/festivals/`} className="hover:text-brand-deep">{t(l, 'nav.festivals')}</Link>
+          <Link href={`/${l}/festivals/`} className="hover:text-brand">{t(l, 'nav.festivals')}</Link>
           {sido && (
             <>
               <span>›</span>
@@ -170,7 +170,7 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
         {/* 제목 줄 — 왼쪽 H1, 오른쪽 공유 */}
         <div className="mb-2 flex flex-wrap items-start justify-between gap-x-3 gap-y-2">
           <div className="min-w-0">
-            <h1 className="h-display text-[28px] leading-[1.15] text-brand-deep sm:text-[36px]">{L.name}</h1>
+            <h1 className="h-display text-[28px] leading-[1.15] text-brand sm:text-[36px]">{L.name}</h1>
             {l !== 'ko' && L.name !== f.name && <p className="mt-1 text-[14px] text-hint">{f.name}</p>}
           </div>
           <ShareButton
@@ -189,7 +189,7 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
           {/* 평점 — 리뷰가 쌓이기 전에는 이 자리가 비고, 대신 아래 방문객 순위가 근거를 맡는다 */}
           {rating && (
             <span className="inline-flex items-center gap-1.5 text-[15px] font-bold text-ink">
-              <span className="text-brand-deep">★</span>
+              <span className="text-brand">★</span>
               {rating.average.toFixed(1)}
               <span className="text-[13px] font-semibold text-hint">
                 {t(l, 'review.count', { n: rating.count })}
@@ -205,10 +205,10 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
             <span className="rounded-full bg-surface px-3 py-1 text-[12px] font-bold text-muted">{t(l, 'status.selectDates')}</span>
           )}
           {f.category === 'MF' && (
-            <span className="rounded-full border-2 border-brand px-3 py-1 text-[12px] font-black text-brand-deep">{t(l, 'grade.mf')}</span>
+            <span className="rounded-full border-2 border-brand px-3 py-1 text-[12px] font-black text-brand">{t(l, 'grade.mf')}</span>
           )}
           {f.visitorLift != null && f.visitorLift >= 1.5 && (
-            <span className="rounded-full bg-brand-50 px-3 py-1 text-[12px] font-bold text-brand-deep" title={t(l, 'lift.note')}>
+            <span className="rounded-full bg-brand-50 px-3 py-1 text-[12px] font-bold text-brand" title={t(l, 'lift.note')}>
               {t(l, 'lift.label', { x: f.visitorLift.toFixed(1) })}
             </span>
           )}
@@ -314,7 +314,7 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
               <section className="mb-10">
                 <div className="mb-3 flex items-baseline gap-2">
                   <h2 className="text-[20px] font-black text-ink">
-                    <Icon name="utensils" size={18} className="-mt-1 mr-1 inline text-brand-deep" />
+                    <Icon name="utensils" size={18} className="-mt-1 mr-1 inline text-brand" />
                     {t(l, 'detail.food')}
                   </h2>
                   <span className="text-[13px] text-hint">
@@ -336,7 +336,7 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
                           {b.menu.slice(0, 20).map((m, i) => (
                             <li key={`${m.name}-${i}`} className="flex items-baseline justify-between gap-3 border-b border-dotted border-line/80 pb-1">
                               <span className="truncate text-ink/85">{m.name}</span>
-                              {m.price != null && <span className="shrink-0 tabular-nums font-bold text-brand-deep">{won(m.price, l)}</span>}
+                              {m.price != null && <span className="shrink-0 tabular-nums font-bold text-brand">{won(m.price, l)}</span>}
                             </li>
                           ))}
                         </ul>
@@ -382,7 +382,7 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
                 여행자가 마지막에 확인해야 할 곳이므로 본문 끝에 크게 놓는다. */}
             {(f.homepage || f.instagram || f.tel) && (
               <section className="mb-10 rounded-[var(--radius-card)] border-2 border-brand/25 bg-brand-50/60 p-5">
-                <h2 className="mb-1 text-[17px] font-black text-brand-deep">{t(l, 'official.title')}</h2>
+                <h2 className="mb-1 text-[17px] font-black text-brand">{t(l, 'official.title')}</h2>
                 <p className="mb-4 text-[13px] leading-relaxed text-muted">{t(l, 'official.sub')}</p>
                 <div className="flex flex-wrap gap-2">
                   {f.homepage && (
@@ -408,7 +408,7 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
                   {f.tel && (
                     <a
                       href={`tel:${f.tel}`}
-                      className="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-5 py-2.5 text-[14px] font-bold text-ink transition hover:border-brand/40 hover:text-brand-deep"
+                      className="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-5 py-2.5 text-[14px] font-bold text-ink transition hover:border-brand/40 hover:text-brand"
                     >
                       <Icon name="phone" size={15} /> {f.tel}
                     </a>
@@ -433,7 +433,7 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
                 </Row>
                 {f.hours && <Row icon="clock" label={t(l, 'detail.hours')}>{f.hours}</Row>}
                 <Row icon="ticket" label={t(l, 'detail.fee')}>
-                  <span className={!f.fee || /무료|free/i.test(f.fee) ? 'font-bold text-brand-deep' : ''}>{f.fee ?? t(l, 'detail.free')}</span>
+                  <span className={!f.fee || /무료|free/i.test(f.fee) ? 'font-bold text-brand' : ''}>{f.fee ?? t(l, 'detail.free')}</span>
                 </Row>
                 {(f.address || L.placeName) && (
                   <Row icon="pin" label={t(l, 'detail.place')}>
@@ -444,7 +444,7 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
                 {f.organizer && <Row icon="user" label={t(l, 'detail.organizer')}>{f.organizer}</Row>}
                 {f.tel && (
                   <Row icon="phone" label={t(l, 'detail.tel')}>
-                    <a href={`tel:${f.tel}`} className="font-semibold text-brand-deep hover:underline">{f.tel}</a>
+                    <a href={`tel:${f.tel}`} className="font-semibold text-brand hover:underline">{f.tel}</a>
                   </Row>
                 )}
               </dl>
@@ -459,7 +459,7 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
                 )}
                 <div className="flex gap-2">
                   {f.homepage && (
-                    <a href={f.homepage} target="_blank" rel="noopener noreferrer" className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-full border border-line px-4 py-2.5 text-[13px] font-bold text-ink transition hover:border-brand/40 hover:text-brand-deep">
+                    <a href={f.homepage} target="_blank" rel="noopener noreferrer" className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-full border border-line px-4 py-2.5 text-[13px] font-bold text-ink transition hover:border-brand/40 hover:text-brand">
                       <Icon name="link" size={15} /> {t(l, 'detail.homepage')}
                     </a>
                   )}
@@ -503,7 +503,7 @@ function Row({ icon, label, children }: { icon: Parameters<typeof Icon>[0]['name
   return (
     <div className="flex flex-col gap-0.5 sm:flex-row sm:gap-3">
       <dt className="flex items-center gap-1.5 text-muted sm:w-24 sm:shrink-0">
-        <Icon name={icon} size={15} className="text-brand-deep" />
+        <Icon name={icon} size={15} className="text-brand" />
         <span className="font-semibold">{label}</span>
       </dt>
       <dd className="min-w-0 flex-1 pl-[22px] text-ink sm:pl-0">{children}</dd>

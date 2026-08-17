@@ -84,7 +84,7 @@ export default function NearbyBlock({ all, lang }: { all: Festival[]; lang: Lang
         </div>
         <Link
           href={`/${lang}/festivals/?sort=distance`}
-          className="hidden shrink-0 items-center gap-1 text-[14px] font-bold text-brand-deep hover:underline sm:flex"
+          className="hidden shrink-0 items-center gap-1 text-[14px] font-bold text-brand hover:underline sm:flex"
         >
           {t(lang, 'nearby.seeAll')} <Icon name="arrow" size={15} />
         </Link>
@@ -101,7 +101,7 @@ export default function NearbyBlock({ all, lang }: { all: Festival[]; lang: Lang
       {near.length === 0 && (
         <Link
           href={`/${lang}/festivals/?sort=distance`}
-          className="inline-flex items-center gap-1 text-[15px] font-bold text-brand-deep hover:underline"
+          className="inline-flex items-center gap-1 text-[15px] font-bold text-brand hover:underline"
         >
           {t(lang, 'nearby.seeAll')} <Icon name="arrow" size={16} />
         </Link>

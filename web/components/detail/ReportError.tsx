@@ -53,7 +53,7 @@ export default function ReportError({ festivalId, lang }: { festivalId: string; 
 
   if (state === 'done') {
     return (
-      <p className="mt-10 rounded-[var(--radius-card)] bg-brand-50 px-4 py-3 text-[14px] font-semibold text-brand-deep">
+      <p className="mt-10 rounded-[var(--radius-card)] bg-brand-50 px-4 py-3 text-[14px] font-semibold text-brand">
         {t(lang, 'report.thanks')}
       </p>
     )
