@@ -33,6 +33,7 @@ export default function FestivalList({
   initialTheme = null,
   initialQuery = '',
   initialRegion = null,
+  initialGraded = false,
 }: {
   items: ListItem[]
   lang: Lang
@@ -40,9 +41,11 @@ export default function FestivalList({
   initialTheme?: Theme | null
   initialQuery?: string
   initialRegion?: string | null
+  initialGraded?: boolean
 }) {
   const [period, setPeriod] = useState<Period>('all')
   const [region, setRegion] = useState<string | null>(initialRegion)
+  const [graded, setGraded] = useState(initialGraded)
   const [sido, setSido] = useState<string | null>(null)
   const [theme, setTheme] = useState<Theme | null>(initialTheme)
   const [sort, setSort] = useState<Sort>(initialSort)
@@ -73,6 +76,7 @@ export default function FestivalList({
       out = out.filter((f) => f.sd != null && rs.includes(f.sd))
     }
     if (theme) out = out.filter((f) => f.th.includes(theme))
+    if (graded) out = out.filter((f) => f.mf)
 
     const needle = q.trim().toLowerCase()
     if (needle) out = out.filter((f) => `${f.n} ${f.p ?? ''}`.toLowerCase().includes(needle))
@@ -94,9 +98,9 @@ export default function FestivalList({
     }
 
     return withKm
-  }, [items, period, region, sido, theme, q, sort, coords])
+  }, [items, period, region, sido, theme, graded, q, sort, coords])
 
-  useEffect(() => setShown(PAGE), [period, region, sido, theme, q, sort])
+  useEffect(() => setShown(PAGE), [period, region, sido, theme, graded, q, sort])
 
   // 검색어 — 타이핑이 멎고 800ms 뒤에 한 번만 남긴다. 글자마다 남기면 '강','강릉','강릉불'이
   // 전부 쌓여 무엇을 찾았는지 알 수 없게 된다. 결과 수도 함께 남겨서 '찾았는데 없더라'를 본다.

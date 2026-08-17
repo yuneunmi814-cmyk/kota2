@@ -27,6 +27,7 @@ export default function FestivalListFromQuery({
       initialTheme={theme && isTheme(theme) ? theme : null}
       initialQuery={sp.get('q') ?? ''}
       initialRegion={REGIONS.some((r) => r.key === region) ? region : null}
+      initialGraded={sp.get('graded') === '1'}
     />
   )
 }

@@ -17,6 +17,7 @@ export interface ListItem {
   al: boolean // 상시 여부
   lr: boolean // 장기(60일 초과) — 상설 프로그램에 가깝다
   db: DayBadge // 오늘 종료 / D-N / 진행중
+  mf: boolean // 문화관광축제 지정
   m: number[] // 걸쳐 있는 달
   sd: string | null // 시·도(지역 필터용, 한국어 정식명)
   th: string[] // 목적 테마
@@ -41,6 +42,7 @@ export async function listItems(lang: Lang): Promise<ListItem[]> {
       al: isAlwaysOn(f),
       lr: isLongRun(f),
       db: dayBadge(f),
+      mf: f.category === 'MF',
       m: monthsOf(f),
       sd: f.sido ?? null,
       th: f.themes ?? [],

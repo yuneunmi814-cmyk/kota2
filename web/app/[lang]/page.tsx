@@ -13,6 +13,7 @@ import SearchBar from '@/components/SearchBar'
 import HeroBand from '@/components/HeroBand'
 import RegionRail from '@/components/RegionRail'
 import ThemeRail from '@/components/ThemeRail'
+import PromoBanner from '@/components/PromoBanner'
 
 // 1시간마다 다시 굽는다 — 축제 데이터는 주 1회만 바뀌므로 요청마다 DB를 볼 이유가 없다
 export const revalidate = 3600
@@ -121,6 +122,9 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
 
         {/* 어디로 — 트립어드바이저 '놓칠 수 없는 명소' 자리 */}
         <RegionRail all={all} lang={l} title={t(l, 'region.title')} subtitle={t(l, 'region.sub')} />
+
+        {/* 중앙 프로모션 — 트립어드바이저 홈 한가운데의 큰 배너 자리 */}
+        <PromoBanner all={all} lang={l} />
 
         {/* 시간축·신뢰축 행 — 트립어드바이저 둘러보기의 '카테고리별 가로 행' 문법.
             순서는 여행자가 묻는 순서다: 지금 갈 수 있나 → 주말에 뭐 있나 → 뭘 많이 가나 → 검증된 건 뭔가 */}
