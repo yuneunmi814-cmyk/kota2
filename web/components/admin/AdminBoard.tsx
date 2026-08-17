@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { browserSupabase } from '@/lib/supabase-browser'
 import SocialLogin from '../SocialLogin'
+import { toSlug } from '@/lib/slug'
 
 // 관리자 보드 — 배너 큐레이션과 리뷰 검토.
 //
@@ -378,7 +379,7 @@ export default function AdminBoard() {
                 <div className="mb-2 flex flex-wrap items-center gap-2 text-[12px]">
                   <span className="rounded-full bg-paper-2 px-2 py-0.5 font-bold text-ink">{KIND[c.kind] ?? c.kind}</span>
                   <a
-                    href={`/ko/festivals/${c.festival_id}/`}
+                    href={`/ko/festivals/${toSlug(c.festival_id)}/`}
                     target="_blank"
                     rel="noreferrer"
                     className="font-semibold text-brand-deep hover:underline"

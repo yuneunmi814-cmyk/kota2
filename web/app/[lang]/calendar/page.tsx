@@ -7,6 +7,7 @@ import { t } from '@/lib/ui'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import Poster from '@/components/Poster'
+import { toSlug } from '@/lib/slug'
 
 // 1시간마다 다시 굽는다 — 축제 데이터는 주 1회만 바뀌므로 요청마다 DB를 볼 이유가 없다
 export const revalidate = 3600
@@ -91,7 +92,7 @@ export default async function CalendarPage({ params }: { params: Promise<{ lang:
                 {list.map((f) => (
                   <li key={f.k}>
                     <Link
-                      href={`/${l}/festivals/${f.k}/`}
+                      href={`/${l}/festivals/${toSlug(f.k)}/`}
                       className="flex items-center gap-4 px-4 py-3 transition hover:bg-surface"
                     >
                       <span className="w-14 shrink-0 text-[13px] font-bold tabular-nums text-brand-deep">{fmt(f.s)}</span>

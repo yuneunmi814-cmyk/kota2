@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import type { Lang } from '@/lib/i18n'
 import { t } from '@/lib/ui'
+import { toSlug } from '@/lib/slug'
 
 // 히어로 아래 회전 배너 — 트립어드바이저 홈의 형광 초록 배너를 그대로.
 //
@@ -76,7 +77,7 @@ export default function RotatingPromo({
             ))}
             {/* 트립어드바이저가 @작성자를 놓는 자리 — 우리는 축제 이름과 배율 */}
             <Link
-              href={`/${lang}/festivals/${cur.id}/`}
+              href={`/${lang}/festivals/${toSlug(cur.id)}/`}
               className="absolute bottom-3 left-3 max-w-[calc(100%-1.5rem)] rounded-full bg-brand px-3 py-1.5 text-[12px] font-bold text-ink transition hover:bg-white"
             >
               <span className="line-clamp-1">

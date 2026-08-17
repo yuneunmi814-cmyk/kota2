@@ -4,6 +4,7 @@ import DayBadgeChip from './DayBadge'
 import { defaultOrder, type ListItem } from '@/lib/listData'
 import { t } from '@/lib/ui'
 import type { Lang } from '@/lib/i18n'
+import { toSlug } from '@/lib/slug'
 
 // 목록의 서버 렌더 첫 화면.
 //
@@ -27,7 +28,7 @@ export default function FestivalListFallback({ items, lang }: { items: ListItem[
         {list.map((f) => (
           <Link
             key={f.k}
-            href={`/${lang}/festivals/${f.k}/`}
+            href={`/${lang}/festivals/${toSlug(f.k)}/`}
             className="lift group block overflow-hidden rounded-[var(--radius-card)] border border-line bg-surface hover:border-brand/40"
           >
             <div className="relative aspect-[4/3] overflow-hidden bg-surface">

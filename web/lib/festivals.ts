@@ -63,6 +63,9 @@ export interface Festival {
 /** 축제 식별자는 언제나 externalId — 숫자 id는 환경마다 달라진다(이전 구현에서 겪은 버그) */
 export const key = (f: Festival) => f.externalId
 
+/** 주소에 쓰는 형태 — 콜론이 카카오 공유를 막는다. 자세한 사정은 lib/slug.ts */
+export { toSlug, fromSlug } from './slug'
+
 /** DB 행(snake_case) → 화면이 쓰는 Festival(camelCase) */
 interface Row {
   id: string

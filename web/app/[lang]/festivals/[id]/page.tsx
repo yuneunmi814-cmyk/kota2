@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { allFestivals, distanceKm, findByKey, isAlwaysOn, isLongRun, localized, regionRank, statusOf } from '@/lib/festivals'
+import { fromSlug, toSlug } from '@/lib/slug'
 import { LANGS, SITE_URL, isLang, type Lang } from '@/lib/i18n'
 import { t } from '@/lib/ui'
 import { sidoLabel } from '@/lib/sido'
@@ -35,14 +36,14 @@ export const revalidate = 3600
 //   평점 자리에 공공 데이터로 만든 근거가 들어간다.
 
 export async function generateStaticParams() {
-  const ids = (await allFestivals()).map((f) => f.externalId)
+  const ids = (await allFestivals()).map((f) => toSlug(f.externalId))
   return LANGS.flatMap((lang) => ids.map((id) => ({ lang, id })))
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ lang: string; id: string }> }): Promise<Metadata> {
   const { lang, id } = await params
   const l: Lang = isLang(lang) ? lang : 'ko'
-  const f = await findByKey(decodeURIComponent(id))
+  const f = await findByKey(fromSlug(decodeURIComponent(id)))
   if (!f) return {}
   const L = localized(f, l)
   const desc = [L.summary, `${f.startDate} ~ ${f.endDate}`, L.placeName].filter(Boolean).join(' · ').slice(0, 160)
@@ -50,8 +51,8 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
     title: `${L.name} · KOTA`,
     description: desc,
     alternates: {
-      canonical: `${SITE_URL}/${l}/festivals/${f.externalId}/`,
-      languages: Object.fromEntries(LANGS.map((x) => [x, `${SITE_URL}/${x}/festivals/${f.externalId}/`])),
+      canonical: `${SITE_URL}/${l}/festivals/${toSlug(f.externalId)}/`,
+      languages: Object.fromEntries(LANGS.map((x) => [x, `${SITE_URL}/${x}/festivals/${toSlug(f.externalId)}/`])),
     },
     openGraph: { title: L.name, description: desc, ...(f.imageUrl ? { images: [f.imageUrl] } : {}), type: 'website' },
   }
@@ -63,7 +64,7 @@ const won = (n: number, l: Lang) => t(l, 'detail.won', { n: n.toLocaleString(l =
 export default async function FestivalDetailPage({ params }: { params: Promise<{ lang: string; id: string }> }) {
   const { lang, id } = await params
   const l: Lang = isLang(lang) ? lang : 'ko'
-  const f = await findByKey(decodeURIComponent(id))
+  const f = await findByKey(fromSlug(decodeURIComponent(id)))
   if (!f) notFound()
 
   const L = localized(f, l)
@@ -116,7 +117,7 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
     ...(f.imageUrl ? { image: [f.imageUrl] } : {}),
     ...(f.organizer ? { organizer: { '@type': 'Organization', name: f.organizer } } : {}),
     isAccessibleForFree: !f.fee || /무료|free/i.test(f.fee),
-    url: `${SITE_URL}/${l}/festivals/${f.externalId}/`,
+    url: `${SITE_URL}/${l}/festivals/${toSlug(f.externalId)}/`,
   }
 
   // 사진 그리드에 뭘 채울지 — 포스터, 유튜브 썸네일, 지도. 없는 칸은 접는다
@@ -140,7 +141,7 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
 
   return (
     <>
-      <Header lang={l} path={`festivals/${f.externalId}`} />
+      <Header lang={l} path={`festivals/${toSlug(f.externalId)}`} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
       <TrackView festivalId={f.externalId} lang={l} />

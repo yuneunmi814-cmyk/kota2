@@ -4,6 +4,7 @@ import DayBadgeChip from './DayBadge'
 import { t } from '@/lib/ui'
 import type { Lang } from '@/lib/i18n'
 import Poster from './Poster'
+import { toSlug } from '@/lib/slug'
 
 // 축제 카드 — 포스터가 주인공이고 UI는 물러난다.
 // 상태 뱃지는 '진행중'일 때만 색을 쓴다. 모든 카드에 색 뱃지가 붙으면 아무것도 강조되지 않는다.
@@ -25,7 +26,7 @@ export default function FestivalCard({
 
   return (
     <Link
-      href={`/${lang}/festivals/${f.externalId}/`}
+      href={`/${lang}/festivals/${toSlug(f.externalId)}/`}
       className="lift group block overflow-hidden rounded-[var(--radius-card)] border border-line bg-surface hover:border-brand/40 hover:shadow-[0_10px_28px_-14px_rgba(79,50,22,.35)]"
     >
       <div className="relative aspect-[4/3] overflow-hidden bg-surface">

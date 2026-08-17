@@ -11,6 +11,7 @@ import { track } from '@/lib/track'
 import Icon from './Icon'
 import Poster from './Poster'
 import DayBadgeChip from './DayBadge'
+import { toSlug } from '@/lib/slug'
 
 // 축제 목록 — 시기 × 지역 × 목적 3축 필터와 3정렬.
 //
@@ -302,7 +303,7 @@ export default function FestivalList({
             {list.slice(0, shown).map(({ f, km }) => (
               <Link
                 key={f.k}
-                href={`/${lang}/festivals/${f.k}/`}
+                href={`/${lang}/festivals/${toSlug(f.k)}/`}
                 className="lift group block overflow-hidden rounded-[var(--radius-card)] border border-line bg-surface hover:border-brand/40 hover:shadow-[0_10px_28px_-14px_rgba(79,50,22,.35)]"
               >
                 <div className="relative aspect-[4/3] overflow-hidden bg-surface">

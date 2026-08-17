@@ -29,7 +29,16 @@ export const LANG_NAME: Record<Lang, string> = {
 
 /** basePath를 포함한 경로 — 링크와 sitemap이 같은 규칙을 쓰게 한다 */
 export const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? ''
-export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://yuneunmi814-cmyk.github.io/kota2'
+
+// 기본값은 반드시 '지금 서비스 중인 주소'여야 한다.
+//
+// 여기 GitHub Pages 주소(yuneunmi814-cmyk.github.io/kota2)가 남아 있었다. 정적 사이트
+// 시절의 잔재인데, Vercel에 NEXT_PUBLIC_SITE_URL을 안 넣어 둔 탓에 그 기본값이 그대로
+// 나갔다. 결과적으로 모든 페이지의 canonical과 sitemap 전체가 "내 진짜 주소는 저기다"라고
+// 죽은 주소를 가리키고 있었다(2026-08-18 확인). 검색엔진에는 색인하지 말라는 말과 같다.
+//
+// 화면으로는 절대 안 보이는 종류의 사고다. 도메인이 정해지면 Vercel 환경변수만 바꾸면 된다.
+export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://kota2.vercel.app'
 
 /** 언어별 절대 URL — hreflang·canonical·OG에 쓴다 */
 export function absUrl(lang: Lang, path = ''): string {
