@@ -123,6 +123,14 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
     url: `${SITE_URL}/${l}/festivals/${toSlug(f.externalId)}/`,
   }
 
+  // 히어로에 쓸 사진. 대표 이미지가 없으면 갤러리 첫 장이라도 쓴다.
+  // 둘 다 없으면 heroSrc 는 null 이고, 그때는 히어로 자체를 그리지 않는다 —
+  // 420건 중 183건(43%)이 포스터가 없는데, 그 화면에서 폭 2/3짜리 회색 상자에
+  // 축제명 첫 글자만 크게 뜨는 건 정보가 아니라 빈자리다. 목록 카드에서는 같은
+  // 자리채움이 제 몫을 한다(수백 장이 같은 아이콘이면 만들다 만 화면으로 읽힌다).
+  // 상세는 한 장뿐이라 사정이 다르다. 접으면 소개와 지도가 그만큼 위로 올라온다.
+  const heroSrc = f.imageUrl ?? f.photos?.[0]?.url ?? null
+
   // 사진 그리드에 뭘 채울지 — 포스터, 유튜브 썸네일, 지도. 없는 칸은 접는다
   const ytId = f.youtube?.match(/(?:youtu\.be\/|v=|shorts\/|embed\/)([A-Za-z0-9_-]{11})/)?.[1] ?? null
   // 옆 칸 우선순위: 실제 축제 사진 → 영상 → 지도. 사진이 있으면 그게 가장 정직한 대표 이미지다
@@ -234,16 +242,13 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
         {/* 사진 그리드 — 큰 1 + 작은 2. 트립어드바이저 상세 상단. 옆 칸은 유튜브 썸네일·지도로 채운다 */}
         {/* 모바일은 히어로 한 장만(트립어드바이저와 같다). 390px에서 3열이면 옆 칸이 127px이라 아무것도 안 보인다.
             영상·지도는 아래 각자의 섹션에 그대로 있으므로 정보 손실이 없다. */}
+        {heroSrc && (
         <div
           className={`mb-8 grid gap-2 overflow-hidden rounded-[var(--radius-card)] grid-cols-1 ${sideTiles.length ? 'sm:grid-cols-3' : ''}`}
           style={{ height: 'clamp(210px, 52vw, 440px)' }}
         >
           <div className={`relative h-full overflow-hidden ${sideTiles.length ? 'sm:col-span-2' : ''}`}>
-            <Poster
-              src={f.imageUrl}
-              name={L.name}
-              letterClass="text-[5em]"
-            />
+            <Poster src={heroSrc} name={L.name} letterClass="text-[5em]" />
             {f.imageFrom === 'past' && (
               <span className="absolute bottom-3 left-3 rounded-full bg-ink/70 px-2.5 py-1 text-[11px] font-bold text-white backdrop-blur-sm">{t(l, 'poster.past')}</span>
             )}
@@ -290,6 +295,7 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
             </div>
           )}
         </div>
+        )}
 
         <AnchorTabs anchors={anchors} lang={l} />
 
