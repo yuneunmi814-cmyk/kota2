@@ -7,7 +7,7 @@ import { THEMES } from '@/lib/themes'
 // 각 URL에 alternates.languages를 붙여 언어판끼리 묶는다(sitemap 수준 hreflang).
 export const dynamic = 'force-static'
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const alt = (path: string) => ({
     languages: Object.fromEntries(LANGS.map((l) => [l, `${SITE_URL}/${l}/${path}`])),
   })
@@ -19,7 +19,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     for (const k of THEMES) {
       rows.push({ url: `${SITE_URL}/${l}/themes/${k}/`, changeFrequency: 'weekly', priority: 0.7, alternates: alt(`themes/${k}/`) })
     }
-    for (const f of allFestivals()) {
+    for (const f of await allFestivals()) {
       const p = `festivals/${f.externalId}/`
       rows.push({ url: `${SITE_URL}/${l}/${p}`, changeFrequency: 'weekly', priority: 0.6, alternates: alt(p) })
     }

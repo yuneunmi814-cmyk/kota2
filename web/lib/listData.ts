@@ -27,8 +27,8 @@ export interface ListItem {
   pop: number
 }
 
-export function listItems(lang: Lang): ListItem[] {
-  return allFestivals().map((f: Festival) => {
+export async function listItems(lang: Lang): Promise<ListItem[]> {
+  return (await allFestivals()).map((f: Festival) => {
     const L = localized(f, lang)
     return {
       k: f.externalId,

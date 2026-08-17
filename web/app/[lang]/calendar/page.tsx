@@ -8,6 +8,9 @@ import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import Poster from '@/components/Poster'
 
+// 1시간마다 다시 굽는다 — 축제 데이터는 주 1회만 바뀌므로 요청마다 DB를 볼 이유가 없다
+export const revalidate = 3600
+
 // 축제 달력 — 월별로 시작하는 축제를 한눈에.
 //
 // kfes에 있고 우리에 없던 뷰다. 목록의 월 필터와 겹치지만 쓰임이 다르다 —
@@ -36,7 +39,7 @@ const fmt = (d: string) => d.slice(5).replace('-', '.')
 export default async function CalendarPage({ params }: { params: Promise<{ lang: string }> }) {
   const { lang } = await params
   const l: Lang = isLang(lang) ? lang : 'ko'
-  const items = listItems(l).filter((f) => f.st !== 'ended' && !f.al)
+  const items = (await listItems(l)).filter((f) => f.st !== 'ended' && !f.al)
 
   // 시작 월 기준으로 묶는다. 이번 달부터 12개월을 돈다.
   const now = new Date()

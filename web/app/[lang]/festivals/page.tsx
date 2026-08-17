@@ -8,6 +8,9 @@ import Footer from '@/components/Footer'
 import FestivalListFromQuery from '@/components/FestivalListFromQuery'
 import FestivalListFallback from '@/components/FestivalListFallback'
 
+// 1시간마다 다시 굽는다 — 축제 데이터는 주 1회만 바뀌므로 요청마다 DB를 볼 이유가 없다
+export const revalidate = 3600
+
 // 축제 목록 — 4개 언어판을 각각 정적 생성한다.
 // 필터·정렬은 클라이언트에서 돌고, 초기값(?sort=, ?theme=, ?q=)은 URL에서 읽는다.
 
@@ -18,7 +21,7 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
   const { lang } = await params
   const l: Lang = isLang(lang) ? lang : 'ko'
-  const n = listItems(l).filter((f) => f.st !== 'ended').length
+  const n = (await listItems(l)).filter((f) => f.st !== 'ended').length
   const title = l === 'ko' ? '전국 축제 목록' : l === 'ja' ? '韓国の祭り一覧' : l === 'th' ? 'รายชื่อเทศกาลทั่วเกาหลี' : 'All festivals in Korea'
   return {
     title: `${title} · KOTA`,
@@ -33,7 +36,7 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
 export default async function FestivalsPage({ params }: { params: Promise<{ lang: string }> }) {
   const { lang } = await params
   const l: Lang = isLang(lang) ? lang : 'ko'
-  const items = listItems(l)
+  const items = await listItems(l)
 
   return (
     <>

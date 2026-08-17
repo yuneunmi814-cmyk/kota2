@@ -1,11 +1,16 @@
-import raw from '@/data/festivals.json'
+import { cache } from 'react'
+import { supabase } from './supabase'
 import { DEFAULT_LANG, type Lang } from './i18n'
 
-// 축제 데이터 접근 — 빌드 시점에만 쓰인다(SSG).
+// 축제 데이터 접근 — Supabase에서 읽는다.
 //
-// 파일 하나를 통째로 읽는 이유: 715건 850KB이라 메모리에 올려도 문제가 없고,
-// 빌드 중 715 × 4개 언어 = 2,860장을 찍어내려면 어차피 전량이 필요하다.
-// 런타임에는 이 모듈이 번들에 들어가지 않는다(서버 컴포넌트에서만 부른다).
+// 예전에는 data/festivals.json 파일 하나를 통째로 import했다(정적 내보내기 시절).
+// 이제 DB를 읽지만 화면 쪽 코드는 그대로다 — 아래 fromRow가 DB 행을 예전 Festival 모양으로
+// 되돌려 놓기 때문이다. 출처만 갈아끼우고 425건을 쓰는 컴포넌트 수십 개는 손대지 않았다.
+//
+// 조회는 react cache()로 감싼다. 한 페이지를 그리는 동안 목록·근처축제·테마수를 각각
+// 부르더라도 DB에는 한 번만 간다. 여기에 페이지의 revalidate가 얹혀서, 실제 조회는
+// 방문자 수와 무관하게 재생성 주기마다 한 번이다(축제 데이터는 주 1회만 바뀐다).
 
 export interface Translation {
   langCode: string
@@ -55,18 +60,103 @@ export interface Festival {
   translations?: Translation[]
 }
 
-const ALL = (raw as unknown as { items: Festival[] }).items
-
 /** 축제 식별자는 언제나 externalId — 숫자 id는 환경마다 달라진다(이전 구현에서 겪은 버그) */
 export const key = (f: Festival) => f.externalId
 
-export function allFestivals(): Festival[] {
-  return ALL
+/** DB 행(snake_case) → 화면이 쓰는 Festival(camelCase) */
+interface Row {
+  id: string
+  name: string
+  start_date: string
+  end_date: string
+  sido: string | null
+  sigungu: string | null
+  address: string | null
+  lat: number | null
+  lng: number | null
+  image_url: string | null
+  image_from: string | null
+  image_source: string | null
+  summary: string | null
+  program: string | null
+  fee: string | null
+  homepage: string | null
+  instagram: string | null
+  youtube: string | null
+  tel: string | null
+  category: string | null
+  organizer: string | null
+  booths: Festival['booths']
+  booths_from_past: boolean | null
+  age_info: string | null
+  hours: string | null
+  themes: string[] | null
+  popularity: number | null
+  visitor_lift: number | null
+  sources: string[] | null
+  tourapi_id: string | null
+  festival_translations?: { lang: string; name: string | null; summary: string | null; place_name: string | null }[]
+  festival_photos?: { ord: number; url: string; thumb: string | null; caption: string | null }[]
 }
 
-export function findByKey(externalId: string): Festival | undefined {
-  return ALL.find((f) => f.externalId === externalId)
+function fromRow(r: Row): Festival {
+  return {
+    id: r.id,
+    externalId: r.id,
+    name: r.name,
+    startDate: r.start_date,
+    endDate: r.end_date,
+    sido: r.sido,
+    sigungu: r.sigungu,
+    address: r.address,
+    lat: r.lat,
+    lng: r.lng,
+    imageUrl: r.image_url,
+    imageFrom: (r.image_from as Festival['imageFrom']) ?? null,
+    imageSource: r.image_source,
+    summary: r.summary,
+    program: r.program,
+    fee: r.fee,
+    homepage: r.homepage,
+    instagram: r.instagram,
+    youtube: r.youtube,
+    tel: r.tel,
+    category: r.category,
+    organizer: r.organizer,
+    booths: r.booths ?? null,
+    boothsFromPastEdition: r.booths_from_past ?? false,
+    ageInfo: r.age_info,
+    hours: r.hours,
+    themes: r.themes ?? [],
+    popularity: r.popularity ?? 0,
+    visitorLift: r.visitor_lift,
+    sources: r.sources ?? [],
+    translations: (r.festival_translations ?? []).map((t) => ({
+      langCode: t.lang,
+      name: t.name ?? '',
+      summary: t.summary,
+      placeName: t.place_name,
+    })),
+    photos: (r.festival_photos ?? [])
+      .sort((a, b) => a.ord - b.ord)
+      .map((p) => ({ url: p.url, thumb: p.thumb ?? p.url, name: p.caption ?? '' })),
+  }
 }
+
+const SELECT = '*, festival_translations(*), festival_photos(*)'
+
+export const allFestivals = cache(async (): Promise<Festival[]> => {
+  // Supabase는 기본 1,000행에서 끊는다. 지금은 425건이지만 해가 쌓이면 넘어가므로 범위를 넓혀 둔다.
+  const { data, error } = await supabase.from('festivals').select(SELECT).order('start_date').range(0, 19_999)
+  if (error) throw new Error(`축제 조회 실패: ${error.message}`)
+  return (data as unknown as Row[]).map(fromRow)
+})
+
+export const findByKey = cache(async (externalId: string): Promise<Festival | undefined> => {
+  const { data, error } = await supabase.from('festivals').select(SELECT).eq('id', externalId).maybeSingle()
+  if (error) throw new Error(`축제 조회 실패(${externalId}): ${error.message}`)
+  return data ? fromRow(data as unknown as Row) : undefined
+})
 
 /** 그 언어로 보이는 이름·요약·지명. 번역이 없으면 한국어 원문으로 떨어진다 */
 export function localized(f: Festival, lang: Lang) {
@@ -148,9 +238,9 @@ export function distanceKm(a: { lat: number; lng: number }, b: { lat: number; ln
  * 배율이 없는 축제(전체의 23%)는 순위에서 빼고, 모수도 '배율이 있는 축제 수'로 센다 —
  * 425개 중 5위라고 해 놓고 실제로는 327개만 비교했다면 그 숫자가 거짓말이 된다.
  */
-export function regionRank(f: Festival): { rank: number; total: number } | null {
+export async function regionRank(f: Festival): Promise<{ rank: number; total: number } | null> {
   if (f.visitorLift == null || !f.sido) return null
-  const peers = allFestivals().filter((x) => x.sido === f.sido && x.visitorLift != null)
+  const peers = (await allFestivals()).filter((x) => x.sido === f.sido && x.visitorLift != null)
   if (peers.length < 3) return null // 두셋 중 1위는 순위라 할 게 못 된다
   const sorted = [...peers].sort((a, b) => (b.visitorLift ?? 0) - (a.visitorLift ?? 0))
   const i = sorted.findIndex((x) => x.externalId === f.externalId)

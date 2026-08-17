@@ -4,3 +4,8 @@ out/
 .DS_Store
 *.tsbuildinfo
 next-env.d.ts
+
+# 환경변수 — 키가 저장소에 들어가면 되돌릴 수 없다(히스토리에 남는다)
+.env
+.env.local
+.env*.local

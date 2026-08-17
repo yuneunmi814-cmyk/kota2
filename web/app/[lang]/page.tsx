@@ -13,6 +13,9 @@ import NearbyBlock from '@/components/NearbyBlock'
 import Footer from '@/components/Footer'
 import SearchBar from '@/components/SearchBar'
 
+// 1시간마다 다시 굽는다 — 축제 데이터는 주 1회만 바뀌므로 요청마다 DB를 볼 이유가 없다
+export const revalidate = 3600
+
 export function generateStaticParams() {
   return LANGS.map((lang) => ({ lang }))
 }
@@ -20,7 +23,7 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
   const { lang } = await params
   const l: Lang = isLang(lang) ? lang : 'ko'
-  const n = allFestivals().length
+  const n = (await allFestivals()).length
   return {
     title: `KOTA — ${t(l, 'brand.tagline')}`,
     description: t(l, 'home.sub', { n }),
@@ -35,7 +38,7 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
 export default async function HomePage({ params }: { params: Promise<{ lang: string }> }) {
   const { lang } = await params
   const l: Lang = isLang(lang) ? lang : 'ko'
-  const all = allFestivals()
+  const all = await allFestivals()
 
   const ongoing = all.filter((f) => statusOf(f) === 'ongoing' && !isAlwaysOn(f))
   // 인기 — 진행 중 + 30일 안에 시작하는 축제. 진행 중만 보면 비수기엔 소규모가 상위에 뜬다(실측)

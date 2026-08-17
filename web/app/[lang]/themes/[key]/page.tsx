@@ -9,6 +9,9 @@ import Footer from '@/components/Footer'
 import Icon from '@/components/Icon'
 import FestivalList from '@/components/FestivalList'
 
+// 1시간마다 다시 굽는다 — 축제 데이터는 주 1회만 바뀌므로 요청마다 DB를 볼 이유가 없다
+export const revalidate = 3600
+
 // 목적 테마 랜딩 — 6테마 × 4언어 = 24장.
 // "가족과 갈 만한 축제" 같은 검색어의 착지점(SEO)이자, AI 검색이 목적별로 인용할 수 있는 URL(GEO).
 
@@ -20,7 +23,7 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
   const { lang, key } = await params
   const l: Lang = isLang(lang) ? lang : 'ko'
   if (!isTheme(key)) return {}
-  const n = listItems(l).filter((f) => f.th.includes(key) && f.st !== 'ended').length
+  const n = (await listItems(l)).filter((f) => f.th.includes(key) && f.st !== 'ended').length
   return {
     title: `${themeLabel(key, l)} · KOTA`,
     description: `${themeDesc(key, l)} — ${n}`,
@@ -35,7 +38,7 @@ export default async function ThemePage({ params }: { params: Promise<{ lang: st
   const { lang, key } = await params
   const l: Lang = isLang(lang) ? lang : 'ko'
   if (!isTheme(key)) notFound()
-  const items = listItems(l).filter((f) => f.th.includes(key))
+  const items = (await listItems(l)).filter((f) => f.th.includes(key))
 
   return (
     <>

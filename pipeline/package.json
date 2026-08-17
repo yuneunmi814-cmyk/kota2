@@ -7,13 +7,14 @@
     "sync": "tsx --env-file-if-exists=.env src/sync.ts",
     "merge": "tsx --env-file-if-exists=.env src/merge.ts",
     "translate": "tsx --env-file-if-exists=.env src/translate.ts",
-    "all": "npm run sync && npm run merge && npm run enrich && npm run gallery && npm run scrape && npm run popularity && npm run translate && npm run export",
+    "all": "npm run sync && npm run merge && npm run enrich && npm run gallery && npm run scrape && npm run popularity && npm run translate && npm run export && npm run push",
     "enrich": "tsx --env-file-if-exists=.env src/enrich.ts",
     "export": "cp data/festivals.json ../web/data/festivals.json && echo \"→ web/data/festivals.json 갱신\"",
     "popularity": "tsx --env-file-if-exists=.env src/popularity.ts",
     "gallery": "tsx --env-file-if-exists=.env src/gallery.ts",
     "scrape": "tsx --env-file-if-exists=.env src/scrape-images.ts",
-    "region-photos": "tsx --env-file-if-exists=.env src/region-photos.ts"
+    "region-photos": "tsx --env-file-if-exists=.env src/region-photos.ts",
+    "push": "tsx --env-file-if-exists=.env src/push-supabase.ts"
   },
   "keywords": [],
   "author": "",
@@ -26,6 +27,7 @@
     "typescript": "^7.0.2"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.117.1"
+    "@anthropic-ai/sdk": "^0.117.1",
+    "@supabase/supabase-js": "^2.112.3"
   }
 }

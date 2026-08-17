@@ -16,6 +16,9 @@ import ShareButton from '@/components/detail/ShareButton'
 import YouTube from '@/components/detail/YouTube'
 import Gallery from '@/components/detail/Gallery'
 
+// 1시간마다 다시 굽는다 — 축제 데이터는 주 1회만 바뀌므로 요청마다 DB를 볼 이유가 없다
+export const revalidate = 3600
+
 // 축제 상세 — 뼈대는 트립어드바이저, 살은 구석구석.
 //
 // 트립어드바이저 상세의 문법(실측 2026-08-15):
@@ -26,15 +29,15 @@ import Gallery from '@/components/detail/Gallery'
 // 우리 것: 신뢰 줄에 '문화관광축제 지정'과 '방문객 N배'(관광빅데이터)를 놓는다 — 트립어드바이저의
 //   평점 자리에 공공 데이터로 만든 근거가 들어간다.
 
-export function generateStaticParams() {
-  const ids = allFestivals().map((f) => f.externalId)
+export async function generateStaticParams() {
+  const ids = (await allFestivals()).map((f) => f.externalId)
   return LANGS.flatMap((lang) => ids.map((id) => ({ lang, id })))
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ lang: string; id: string }> }): Promise<Metadata> {
   const { lang, id } = await params
   const l: Lang = isLang(lang) ? lang : 'ko'
-  const f = findByKey(decodeURIComponent(id))
+  const f = await findByKey(decodeURIComponent(id))
   if (!f) return {}
   const L = localized(f, l)
   const desc = [L.summary, `${f.startDate} ~ ${f.endDate}`, L.placeName].filter(Boolean).join(' · ').slice(0, 160)
@@ -55,17 +58,17 @@ const won = (n: number, l: Lang) => t(l, 'detail.won', { n: n.toLocaleString(l =
 export default async function FestivalDetailPage({ params }: { params: Promise<{ lang: string; id: string }> }) {
   const { lang, id } = await params
   const l: Lang = isLang(lang) ? lang : 'ko'
-  const f = findByKey(decodeURIComponent(id))
+  const f = await findByKey(decodeURIComponent(id))
   if (!f) notFound()
 
   const L = localized(f, l)
   const st = statusOf(f)
   const always = isAlwaysOn(f)
-  const rank = regionRank(f)
+  const rank = await regionRank(f)
   const hasCoords = f.lat != null && f.lng != null
 
   const nearby = hasCoords
-    ? allFestivals()
+    ? (await allFestivals())
         .filter((x) => x.externalId !== f.externalId && x.lat != null && x.lng != null && statusOf(x) !== 'ended' && !isAlwaysOn(x))
         .map((x) => ({ x, km: distanceKm({ lat: f.lat as number, lng: f.lng as number }, { lat: x.lat as number, lng: x.lng as number }) }))
         .filter((o) => o.km <= 30)
