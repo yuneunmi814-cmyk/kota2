@@ -87,7 +87,10 @@ create table if not exists profiles (
 create table if not exists reviews (
   id          bigint generated always as identity primary key,
   festival_id text not null,               -- 일부러 FK 없음: 축제가 갱신돼도 리뷰는 남는다
-  user_id     uuid not null references auth.users(id) on delete cascade,
+  -- profiles를 참조한다(auth.users가 아니라). profiles가 이미 auth.users를 보고 있어
+  -- 실체는 같지만, 이렇게 해야 리뷰를 읽을 때 작성자 이름을 한 번에 조인할 수 있다.
+  -- auth.users로 걸어 두면 PostgREST가 reviews→profiles 경로를 못 찾는다(실측).
+  user_id     uuid not null references profiles(id) on delete cascade,
   rating      smallint not null check (rating between 1 and 5),
   body        text not null check (char_length(body) between 10 and 4000),
   visited_on  date,

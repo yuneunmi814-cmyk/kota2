@@ -5,6 +5,8 @@ import { allFestivals, distanceKm, findByKey, isAlwaysOn, isLongRun, localized, 
 import { LANGS, SITE_URL, isLang, type Lang } from '@/lib/i18n'
 import { t } from '@/lib/ui'
 import { sidoLabel } from '@/lib/sido'
+import { ratingOf, reviewsOf } from '@/lib/reviews'
+import Reviews from '@/components/detail/Reviews'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import Poster from '@/components/Poster'
@@ -65,6 +67,7 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
   const st = statusOf(f)
   const always = isAlwaysOn(f)
   const rank = await regionRank(f)
+  const [rating, reviews] = await Promise.all([ratingOf(f.externalId), reviewsOf(f.externalId)])
   const hasCoords = f.lat != null && f.lng != null
 
   const nearby = hasCoords
@@ -151,6 +154,16 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
 
         {/* 신뢰 줄 — 트립어드바이저의 '5.0 ●●●●● (10건) 327위' 자리. 우리는 공공 데이터 근거 */}
         <div className="mb-5 flex flex-wrap items-center gap-2 text-[13px] font-semibold text-muted">
+          {/* 평점 — 리뷰가 쌓이기 전에는 이 자리가 비고, 대신 아래 방문객 순위가 근거를 맡는다 */}
+          {rating && (
+            <span className="inline-flex items-center gap-1.5 text-[15px] font-bold text-ink">
+              <span className="text-brand">★</span>
+              {rating.average.toFixed(1)}
+              <span className="text-[13px] font-semibold text-hint">
+                {t(l, 'review.count', { n: rating.count })}
+              </span>
+            </span>
+          )}
           {st === 'ongoing' && !always && (
             <span className="rounded-full bg-brand px-3 py-1 text-[12px] font-bold text-white">{t(l, 'status.ongoing')}</span>
           )}
@@ -413,6 +426,11 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
             </div>
           </aside>
         </div>
+
+        {/* 리뷰 — 트립어드바이저에서 본문의 8할을 차지하는 자리 */}
+        <section className="mx-auto max-w-6xl px-5 pb-16">
+          <Reviews festivalId={f.externalId} lang={l} initial={reviews} />
+        </section>
 
         {/* 근처 — 트립어드바이저 하단 가로 스크롤 추천 */}
         {nearby.length > 0 && (
