@@ -15,7 +15,7 @@ import Footer from '@/components/Footer'
 import Poster from '@/components/Poster'
 import Icon from '@/components/Icon'
 import FestivalCard from '@/components/FestivalCard'
-import StaticMap from '@/components/StaticMap'
+import KakaoMap from '@/components/KakaoMap'
 import ReadMore from '@/components/detail/ReadMore'
 import ShareButton from '@/components/detail/ShareButton'
 import YouTube from '@/components/detail/YouTube'
@@ -123,9 +123,13 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
   const ytId = f.youtube?.match(/(?:youtu\.be\/|v=|shorts\/|embed\/)([A-Za-z0-9_-]{11})/)?.[1] ?? null
   // 옆 칸 우선순위: 실제 축제 사진 → 영상 → 지도. 사진이 있으면 그게 가장 정직한 대표 이미지다
   const extraPhoto = f.photos?.[1] ?? null
+  // 곁타일 — 사진과 영상만 쓴다.
+  // 지도를 넣었다가 뺐다: 카카오맵 무료 쿼터가 다른 앱에 묶여 있어 지도를 못 그리는데,
+  // 자리만 차지하면 회색 상자가 된다. 위치는 아래 섹션에서 카카오맵으로 넘겨준다.
+  const photo2 = f.photos?.[2] ?? null
   const sideTiles = [
     extraPhoto ? { kind: 'photo' as const, src: extraPhoto.thumb } : ytId ? { kind: 'yt' as const, id: ytId } : null,
-    hasCoords ? { kind: 'map' as const } : ytId && extraPhoto ? { kind: 'yt' as const, id: ytId } : null,
+    photo2 ? { kind: 'photo' as const, src: photo2.thumb } : extraPhoto && ytId ? { kind: 'yt' as const, id: ytId } : null,
   ].filter(Boolean)
 
   const sido = f.sido ? sidoLabel(f.sido, l) : null
@@ -262,13 +266,7 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden><path d="M8 5v14l11-7z" /></svg>
                     </span>
                   </a>
-                ) : (
-                  <a key="map" href="#location" className="relative block overflow-hidden">
-                    <div className="pointer-events-none h-full w-full [&_figure]:h-full [&_figure]:rounded-none [&_figure]:border-0 [&_figcaption]:hidden [&_.aspect-\[16\/9\]]:aspect-auto [&_.aspect-\[16\/9\]]:h-full">
-                      <StaticMap lat={f.lat as number} lng={f.lng as number} label="" />
-                    </div>
-                  </a>
-                ),
+                ) : null,
               )}
             </div>
           )}
@@ -353,7 +351,13 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
             {hasCoords && (
               <section id="location" className="mb-10 scroll-mt-24">
                 <h2 className="mb-3 text-[20px] font-black text-ink">{t(l, 'detail.location')}</h2>
-                <StaticMap lat={f.lat as number} lng={f.lng as number} label={f.address ?? L.placeName ?? L.name} />
+                <KakaoMap
+                  lat={f.lat as number}
+                  lng={f.lng as number}
+                  label={f.address ?? L.placeName ?? L.name}
+                  festivalId={f.externalId}
+                  linkLabel={t(l, 'map.open')}
+                />
                 {f.address && <p className="mt-2 text-[14px] text-muted">{f.address}</p>}
               </section>
             )}
