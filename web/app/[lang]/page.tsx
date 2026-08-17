@@ -12,6 +12,8 @@ import FestivalRow from '@/components/FestivalRow'
 import NearbyBlock from '@/components/NearbyBlock'
 import Footer from '@/components/Footer'
 import SearchBar from '@/components/SearchBar'
+import HeroBand from '@/components/HeroBand'
+import RegionRail from '@/components/RegionRail'
 
 // 1시간마다 다시 굽는다 — 축제 데이터는 주 1회만 바뀌므로 요청마다 DB를 볼 이유가 없다
 export const revalidate = 3600
@@ -111,6 +113,9 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
           </div>
         </section>
 
+        {/* 사진 띠 — 트립어드바이저가 홈을 여는 방식. 지금 열리는 축제 넉 장 */}
+        <HeroBand items={[...ongoing, ...upcomingSoon].sort(showcase)} lang={l} />
+
         {/* 내 주변 — 진입 즉시 위치를 묻는다 */}
         <div className="pb-16">
           <NearbyBlock all={all} lang={l} />
@@ -137,6 +142,9 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
             ))}
           </div>
         </section>
+
+        {/* 어디로 — 트립어드바이저 '놓칠 수 없는 명소' 자리 */}
+        <RegionRail all={all} lang={l} title={t(l, 'region.title')} subtitle={t(l, 'region.sub')} />
 
         {/* 시간축·신뢰축 행 — 트립어드바이저 둘러보기의 '카테고리별 가로 행' 문법.
             순서는 여행자가 묻는 순서다: 지금 갈 수 있나 → 주말에 뭐 있나 → 뭘 많이 가나 → 검증된 건 뭔가 */}

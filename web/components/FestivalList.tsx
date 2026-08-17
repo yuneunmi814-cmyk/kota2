@@ -30,15 +30,17 @@ export default function FestivalList({
   initialSort = 'date',
   initialTheme = null,
   initialQuery = '',
+  initialRegion = null,
 }: {
   items: ListItem[]
   lang: Lang
   initialSort?: Sort
   initialTheme?: Theme | null
   initialQuery?: string
+  initialRegion?: string | null
 }) {
   const [period, setPeriod] = useState<Period>('all')
-  const [region, setRegion] = useState<string | null>(null)
+  const [region, setRegion] = useState<string | null>(initialRegion)
   const [sido, setSido] = useState<string | null>(null)
   const [theme, setTheme] = useState<Theme | null>(initialTheme)
   const [sort, setSort] = useState<Sort>(initialSort)
