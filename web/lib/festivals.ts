@@ -185,17 +185,40 @@ function fromRow(r: Row): Festival {
 
 const SELECT = '*, festival_translations(*), festival_photos(*)'
 
-export const allFestivals = cache(async (): Promise<Festival[]> => {
-  // Supabase는 기본 1,000행에서 끊는다. 지금은 425건이지만 해가 쌓이면 넘어가므로 범위를 넓혀 둔다.
-  const { data, error } = await supabase.from('festivals').select(SELECT).order('start_date').range(0, 19_999)
-  if (error) throw new Error(`축제 조회 실패: ${error.message}`)
-  return (data as unknown as Row[]).map(fromRow)
-})
+// 조회는 모듈 수준에서 한 번만 한다.
+//
+// react의 cache()는 '한 번의 렌더' 안에서만 중복을 없앤다. 그런데 빌드 때는 페이지마다
+// 렌더가 따로여서, 444건 × 4언어 = 1,776 페이지가 각자 전체 목록을 다시 불렀다.
+// Supabase 무료 플랜이 그 폭격을 견디지 못하고 `canceling statement due to statement
+// timeout`으로 빌드를 깼다(2026-08-18, 축제가 424건이 된 시점). 축제가 늘수록 심해진다.
+//
+// 그래서 약속(Promise)을 모듈에 붙들어 둔다. 빌드 워커 하나가 한 번만 부르고 나머지
+// 1,775 페이지는 그 결과를 나눠 쓴다. TTL을 두는 이유는 오래 사는 서버에서 낡은 데이터를
+// 붙들고 있지 않기 위해서다 — 페이지 자체는 revalidate 3600으로 다시 굽히므로
+// 60초면 충분하다.
+const TTL = 60_000
+let cached: { at: number; rows: Promise<Festival[]> } | null = null
 
+export function allFestivals(): Promise<Festival[]> {
+  if (cached && Date.now() - cached.at < TTL) return cached.rows
+  const rows = (async () => {
+    // Supabase는 기본 1,000행에서 끊는다. 지금은 424건이지만 해가 쌓이면 넘어가므로 범위를 넓혀 둔다.
+    const { data, error } = await supabase.from('festivals').select(SELECT).order('start_date').range(0, 19_999)
+    if (error) throw new Error(`축제 조회 실패: ${error.message}`)
+    return (data as unknown as Row[]).map(fromRow)
+  })()
+  // 실패한 약속을 캐시에 남기면 TTL 동안 같은 오류만 되풀이한다
+  rows.catch(() => { if (cached?.rows === rows) cached = null })
+  cached = { at: Date.now(), rows }
+  return rows
+}
+
+// 한 건 조회도 위 목록에서 꺼낸다.
+//
+// 전에는 페이지마다 별도 쿼리를 날렸다 — 그것만으로 빌드에 1,776번이었다.
+// 어차피 전체를 이미 들고 있으므로 다시 물을 이유가 없다.
 export const findByKey = cache(async (externalId: string): Promise<Festival | undefined> => {
-  const { data, error } = await supabase.from('festivals').select(SELECT).eq('id', externalId).maybeSingle()
-  if (error) throw new Error(`축제 조회 실패(${externalId}): ${error.message}`)
-  return data ? fromRow(data as unknown as Row) : undefined
+  return (await allFestivals()).find((f) => f.externalId === externalId)
 })
 
 /** 그 언어로 보이는 이름·요약·지명. 번역이 없으면 한국어 원문으로 떨어진다 */
