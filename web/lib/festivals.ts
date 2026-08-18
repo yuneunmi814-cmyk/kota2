@@ -41,6 +41,7 @@ export interface Festival {
   /** kfes가 주는 것들 — 요금·프로그램·SNS. 다른 소스는 비어 있다 */
   fee?: string | null
   program?: string | null
+  lineup?: string | null
   instagram?: string | null
   youtube?: string | null
   sources?: string[]
@@ -116,6 +117,7 @@ interface Row {
   image_source: string | null
   summary: string | null
   program: string | null
+  lineup: string | null
   fee: string | null
   homepage: string | null
   instagram: string | null
@@ -153,6 +155,7 @@ function fromRow(r: Row): Festival {
     imageSource: r.image_source,
     summary: r.summary,
     program: r.program,
+    lineup: r.lineup,
     fee: r.fee,
     homepage: r.homepage,
     instagram: r.instagram,

@@ -1402,5 +1402,23 @@
    "ja": "世宗（セジョン）ボヘミアンミュージックフェスティバルは、世宗中央公園内の都市祝祭広場で3日間開催される音楽フェスティバルです。",
    "th": "เซจงโบฮีเมียนมิวสิกเฟสติวัล เป็นเทศกาลดนตรีที่จัดขึ้นเป็นเวลา 3 วัน ที่ลานเทศกาลเมืองในสวนสาธารณะกลางเซจง"
   }
+ },
+ "manual:seoul-fireworks-2026": {
+  "hash": "734843111062",
+  "name": "한화와 함께하는 서울세계불꽃축제 2026",
+  "summary": {
+   "en": "This fireworks festival is held around Yeouido Hangang Park. Production teams from three countries — Korea, the US, and the UK — take part, each putting on their own display.",
+   "ja": "汝矣島（ヨイド）漢江公園一帯で開催される花火祭りです。韓国・アメリカ・イギリスの3カ国の演出チームが参加し、それぞれの花火を披露します。",
+   "th": "เทศกาลดอกไม้ไฟที่จัดขึ้นบริเวณสวนสาธารณะฮันกัง เยออีโด มีทีมจัดแสดงดอกไม้ไฟจาก 3 ประเทศเข้าร่วม ได้แก่ เกาหลี สหรัฐอเมริกา และสหราชอาณาจักร"
+  }
+ },
+ "manual:jarasum-jazz-2026": {
+  "hash": "2ea43bd3961a",
+  "name": "제23회 자라섬재즈페스티벌",
+  "summary": {
+   "en": "A three-day jazz festival held on Jarasum Island. There's a separate ticket option for visitors bringing their dogs along.",
+   "ja": "ジャラソム（チャラ島）で3日間開催されるジャズフェスティバルです。愛犬を連れて入場できる専用チケットも別途用意されています。",
+   "th": "เทศกาลดนตรีแจ๊สที่จัดขึ้นเป็นเวลา 3 วันบนเกาะจาราซอม มีบัตรเข้าร่วมงานสำหรับผู้ที่พาสุนัขไปด้วยแยกต่างหาก"
+  }
  }
 }

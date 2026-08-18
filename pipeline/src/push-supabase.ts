@@ -55,6 +55,7 @@ const festivals = items.map((f) => ({
   image_source: (f as { imageSource?: string }).imageSource ?? null,
   summary: f.summary ?? null,
   program: f.program ?? null,
+  lineup: f.lineup ?? null,
   fee: f.fee ?? null,
   homepage: f.homepage ?? null,
   instagram: f.instagram ?? null,

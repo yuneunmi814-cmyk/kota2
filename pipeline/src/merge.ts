@@ -190,6 +190,7 @@ const merged: Festival[] = groups.map((g) => {
     imageFrom: first(sorted.map((x) => x.imageUrl)) ? 'own' : null,
     summary,
     program: first(sorted.map((x) => x.program)),
+    lineup: first(sorted.map((x) => x.lineup)),
     // 요금만 소스 순서를 따르지 않는다.
     //
     // TourAPI는 「유료」 두 글자만 주는 일이 흔하다. 그건 사실이지만 여행자에게는

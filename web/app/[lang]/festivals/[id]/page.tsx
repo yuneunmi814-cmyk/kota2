@@ -93,6 +93,7 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
   const anchors = [
     L.summary ? { id: 'about', label: t(l, 'detail.about') } : null,
     (f.photos?.length ?? 0) > 0 ? { id: 'photos', label: t(l, 'detail.photos') } : null,
+    f.lineup ? { id: 'lineup', label: t(l, 'detail.lineup') } : null,
     f.program ? { id: 'program', label: t(l, 'detail.program') } : null,
     hasCoords ? { id: 'location', label: t(l, 'detail.location') } : null,
     { id: 'reviews', label: t(l, 'review.title') },
@@ -357,6 +358,18 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
             )}
 
             {/* 프로그램 */}
+            {/* 출연 라인업 — 공공 API에 없는 정보다(TourAPI·문화포털 모두).
+                그런데 음악 페스티벌에서 사람들이 가장 먼저 찾는 게 '누가 나오는가'다.
+                프로그램에 섞으면 묻히므로 위에 따로, 목차에도 따로 둔다. */}
+            {f.lineup && (
+              <section id="lineup" className="mb-10 scroll-mt-24">
+                <h2 className="mb-3 text-[20px] font-black text-ink">{t(l, 'detail.lineup')}</h2>
+                <p className="whitespace-pre-line rounded-[var(--radius-card)] border border-line p-5 text-[15px] leading-relaxed text-ink/85">
+                  {f.lineup}
+                </p>
+              </section>
+            )}
+
             {f.program && (
               <section id="program" className="mb-10 scroll-mt-24">
                 <h2 className="mb-3 text-[20px] font-black text-ink">{t(l, 'detail.program')}</h2>

@@ -23,6 +23,12 @@ export interface RawFestival {
   summary?: string | null
   /** 프로그램·요금·예약 등 상세 — 있는 소스만 */
   program?: string | null
+  /** 출연 라인업.
+   *
+   * 공공 API에는 없다(TourAPI·문화포털 모두). 그런데 음악 페스티벌에서 사람들이
+   * 가장 먼저 찾는 게 '누가 나오는가'다. 라인업 없는 자라섬재즈 페이지는 예매처보다
+   * 못하다. program 에 섞으면 묻히므로 따로 둔다. */
+  lineup?: string | null
   fee?: string | null
   homepage?: string | null
   instagram?: string | null
