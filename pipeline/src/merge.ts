@@ -237,7 +237,11 @@ const merged: Festival[] = groups.map((g) => {
   // 축제마다 답이 다르므로(광주 축제면 광주광역시, 전남 축제면 전라남도) 위에서 이미
   // 가려낸 f.sido로 바꾼다. 문장 안이라 통째로 갈아끼우지 않고 그 낱말만 바꾼다.
   if (f.sido && f.sido !== '전남광주통합특별시') {
-    const fix = (v: string | null | undefined) => (v ? v.replaceAll('전남광주통합특별시', f.sido!) : v)
+    // 「전남광주통합특별시」와, 그것을 줄여 쓴 「전남광주」 둘 다 잡는다. 긴 것부터
+    // 바꿔야 앞부분만 먹히고 「…특별시」가 남는 일이 없다. 광주 추억의 충장축제 소개에
+    // "전남광주 동구 충장로"가 그렇게 남아 있었다.
+    const fix = (v: string | null | undefined) =>
+      v ? v.replaceAll('전남광주통합특별시', f.sido!).replaceAll('전남광주', f.sido!) : v
     f.organizer = fix(f.organizer) ?? null
     f.summary = fix(f.summary) ?? null
   }
