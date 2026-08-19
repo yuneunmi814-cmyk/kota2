@@ -1,13 +1,10 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
 import { LANGS, SITE_URL, isLang, type Lang } from '@/lib/i18n'
 import { listItems } from '@/lib/listData'
-import { monthLabel } from '@/lib/sido'
 import { t } from '@/lib/ui'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
-import Poster from '@/components/Poster'
-import { toSlug } from '@/lib/slug'
+import MonthCalendar from '@/components/MonthCalendar'
 
 // 1시간마다 다시 굽는다 — 축제 데이터는 주 1회만 바뀌므로 요청마다 DB를 볼 이유가 없다
 export const revalidate = 3600
@@ -35,88 +32,25 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
   }
 }
 
-const fmt = (d: string) => d.slice(5).replace('-', '.')
-
 export default async function CalendarPage({ params }: { params: Promise<{ lang: string }> }) {
   const { lang } = await params
   const l: Lang = isLang(lang) ? lang : 'ko'
   const items = (await listItems(l)).filter((f) => f.st !== 'ended' && !f.al)
 
-  // 시작 월 기준으로 묶는다. 이번 달부터 12개월을 돈다.
+  // 오늘은 서버가 정해 넘긴다. 클라이언트 시계로 잡으면 첫 렌더가 서버와 어긋난다.
   const now = new Date()
-  const months: { y: number; m: number }[] = []
-  for (let i = 0; i < 12; i += 1) {
-    const d = new Date(now.getFullYear(), now.getMonth() + i, 1)
-    months.push({ y: d.getFullYear(), m: d.getMonth() + 1 })
-  }
-  const byMonth = months.map(({ y, m }) => ({
-    y,
-    m,
-    list: items
-      .filter((f) => f.s.startsWith(`${y}-${String(m).padStart(2, '0')}`))
-      .sort((a, b) => a.s.localeCompare(b.s)),
-  }))
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
 
   return (
     <>
       <Header lang={l} path="calendar" />
-      <main className="mx-auto max-w-6xl px-5 pb-24 pt-10">
+      <main className="mx-auto max-w-5xl px-5 pb-24 pt-10">
         <h1 className="h-display mb-2 text-[30px] text-brand sm:text-[36px]">
           {l === 'ko' ? '축제 달력' : l === 'ja' ? '祭りカレンダー' : l === 'th' ? 'ปฏิทินเทศกาล' : 'Festival calendar'}
         </h1>
         <p className="mb-8 text-[15px] text-muted">{t(l, 'month.title')}</p>
 
-        {/* 월 점프 */}
-        <nav className="-mx-5 mb-10 flex gap-2 overflow-x-auto px-5 pb-1 no-scrollbar">
-          {byMonth.map(({ y, m, list }) => (
-            <a
-              key={`${y}-${m}`}
-              href={`#m-${y}-${m}`}
-              className={`shrink-0 rounded-full border px-4 py-2 text-[13px] font-bold transition ${
-                list.length ? 'border-line text-muted hover:border-brand/40 hover:text-brand' : 'border-line/50 text-hint/60'
-              }`}
-            >
-              {monthLabel(m, l)} <span className="ml-1 font-normal opacity-60">{list.length}</span>
-            </a>
-          ))}
-        </nav>
-
-        {byMonth.map(({ y, m, list }) =>
-          list.length === 0 ? null : (
-            <section key={`${y}-${m}`} id={`m-${y}-${m}`} className="mb-14 scroll-mt-24">
-              <h2 className="h-display mb-5 flex items-baseline gap-3 text-[24px] text-ink">
-                {monthLabel(m, l)}
-                <span className="text-[14px] font-bold text-hint">{y} · {list.length}</span>
-              </h2>
-              <ul className="divide-y divide-line rounded-[var(--radius-card)] border border-line">
-                {list.map((f) => (
-                  <li key={f.k}>
-                    <Link
-                      href={`/${l}/festivals/${toSlug(f.k)}/`}
-                      className="flex items-center gap-4 px-4 py-3 transition hover:bg-surface"
-                    >
-                      <span className="w-14 shrink-0 text-[13px] font-bold tabular-nums text-brand">{fmt(f.s)}</span>
-                      <span className="h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-surface">
-                        <Poster src={f.img} name={f.n} letterClass="text-[1.3em]" />
-                      </span>
-                      <span className="min-w-0 flex-1">
-                        <span className="block truncate text-[15px] font-bold text-ink">{f.n}</span>
-                        <span className="block truncate text-[13px] text-muted">
-                          {f.p}{f.s !== f.e ? ` · ~${fmt(f.e)}` : ''}
-                        </span>
-                      </span>
-                      {f.st === 'ongoing' && (
-                        <span className="shrink-0 rounded-full bg-brand px-2.5 py-1 text-[11px] font-bold text-white">
-                          {t(l, 'status.ongoing')}
-                        </span>
-                      )}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          ),
-        )}
+        <MonthCalendar items={items} lang={l} today={today} />
       </main>
       <Footer lang={l} />
     </>
