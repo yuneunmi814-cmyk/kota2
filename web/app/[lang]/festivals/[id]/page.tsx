@@ -327,7 +327,14 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
             {f.photos && f.photos.length > 0 && (
               <section id="photos" className="mb-10 scroll-mt-24">
                 <h2 className="mb-3 text-[20px] font-black text-ink">{t(l, 'detail.photos')}</h2>
-                <Gallery photos={f.photos} title={L.name} sourceLabel={t(l, 'detail.photos.src')} />
+                <Gallery
+                  photos={f.photos}
+                  title={L.name}
+                  sourceLabel={t(l, 'detail.photos.src')}
+                  prevLabel={t(l, 'gallery.prev')}
+                  nextLabel={t(l, 'gallery.next')}
+                  closeLabel={t(l, 'gallery.close')}
+                />
               </section>
             )}
 

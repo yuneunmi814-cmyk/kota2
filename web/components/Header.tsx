@@ -10,6 +10,8 @@ import Icon from './Icon'
 
 export default function Header({ lang, path = '' }: { lang: Lang; path?: string }) {
   const clean = path.replace(/^\/+|\/+$/g, '')
+  const calendarLabel =
+    lang === 'ko' ? '축제 달력' : lang === 'ja' ? '祭りカレンダー' : lang === 'th' ? 'ปฏิทิน' : 'Calendar'
   return (
     <header className="sticky top-0 z-30 border-b border-line bg-paper/90 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5">
@@ -18,12 +20,19 @@ export default function Header({ lang, path = '' }: { lang: Lang; path?: string 
         </Link>
 
         <nav className="flex items-center gap-1">
+          {/* 달력 — 모바일에서는 아이콘만 남긴다.
+              전에는 아예 hidden이라 좁은 화면에서 달력에 갈 방법이 없었다(BUG-25).
+              햄버거를 새로 만드는 것보다 아이콘 하나를 남기는 편이 눌리는 곳도 늘지 않고
+              데스크톱 배치도 그대로다. 글자만 sm 이상에서 붙는다.
+              aria-label을 두는 것은 모바일에서 글자가 사라지면 화면낭독기에 이름이
+              남지 않기 때문이다. */}
           <Link
             href={`/${lang}/calendar/`}
-            className="hidden items-center gap-1.5 rounded-full px-3 py-2 text-[14px] font-bold text-muted transition hover:bg-paper-2 hover:text-brand sm:flex"
+            aria-label={calendarLabel}
+            className="flex items-center gap-1.5 rounded-full px-3 py-2 text-[14px] font-bold text-muted transition hover:bg-paper-2 hover:text-brand"
           >
             <Icon name="calendar" size={16} />
-            {lang === 'ko' ? '축제 달력' : lang === 'ja' ? '祭りカレンダー' : lang === 'th' ? 'ปฏิทิน' : 'Calendar'}
+            <span className="hidden sm:inline">{calendarLabel}</span>
           </Link>
 
           {/* 언어 — 링크라서 크롤러가 4개 언어판을 모두 따라갈 수 있다 */}
