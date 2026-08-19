@@ -83,7 +83,7 @@ export default function NearbyBlock({ all, lang }: { all: Festival[]; lang: Lang
           </p>
         </div>
         <Link
-          href={`/${lang}/festivals/?sort=distance`}
+          href={`/${lang}/festivals/?sort=distance&period=ongoing`}
           className="hidden shrink-0 items-center gap-1 text-[14px] font-bold text-brand hover:underline sm:flex"
         >
           {t(lang, 'nearby.seeAll')} <Icon name="arrow" size={15} />
@@ -103,7 +103,7 @@ export default function NearbyBlock({ all, lang }: { all: Festival[]; lang: Lang
           반대로 예전에는 축제가 있는 모바일 화면에 링크가 하나도 없었다 — 아래를
           near.length === 0 일 때만 그렸기 때문이다. 화면 폭으로만 가른다. */}
       <Link
-        href={`/${lang}/festivals/?sort=distance`}
+        href={`/${lang}/festivals/?sort=distance&period=ongoing`}
         className={`inline-flex items-center gap-1 text-[15px] font-bold text-brand hover:underline sm:hidden ${
           near.length > 0 ? 'mt-4' : ''
         }`}
