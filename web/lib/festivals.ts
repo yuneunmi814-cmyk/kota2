@@ -1,6 +1,7 @@
 import { cache } from 'react'
 import { supabase } from './supabase'
 import { DEFAULT_LANG, type Lang } from './i18n'
+import { fetchLive, fetchLiveStdfest } from './tourapi-live'
 
 // 축제 데이터 접근 — Supabase에서 읽는다.
 //
@@ -183,6 +184,143 @@ function fromRow(r: Row): Festival {
   }
 }
 
+
+// TourAPI 실시간 응답을 DB 데이터 위에 덮는다.
+//
+// DB는 우리가 쌓은 것(번역·보강 포스터·테마)을 갖고 있고, TourAPI는 원천이 지금 뭐라고
+// 하는지를 갖고 있다. 겹치는 항목은 원천을 따른다 — 일정이 바뀌면 사람 손을 안 거치고
+// 바로 반영되는 게 이 구조의 목적이다.
+//
+// 다만 덮어쓰지 않는 것이 있다:
+//   - 이미지: DB 쪽이 사람이 찾아 넣은 공식 포스터인 경우가 많다(image_from='scraped').
+//     TourAPI 이미지는 DB가 비어 있을 때만 채운다.
+//   - 이름: 번역이 한국어 원문에 맞춰 붙어 있어서, 원문이 바뀌면 짝이 어긋난다.
+//
+// TourAPI에만 있고 DB에 없는 축제는 목록에 새로 넣는다. 번역이 없으므로 4개 언어에서
+// 한국어 이름으로 보이지만, 없는 것보다는 낫다 — 다음 파이프라인 실행 때 번역이 붙는다.
+async function overlayLive(rows: Row[]): Promise<Festival[]> {
+  const base = rows.map(fromRow)
+
+  // 두 원천을 동시에 부른다. 하나가 늦어도 다른 하나를 기다리게 하지 않는다.
+  const [live, std] = await Promise.all([fetchLive(), fetchLiveStdfest()])
+  if (live.length === 0 && std.length === 0) return base // 둘 다 실패 — DB 그대로
+
+  const today = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10)
+  const byId = new Map(live.map((l) => [l.contentId, l]))
+  const byStd = new Map(std.map((l) => [l.key, l]))
+  const usedTour = new Set<string>()
+  const usedStd = new Set<string>()
+  const dropped: number[] = []
+
+  for (let i = 0; i < rows.length; i++) {
+    const f = base[i]
+    const ext = f.externalId
+
+    // ── TourAPI 쪽 ──
+    const tid = rows[i].tourapi_id ?? (ext.startsWith('tourapi:') ? ext.slice(8) : null)
+    if (tid) {
+      const l = byId.get(tid)
+      if (l) {
+        usedTour.add(tid)
+        f.startDate = l.startDate
+        f.endDate = l.endDate
+        if (!f.imageUrl && l.imageUrl) {
+          f.imageUrl = l.imageUrl
+          f.imageFrom = 'own'
+          f.imageSource = '한국관광공사 TourAPI'
+        }
+        if (!f.address && l.address) f.address = l.address
+        if (!f.tel && l.tel) f.tel = l.tel
+        if (f.lat == null && l.lat != null) f.lat = l.lat
+        if (f.lng == null && l.lng != null) f.lng = l.lng
+        if (!f.sources?.includes('tourapi')) f.sources = [...(f.sources ?? []), 'tourapi']
+        continue
+      }
+      // 원천에서 사라졌다.
+      //
+      // TourAPI만이 출처이고, 아직 안 끝난 축제인데 실시간 응답에 없다면 원천에서 내렸다는
+      // 뜻이다(취소·연기·등록 철회). 그런 걸 계속 띄우면 헛걸음을 만든다.
+      // 끝난 축제는 애초에 응답에 안 오므로 여기 걸리지 않게 endDate로 거른다.
+      const onlyTour = (f.sources ?? []).every((x) => x === 'tourapi') && ext.startsWith('tourapi:')
+      if (live.length > 0 && onlyTour && f.endDate >= today) {
+        dropped.push(i)
+        continue
+      }
+    }
+
+    // ── 표준데이터 쪽 ──
+    if (ext.startsWith('stdfest:')) {
+      const l = byStd.get(ext.slice(8))
+      if (l) {
+        usedStd.add(l.key)
+        f.startDate = l.startDate
+        f.endDate = l.endDate
+        if (!f.address && l.address) f.address = l.address
+        if (!f.tel && l.tel) f.tel = l.tel
+        if (!f.homepage && l.homepage) f.homepage = l.homepage
+        if (f.lat == null && l.lat != null) f.lat = l.lat
+        if (f.lng == null && l.lng != null) f.lng = l.lng
+      } else if (std.length > 0 && (f.sources ?? []).every((x) => x === 'stdfest') && f.endDate >= today) {
+        dropped.push(i)
+      }
+    }
+  }
+
+  const drop = new Set(dropped)
+  const kept = base.filter((_, i) => !drop.has(i))
+
+  // ── 원천에 새로 올라온 축제 ──
+  const AREA: Record<string, string> = {
+    '1': '서울특별시', '2': '인천광역시', '3': '대전광역시', '4': '대구광역시', '5': '광주광역시',
+    '6': '부산광역시', '7': '울산광역시', '8': '세종특별자치시', '31': '경기도', '32': '강원특별자치도',
+    '33': '충청북도', '34': '충청남도', '35': '경상북도', '36': '경상남도', '37': '전북특별자치도',
+    '38': '전라남도', '39': '제주특별자치도',
+  }
+  // 이미 목록에 있는 이름+시작일 — 소스가 달라도 같은 축제면 두 번 넣지 않는다
+  const known = new Set(kept.map((f) => `${f.name.replace(/\s+/g, '')}|${f.startDate}`))
+  const fresh: Festival[] = []
+
+  const push = (f: Festival) => {
+    const sig = `${f.name.replace(/\s+/g, '')}|${f.startDate}`
+    if (known.has(sig)) return
+    known.add(sig)
+    fresh.push(f)
+  }
+
+  for (const l of live) {
+    if (usedTour.has(l.contentId) || !l.name) continue
+    push({
+      id: `tourapi:${l.contentId}`, externalId: `tourapi:${l.contentId}`, name: l.name,
+      startDate: l.startDate, endDate: l.endDate,
+      sido: l.areaCode ? (AREA[l.areaCode] ?? null) : null, sigungu: null,
+      address: l.address, lat: l.lat, lng: l.lng,
+      imageUrl: l.imageUrl, imageFrom: l.imageUrl ? 'own' : null,
+      imageSource: l.imageUrl ? '한국관광공사 TourAPI' : null,
+      summary: null, tel: l.tel, themes: [], popularity: 0,
+      sources: ['tourapi'], translations: [], photos: [],
+    } as Festival)
+  }
+
+  for (const l of std) {
+    if (usedStd.has(l.key) || !l.name) continue
+    push({
+      id: `stdfest:${l.key}`, externalId: `stdfest:${l.key}`, name: l.name,
+      startDate: l.startDate, endDate: l.endDate,
+      sido: l.sido, sigungu: l.sigungu, address: l.address,
+      lat: l.lat, lng: l.lng,
+      imageUrl: null, imageFrom: null, imageSource: null,
+      summary: l.summary, tel: l.tel, homepage: l.homepage,
+      themes: [], popularity: 0,
+      sources: ['stdfest'], translations: [], photos: [],
+    } as Festival)
+  }
+
+  if (fresh.length || drop.size) {
+    console.info(`[live] 원천 동기화 — 추가 ${fresh.length}건, 내려간 축제 ${drop.size}건 제외 (기준 ${today})`)
+  }
+  return [...kept, ...fresh].sort((a, b) => a.startDate.localeCompare(b.startDate))
+}
+
 const SELECT = '*, festival_translations(*), festival_photos(*)'
 
 // 조회는 모듈 수준에서 한 번만 한다.
@@ -235,7 +373,7 @@ export function allFestivals(): Promise<Festival[]> {
       out.push(...page)
       if (page.length < CHUNK) break
     }
-    return out.map(fromRow)
+    return overlayLive(out)
   })()
   // 실패한 약속을 캐시에 남기면 TTL 동안 같은 오류만 되풀이한다
   rows.catch(() => { if (cached?.rows === rows) cached = null })

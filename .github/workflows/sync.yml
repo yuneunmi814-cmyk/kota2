@@ -1,8 +1,8 @@
 name: sync-festivals
 
 # 매주 월요일 09:00 KST — 5소스 수집 → 병합 → 보강 → 번역 → web/data 갱신 → 커밋.
-# 커밋이 main에 들어가면 deploy.yml이 이어서 배포한다.
-# DB·서버가 없다. 이 워크플로와 정적 JSON이 백엔드의 전부다.
+# 갱신분은 npm run push로 Supabase에 반영된다(화면이 읽는 건 DB다).
+# 커밋이 main에 들어가면 Vercel이 이어서 배포한다 — deploy.yml(Pages)은 2026-08-17에 중단됐다.
 
 on:
   schedule:
