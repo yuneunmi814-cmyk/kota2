@@ -323,6 +323,41 @@ try {
   /* 캐시가 깨졌으면 무시 — enrich가 다시 만든다 */
 }
 
+// ── 정정표 ────────────────────────────────────────────────
+//
+// 공공데이터가 틀린 것을 공식 출처로 확인해 바로잡는다. 표준데이터는 지자체가 올린 것을
+// 그대로 받는데, 기간을 넉 달로 적어 두거나(경산갓바위) 바뀐 축제명을 반영하지 않은
+// 경우가 있다(희망달서 → 행복달서). 그대로 두면 달력에 넉 달 내내 뜨거나 이용자가
+// 검색해도 못 찾는다.
+//
+// 병합이 다 끝난 뒤 마지막에 덮어쓴다 — 소스 우선순위 다툼에 끼어들면 어느 값이 이겼는지
+// 알 수 없게 된다. 여기서는 '우리가 공식 페이지를 보고 고쳤다'가 분명하다.
+{
+  const cf = new URL('../data/seed/corrections.json', import.meta.url)
+  if (existsSync(cf)) {
+    const { corrections } = JSON.parse(readFileSync(cf, 'utf-8')) as {
+      corrections: { match: string; name?: string; startDate?: string; endDate?: string }[]
+    }
+    let hit = 0
+    const missed: string[] = []
+    for (const c of corrections) {
+      const target = merged.find((f) => f.name.includes(c.match))
+      if (!target) {
+        missed.push(c.match)
+        continue
+      }
+      if (c.name) target.name = c.name
+      if (c.startDate) target.startDate = c.startDate
+      if (c.endDate) target.endDate = c.endDate
+      hit += 1
+    }
+    if (hit) console.log(`   정정표 적용 ${hit}건`)
+    // 못 찾은 것은 조용히 넘기지 않는다 — 축제명이 또 바뀌었거나 데이터에서 빠진 것이라
+    // 어느 쪽이든 사람이 봐야 한다.
+    if (missed.length) console.log(`   ⚠️ 정정표에서 못 찾은 축제: ${missed.join(', ')}`)
+  }
+}
+
 // ── 저장 + 리포트 ─────────────────────────────────────────
 mkdirSync(new URL('../data/', import.meta.url), { recursive: true })
 writeFileSync(new URL('../data/festivals.json', import.meta.url), JSON.stringify({ exportedAt: new Date().toISOString(), items: merged }, null, 0))
