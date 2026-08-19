@@ -58,6 +58,24 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
   }
 }
 
+// 출처 표기 — 문자열에서 주소를 뽑아 쓴다.
+//
+// imageSource에 주소만 들어오리라 믿고 new URL()에 그대로 넣었더니 빌드가 깨졌다
+// (2026-08-19, 국가유산 미디어아트). 손으로 모은 포스터의 출처는 "○○재단 공식 홈페이지
+// https://..." 처럼 설명이 붙은 문장으로 들어오기도 한다. 데이터도 정리하지만 화면 쪽도
+// 이상한 값에 안 죽게 둔다 — 출처 한 줄 때문에 1,891페이지 빌드가 멈추는 건 균형이 안 맞는다.
+const firstUrl = (raw: string) => raw.match(/https?:\/\/[^\s)]+/)?.[0] ?? null
+const sourceUrl = (raw: string) => firstUrl(raw) ?? undefined
+function sourceHost(raw: string): string {
+  const u = firstUrl(raw)
+  if (!u) return raw.slice(0, 24)
+  try {
+    return new URL(u).hostname.replace(/^www\./, '')
+  } catch {
+    return raw.slice(0, 24)
+  }
+}
+
 const fmt = (d: string) => d.replace(/-/g, '.')
 const won = (n: number, l: Lang) => t(l, 'detail.won', { n: n.toLocaleString(l === 'ko' ? 'ko-KR' : 'en-US') })
 
@@ -260,12 +278,12 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
             )}
             {f.imageFrom === 'scraped' && f.imageSource && (
               <a
-                href={f.imageSource}
+                href={sourceUrl(f.imageSource)}
                 target="_blank"
                 rel="noopener noreferrer nofollow"
                 className="absolute bottom-3 left-3 rounded-full bg-ink/70 px-2.5 py-1 text-[11px] font-bold text-white backdrop-blur-sm hover:bg-ink/85"
               >
-                {t(l, 'img.src')}: {new URL(f.imageSource).hostname.replace(/^www\./, '')}
+                {t(l, 'img.src')}: {sourceHost(f.imageSource)}
               </a>
             )}
           </div>

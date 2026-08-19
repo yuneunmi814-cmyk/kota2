@@ -18,6 +18,9 @@ const nextConfig: NextConfig = {
       { protocol: 'https', hostname: 'tong.visitkorea.or.kr' },
       { protocol: 'https', hostname: 'kfescdn.visitkorea.or.kr' },
       { protocol: 'https', hostname: '**' }, // 주최측 홈페이지에서 긁은 포스터는 호스트가 제각각이다
+      // http만 여는 지자체·재단 사이트가 아직 있다. 브라우저에 직접 물리면 혼합 콘텐츠로
+      // 막히므로 최적화기를 거쳐 우리 도메인에서 https로 내보낸다(components/Poster.tsx).
+      { protocol: 'http', hostname: '**' },
     ],
   },
   // 정적 시절 /festivals/ 로 색인된 주소를 그대로 살린다. 지금 빼면 검색 결과가 전부 깨진다.

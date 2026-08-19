@@ -168,9 +168,16 @@ writeFileSync(CACHE, JSON.stringify(cache))
 // 안 되면 카드가 깨진 이미지가 되므로, 우리 도메인 Referer로 실제로 받아지는 것만 남긴다.
 const SITE = 'https://yuneunmi814-cmyk.github.io/'
 async function hotlinkOk(url: string): Promise<boolean> {
-  // http:// 이미지는 HTTPS 페이지에서 mixed content로 차단된다(실측: 춘천연극제·정조효문화제).
-  // https로 바꿔서도 안 되면 쓸 수 없다.
-  if (!url.startsWith('https://')) return false
+  // http:// 도 받는다.
+  //
+  // 예전에는 버렸다. HTTPS 페이지에서 mixed content로 차단되니 써도 안 보였기 때문이다
+  // (실측: 춘천연극제·정조효문화제). 그런데 그 판단 때문에 https를 지원하지 않는 지자체·
+  // 재단 사이트의 포스터가 통째로 버려지고 있었다 — 노을동요제는 A4 300dpi 원본이
+  // 버젓이 올라와 있는데도 화면에는 자리채움만 나왔다.
+  //
+  // 이제 Poster가 http 주소를 Next 이미지 최적화기로 우회한다(components/Poster.tsx).
+  // 서버가 가져와 우리 도메인에서 https로 내보내므로 브라우저가 차단할 이유가 없다.
+  if (!/^https?:\/\//.test(url)) return false
   try {
     const res = await fetch(url, {
       headers: { 'User-Agent': UA, Referer: SITE },

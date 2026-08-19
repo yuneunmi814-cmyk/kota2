@@ -41,6 +41,13 @@ const raws = (['tourapi', 'kfes', 'stdfest', 'manual'] as const)
   .flatMap(loadRaw)
   .filter((r) => r.endDate >= today && r.startDate && r.name)
 
+// https를 실제로 지원하는 이미지 호스트만 올린다.
+// 지원하지 않는 곳(예: noel.or.kr)을 https로 바꾸면 열리지 않는 주소가 된다 —
+// 그런 주소는 http 그대로 두고, 화면에서 Poster가 Next 이미지 최적화기로 우회한다.
+const HTTPS_OK = ['tong.visitkorea.or.kr', 'kfescdn.visitkorea.or.kr']
+const toHttps = (u: string | null | undefined) =>
+  u && u.startsWith('http://') && HTTPS_OK.some((h) => u.includes(h)) ? 'https://' + u.slice(7) : u
+
 // 정규화 — 시·도 표기 통일, 주소에서 시·도/시군구 보충
 const validSigungu = (v?: string | null) => (v && /^[가-힣]{1,6}(시|군|구)$/.test(v.trim()) ? v.trim() : null)
 for (const r of raws) {
@@ -248,14 +255,15 @@ const merged: Festival[] = groups.map((g) => {
     f.organizer = fix(f.organizer) ?? null
     f.summary = fix(f.summary) ?? null
   }
-  // 이미지 주소는 https로 올린다.
+  // 이미지 주소를 https로 올린다 — 단, 그 호스트가 https를 지원할 때만 의미가 있다.
   //
-  // 공공 API가 http://tong.visitkorea.or.kr 로 주는 것이 26건 있었다(BUG-21). 우리 페이지는
-  // https라 브라우저가 혼합 콘텐츠로 차단하므로 그 사진들은 지금도 안 보인다 — 올린다고
-  // 잃을 것이 없고, 같은 호스트가 https를 지원한다. 혹시 안 열리면 Poster의 onError가
-  // 자리채움으로 떨어뜨린다.
-  const https = (u: string | null | undefined) => (u && u.startsWith('http://') ? 'https://' + u.slice(7) : u)
-  f.imageUrl = https(f.imageUrl) ?? null
+  // 공공 API가 http://tong.visitkorea.or.kr 로 주는 것이 26건 있었다(BUG-21). 이 호스트는
+  // https를 지원하므로 올려 두는 편이 낫다. 프록시를 거치지 않아 우리 대역폭을 안 쓴다.
+  //
+  // 반대로 https를 아예 지원하지 않는 사이트도 있다(노을동요제의 noel.or.kr). 그런 주소를
+  // https로 바꾸면 열리지 않는 주소가 되므로 손대지 않고 http 그대로 둔다 — 화면에서는
+  // Poster가 Next 이미지 최적화기를 거쳐 우리 도메인에서 https로 내보낸다.
+  f.imageUrl = toHttps(f.imageUrl) ?? null
   f.themes = classifyThemes(f.name, `${f.summary ?? ''} ${f.category ?? ''}`)
   // 인기 — 관광공사 공식 근거를 위에 둔다.
   //  ① 문화관광축제 지정(kfes fstvlClCd=MF, 문체부 지정·관광공사 인증 65건) = 가장 강한 신호 +100
@@ -297,7 +305,7 @@ try {
       if (!f.imageUrl && c.imageUrl) {
         // 여기서도 https로. 위에서 한 번 올렸지만 이 되먹임이 그 뒤에 오므로 캐시에 남은
         // 옛 http 주소가 그대로 다시 들어온다 — 실제로 25건이 그렇게 살아남았다.
-        f.imageUrl = c.imageUrl.startsWith('http://') ? 'https://' + c.imageUrl.slice(7) : c.imageUrl
+        f.imageUrl = toHttps(c.imageUrl) ?? null
         f.imageFrom = 'past'
         i += 1
       }
