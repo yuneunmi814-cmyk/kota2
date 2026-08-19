@@ -164,9 +164,14 @@ for (const f of targets) {
 writeFileSync(CACHE, JSON.stringify(cache))
 
 // ── 핫링크 검증 ────────────────────────────────────────
-// 지자체 서버 상당수가 외부 Referer를 막는다(실측: 의령·거창·공주). 우리 사이트에서 로드가
-// 안 되면 카드가 깨진 이미지가 되므로, 우리 도메인 Referer로 실제로 받아지는 것만 남긴다.
-const SITE = 'https://yuneunmi814-cmyk.github.io/'
+// 지자체 서버 상당수가 외부 Referer를 막는다(실측: 의령·거창·공주). 그래서 실제로
+// 받아지는 것만 남긴다 — 우리 화면에서 못 받을 이미지를 넣어 두면 카드가 깨진다.
+//
+// 검사할 때의 Referer를 실제 요청과 맞춘다. 예전에는 우리 도메인을 보냈는데(그마저
+// 옛 GitHub Pages 주소로 굳어 있었다), 지금은 포스터를 app/img 중계가 가져오고 그 중계는
+// 원본 도메인을 Referer로 보낸다. 검사와 실제가 다르면 받아지는 이미지를 버리게 된다 —
+// 실측으로 11장이 그렇게 버려지고 있었다(2026-08-19).
+const SITE = 'https://ko-ta.co.kr/'
 async function hotlinkOk(url: string): Promise<boolean> {
   // http:// 도 받는다.
   //
@@ -180,7 +185,8 @@ async function hotlinkOk(url: string): Promise<boolean> {
   if (!/^https?:\/\//.test(url)) return false
   try {
     const res = await fetch(url, {
-      headers: { 'User-Agent': UA, Referer: SITE },
+      // 중계(app/img/route.ts)와 같은 헤더 — 검사와 실제가 어긋나면 안 된다
+      headers: { 'User-Agent': UA, Referer: new URL(url).origin + '/' },
       signal: AbortSignal.timeout(15_000),
     })
     if (!res.ok) return false
@@ -188,7 +194,10 @@ async function hotlinkOk(url: string): Promise<boolean> {
     if (!/^image\//i.test(ct)) return false
     const buf = new Uint8Array(await res.arrayBuffer())
     // 1KB 미만이면 차단 안내 이미지일 가능성이 높다
-    return buf.length > 1024 && dims(buf)[0] >= MIN_SIDE
+    // 크기는 수집할 때 이미 걸렀다(위 MIN_SIDE 검사). 여기서 또 dims를 돌리면 파서가
+    // 못 읽는 형식에서 멀쩡한 포스터가 떨어진다 — 실측으로 여덟 장이 그렇게 버려지고
+    // 있었다. 여기서 볼 것은 '지금도 받아지는가'뿐이다.
+    return buf.length > 1024
   } catch {
     return false
   }
