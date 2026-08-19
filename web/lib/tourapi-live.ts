@@ -257,3 +257,163 @@ export async function fetchLiveStdfest(): Promise<StdRow[]> {
 
   return out
 }
+
+// ─────────────────────────────────────────────────────────────
+// 구석구석 축제 포털(kfes) — 세 번째 실시간 소스이자 가장 알찬 소스.
+//
+// 615건 전부가 이미지·좌표·산문 개요·요금을 갖고 있다. 다른 소스는 이미지가 10% 안팎이고
+// 개요도 조각이라 비교가 안 된다. 화면에 보이는 '축제답게 생긴 정보'는 대부분 여기서 온다.
+//
+// 다만 공식 OpenAPI가 아니다 — 구석구석 웹페이지가 내부적으로 쓰는 주소다. 저쪽이 막거나
+// 규약을 바꾸면 응답이 끊긴다. 그래서 두 가지를 지킨다.
+//   1) 실패하면 받은 데까지만 쓰고 조용히 넘어간다. 다른 두 원천과 DB는 그대로 살아 있다.
+//   2) 12건씩 52번을 순차로 부르면 페이지 재생성이 20초 가까이 걸린다. 4개씩 묶어 부르되
+//      묶음 사이에 간격을 둔다 — 공사 서버에 예의는 지킨다.
+// ─────────────────────────────────────────────────────────────
+
+const KFES_URL = 'https://korean.visitkorea.or.kr/kfes/list/selectWntyFstvlList.do'
+const KFES_HEADERS = {
+  'User-Agent':
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/126 Safari/537.36',
+  Referer: 'https://korean.visitkorea.or.kr/kfes/list/wntyFstvlList.do',
+  'Content-Type': 'application/x-www-form-urlencoded',
+}
+
+interface KfesItem {
+  cmsCntntsId: number | string
+  cntntsNm: string
+  fstvlBgngDe: string
+  fstvlEndDe: string
+  areaNm?: string
+  adres?: string
+  dtadr?: string
+  xcrdVal?: string | number | null
+  ycrdVal?: string | number | null
+  dispFstvlCntntsImgRout?: string | null
+  posterImgRout?: string | null
+  fstvlOutlCn?: string | null
+  fstvlUtztFareInfo?: string | null
+  fstvlHmpgUrl?: string | null
+  fstvlAspcsTelno?: string | null
+  fstvlMngtTelno?: string | null
+}
+
+export interface KfesRow {
+  contentId: string
+  name: string
+  startDate: string
+  endDate: string
+  sido: string | null
+  sigungu: string | null
+  address: string | null
+  imageUrl: string | null
+  summary: string | null
+  fee: string | null
+  homepage: string | null
+  tel: string | null
+  lat: number | null
+  lng: number | null
+}
+
+const kstrip = (html?: string | null) =>
+  (html ?? '').replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim() || null
+const khref = (html?: string | null) => html?.match(/href="([^"]+)"/)?.[1] ?? null
+const knum = (v: unknown) => {
+  const n = typeof v === 'number' ? v : parseFloat(String(v ?? ''))
+  return Number.isFinite(n) ? n : null
+}
+// 개요 앞머리 운영 메모('*하기 축제(장) 먹거리 …*')는 소개글이 아니다. 떼어낸다.
+const KOPS = /^\s*[\*※]\s*하기[^*※]*[\*※]\s*/
+function kSummary(text: string | null): string | null {
+  if (!text) return null
+  const m = text.match(KOPS)
+  return m ? text.slice(m[0].length).trim() || null : text
+}
+
+async function kfesPage(startIdx: number): Promise<{ total: number; list: KfesItem[] }> {
+  const body = new URLSearchParams({
+    startIdx: String(startIdx),
+    searchType: 'A',
+    searchDate: '',
+    searchArea: '',
+    searchCate: '',
+    locationx: 'null',
+    locationy: 'null',
+  })
+  const res = await fetch(KFES_URL, {
+    method: 'POST',
+    headers: KFES_HEADERS,
+    body,
+    next: { revalidate: REVALIDATE, tags: ['kfes'] },
+    signal: AbortSignal.timeout(15_000),
+  })
+  if (!res.ok) throw new Error(`kfes ${res.status} @${startIdx}`)
+  const j = (await res.json()) as { totalCnt?: number; resultList?: KfesItem[] }
+  return { total: j.totalCnt ?? 0, list: j.resultList ?? [] }
+}
+
+export async function fetchLiveKfes(): Promise<KfesRow[]> {
+  const out: KfesRow[] = []
+  const seen = new Set<string>()
+  // kfes는 지난 축제까지 전부 준다(TourAPI·표준데이터와 다른 점). 끝난 건 걸러야
+  // 목록이 과거로 부풀지 않는다.
+  const today = todayKst().replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3')
+
+  const take = (list: KfesItem[]) => {
+    for (const it of list) {
+      const id = String(it.cmsCntntsId ?? '')
+      const name = it.cntntsNm?.trim()
+      if (!id || !name || seen.has(id)) continue
+      const s = (it.fstvlBgngDe ?? '').replace(/\./g, '-')
+      const e = (it.fstvlEndDe ?? '').replace(/\./g, '-')
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(s) || !/^\d{4}-\d{2}-\d{2}$/.test(e)) continue
+      if (e < today) continue // 이미 끝난 축제
+      seen.add(id)
+      const [sido, sigungu] = (it.areaNm ?? '').split(/\s+/, 2)
+      out.push({
+        contentId: id,
+        name,
+        startDate: s,
+        endDate: e,
+        sido: sido || null,
+        sigungu: sigungu || null,
+        address: [it.adres, it.dtadr].filter(Boolean).join(' ').trim() || null,
+        imageUrl: it.dispFstvlCntntsImgRout || it.posterImgRout || null,
+        summary: kSummary(kstrip(it.fstvlOutlCn)),
+        fee: kstrip(it.fstvlUtztFareInfo),
+        homepage: khref(it.fstvlHmpgUrl),
+        tel: it.fstvlAspcsTelno?.trim() || it.fstvlMngtTelno?.trim() || null,
+        lat: knum(it.ycrdVal),
+        lng: knum(it.xcrdVal),
+      })
+    }
+  }
+
+  try {
+    // 첫 장으로 총 건수를 안다
+    const first = await kfesPage(1)
+    take(first.list)
+    const total = first.total
+    if (!total || first.list.length === 0) return out
+
+    // 나머지를 4개씩 묶어 부른다. 상한 800건(=67장)까지만 — 응답이 이상해도 무한히 돌지 않게.
+    const PER = 12
+    const BATCH = 4
+    const starts: number[] = []
+    for (let i = 1 + PER; i <= Math.min(total, 800); i += PER) starts.push(i)
+
+    for (let i = 0; i < starts.length; i += BATCH) {
+      const chunk = starts.slice(i, i + BATCH)
+      const pages = await Promise.all(
+        chunk.map((idx) => kfesPage(idx).catch(() => ({ total, list: [] as KfesItem[] }))),
+      )
+      for (const p of pages) take(p.list)
+      if (i + BATCH < starts.length) await new Promise((r) => setTimeout(r, 120))
+    }
+  } catch (err) {
+    console.warn(`[kfes-live] 실시간 호출 실패 — 받은 ${out.length}건까지만 쓴다: ${String(err).slice(0, 160)}`)
+    return out
+  }
+
+  return out
+}

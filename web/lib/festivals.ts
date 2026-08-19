@@ -1,7 +1,7 @@
 import { cache } from 'react'
 import { supabase } from './supabase'
 import { DEFAULT_LANG, type Lang } from './i18n'
-import { fetchLive, fetchLiveStdfest } from './tourapi-live'
+import { fetchLive, fetchLiveStdfest, fetchLiveKfes } from './tourapi-live'
 
 // 축제 데이터 접근 — Supabase에서 읽는다.
 //
@@ -202,19 +202,51 @@ async function overlayLive(rows: Row[]): Promise<Festival[]> {
   const base = rows.map(fromRow)
 
   // 두 원천을 동시에 부른다. 하나가 늦어도 다른 하나를 기다리게 하지 않는다.
-  const [live, std] = await Promise.all([fetchLive(), fetchLiveStdfest()])
-  if (live.length === 0 && std.length === 0) return base // 둘 다 실패 — DB 그대로
+  const [live, std, kfes] = await Promise.all([fetchLive(), fetchLiveStdfest(), fetchLiveKfes()])
+  if (live.length === 0 && std.length === 0 && kfes.length === 0) return base // 셋 다 실패 — DB 그대로
 
   const today = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10)
   const byId = new Map(live.map((l) => [l.contentId, l]))
   const byStd = new Map(std.map((l) => [l.key, l]))
+  const byKfes = new Map(kfes.map((l) => [l.contentId, l]))
   const usedTour = new Set<string>()
   const usedStd = new Set<string>()
+  const usedKfes = new Set<string>()
   const dropped: number[] = []
 
   for (let i = 0; i < rows.length; i++) {
     const f = base[i]
     const ext = f.externalId
+
+    // ── 구석구석(kfes) 쪽 ──
+    //
+    // 셋 중 가장 알찬 소스라 먼저 덮는다. 이미지·개요·요금은 여기만 제대로 갖고 있다.
+    // 다만 DB에 사람이 넣은 포스터가 있으면 그건 건드리지 않는다.
+    const kid = ext.startsWith('kfes:') ? ext.slice(5) : rows[i].tourapi_id
+    if (kid) {
+      const k = byKfes.get(kid)
+      if (k) {
+        usedKfes.add(kid)
+        f.startDate = k.startDate
+        f.endDate = k.endDate
+        if (!f.imageUrl && k.imageUrl) {
+          f.imageUrl = k.imageUrl
+          f.imageFrom = 'own'
+          f.imageSource = '한국관광공사 대한민국구석구석'
+        }
+        if (!f.summary && k.summary) f.summary = k.summary
+        if (!f.fee && k.fee) f.fee = k.fee
+        if (!f.address && k.address) f.address = k.address
+        if (!f.tel && k.tel) f.tel = k.tel
+        if (!f.homepage && k.homepage) f.homepage = k.homepage
+        if (f.lat == null && k.lat != null) f.lat = k.lat
+        if (f.lng == null && k.lng != null) f.lng = k.lng
+        if (!f.sources?.includes('kfes')) f.sources = [...(f.sources ?? []), 'kfes']
+      } else if (kfes.length > 0 && (f.sources ?? []).every((x) => x === 'kfes') && f.endDate >= today) {
+        dropped.push(i)
+        continue
+      }
+    }
 
     // ── TourAPI 쪽 ──
     const tid = rows[i].tourapi_id ?? (ext.startsWith('tourapi:') ? ext.slice(8) : null)
@@ -298,6 +330,21 @@ async function overlayLive(rows: Row[]): Promise<Festival[]> {
       imageSource: l.imageUrl ? '한국관광공사 TourAPI' : null,
       summary: null, tel: l.tel, themes: [], popularity: 0,
       sources: ['tourapi'], translations: [], photos: [],
+    } as Festival)
+  }
+
+  for (const k of kfes) {
+    if (usedKfes.has(k.contentId) || !k.name) continue
+    push({
+      id: `kfes:${k.contentId}`, externalId: `kfes:${k.contentId}`, name: k.name,
+      startDate: k.startDate, endDate: k.endDate,
+      sido: k.sido, sigungu: k.sigungu, address: k.address,
+      lat: k.lat, lng: k.lng,
+      imageUrl: k.imageUrl, imageFrom: k.imageUrl ? 'own' : null,
+      imageSource: k.imageUrl ? '한국관광공사 대한민국구석구석' : null,
+      summary: k.summary, fee: k.fee, homepage: k.homepage, tel: k.tel,
+      themes: [], popularity: 0,
+      sources: ['kfes'], translations: [], photos: [],
     } as Festival)
   }
 
