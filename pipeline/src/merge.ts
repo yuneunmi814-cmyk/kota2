@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import type { Festival, RawFestival } from './lib/types.js'
-import { canonSido, displayName, nameContains, normalizeName, periodsOverlap } from './lib/match.js'
+import { canonSido, resolveSido, displayName, nameContains, normalizeName, periodsOverlap } from './lib/match.js'
 import { classifyThemes } from './lib/themes.js'
 import { todayKst } from './lib/http.js'
 
@@ -44,12 +44,25 @@ const raws = (['tourapi', 'kfes', 'stdfest', 'manual'] as const)
 // 정규화 — 시·도 표기 통일, 주소에서 시·도/시군구 보충
 const validSigungu = (v?: string | null) => (v && /^[가-힣]{1,6}(시|군|구)$/.test(v.trim()) ? v.trim() : null)
 for (const r of raws) {
-  r.sido = canonSido(r.sido)
+  r.sido = resolveSido(r.sido, r.sigungu, r.address)
+  // 주소 원문의 시·도 표기도 같이 고친다.
+  //
+  // canonSido는 sido 칸만 고쳐 왔다. 그래서 목록의 지역 분류는 「전라남도」로 맞는데,
+  // 상세 화면의 위치 줄에는 원문이 그대로 나와 「전남광주통합특별시 진도군 …」이 보였다
+  // (17건, 2026-08-19 발견). 분류는 고쳐졌으니 끝났다고 본 것이 놓친 지점이다.
+  //
+  // 원문 보존이 더 중요한 필드였다면 표시할 때 고쳤겠지만, 주소는 그럴 이유가 없다 —
+  // 존재하지 않는 행정구역명을 보존할 값어치는 없다.
+  if (r.address) {
+    const m = r.address.match(/^\s*(\S+?(?:특별시|광역시|특별자치시|특별자치도|도))(\s|$)/)
+    const canon = m && resolveSido(m[1], r.sigungu, r.address)
+    if (m && canon && canon !== m[1]) r.address = canon + r.address.slice(m[1].length)
+  }
   r.sigungu = validSigungu(r.sigungu) // '서초구남부순환로317길' 같은 주소 덩어리는 버린다
   if (!r.sido && r.address) {
     const m = r.address.match(/^(\S+?(?:특별시|광역시|특별자치시|특별자치도|도))\s*(\S+?(?:시|군|구))?/)
     if (m) {
-      r.sido = canonSido(m[1])
+      r.sido = resolveSido(m[1], r.sigungu ?? m[2], r.address)
       r.sigungu = r.sigungu ?? m[2] ?? null
     }
   }

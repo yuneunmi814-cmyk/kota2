@@ -5,7 +5,7 @@
 //       일본어 한자만은 유도가 불가능하므로 유일하게 전량 손으로 채운다.
 // 쓰임: ① 축제 translations.placeName ② 축제명 안에 들어간 지명 토큰 번역(lexicon 병합)
 
-import { romanize, thai } from './romanize.js'
+import { katakana, romanize, thai } from './romanize.js'
 
 export interface Place { en: string; ja: string; th: string }
 
@@ -55,6 +55,7 @@ const SIGUNGU_JA: Record<string, string> = {
   영천: '永川', 예천: '醴泉', 의성: '義城', 청도: '清道', 청송: '青松', 칠곡: '漆谷',
   포항: '浦項',
   // 전라남도
+  담양: '潭陽', 완도: '莞島', 진도: '珍島',
   강진: '康津', 고흥: '高興', 곡성: '谷城', 광양: '光陽', 구례: '求礼', 나주: '羅州',
   목포: '木浦', 무안: '務安', 보성: '宝城', 순천: '順天', 신안: '新安', 여수: '麗水',
   영광: '霊光', 영암: '霊岩', 장성: '長城', 장흥: '長興', 함평: '咸平', 해남: '海南',
@@ -148,7 +149,16 @@ export function translateSigungu(name: string): Place {
   }
   const { stem, kind } = splitSigungu(name)
   const isGu = kind === '구'
-  const ja = ALL_JA[stem] ?? stem
+  // 사전에 없으면 가타카나로 읽어준다. 예전엔 한글을 그대로 흘렸는데(ALL_JA[stem] ?? stem),
+  // 그 결과가 일본어 화면의 「全羅南道 진도郡」이었다(2026-08-19 발견).
+  //
+  // 이 사전은 만들 당시 DB에 있던 시군구를 훑어 채운 스냅샷이다. 그래서 새 소스나 새 축제가
+  // 들어올 때마다 사전에 없는 지명이 생기고, 그때마다 한글이 일본어 화면으로 샜다. 한 건씩
+  // 사전에 추가하는 것으로는 같은 일이 계속 난다 — 폴백 자체가 한글을 내보내지 않아야 한다.
+  //
+  // 한자가 정확하진 않아도 일본어 사용자가 읽을 수 있다는 점이 중요하다. 그다음 사전에
+  // 한자를 채우면 표기가 나아진다.
+  const ja = ALL_JA[stem] ?? katakana(stem)
   const th = SIGUNGU_TH_OVERRIDE[stem] ?? thai(stem)
   return {
     en: isGu ? `${romanize(stem)}-gu` : romanize(stem),

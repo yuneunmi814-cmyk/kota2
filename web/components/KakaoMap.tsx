@@ -53,12 +53,16 @@ export default function KakaoMap({
   label,
   festivalId,
   linkLabel,
+  loadingLabel,
 }: {
   lat: number
   lng: number
   label: string
   festivalId?: string
   linkLabel: string
+  // 화면에 안 보이는 문구라고 번역을 건너뛰면 안 된다 — 스크린리더 사용자에게는 이게 화면이다.
+  // 일본어 페이지에서 「지도를 불러오는 중」이 그대로 읽히고 있었다(2026-08-19).
+  loadingLabel: string
 }) {
   const box = useRef<HTMLDivElement>(null)
   const [drawn, setDrawn] = useState(false)
@@ -101,7 +105,7 @@ export default function KakaoMap({
             {linkLabel}
           </a>
         </figcaption>
-        {!drawn && <span className="sr-only">지도를 불러오는 중</span>}
+        {!drawn && <span className="sr-only">{loadingLabel}</span>}
       </figure>
     )
   }

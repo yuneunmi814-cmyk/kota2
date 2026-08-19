@@ -288,6 +288,7 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
                         lng={f.lng as number}
                         label={L.placeName ?? L.name}
                         linkLabel={t(l, 'map.open')}
+                        loadingLabel={t(l, 'map.loading')}
                       />
                     </div>
                   </a>
@@ -395,6 +396,7 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
                   label={f.address ?? L.placeName ?? L.name}
                   festivalId={f.externalId}
                   linkLabel={t(l, 'map.open')}
+                  loadingLabel={t(l, 'map.loading')}
                 />
                 {f.address && <p className="mt-2 text-[14px] text-muted">{f.address}</p>}
               </section>

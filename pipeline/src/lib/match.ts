@@ -52,17 +52,43 @@ export function periodsOverlap(aS: string, aE: string, bS: string, bE: string, s
 }
 
 /** 시·도 표기 통일 — 소스마다 '강원도'/'강원특별자치도'가 섞여 온다 */
+// 「전남광주통합특별시」는 여기서 풀지 않는다.
+//
+// 이 표기는 광주광역시와 전라남도 둘 다를 가리킨다. 한쪽으로 매핑하면 나머지 절반이
+// 통째로 틀린다 — 실제로 전라남도로 보내 두었더니 광주 축제 4건(ACE Fair·충장축제·
+// 버스킹월드컵·김치축제)이 전라남도로 분류돼 지역 필터에서 엉뚱한 곳에 잡혔다
+// (2026-08-19 발견). 시군구를 같이 봐야 갈라지므로 resolveSido()에서 처리한다.
 export function canonSido(s?: string | null): string | null {
   if (!s) return null
   const t = s.trim()
   const map: Record<string, string> = {
     강원도: '강원특별자치도',
     전라북도: '전북특별자치도',
-    전남광주통합특별시: '전라남도',
     서울: '서울특별시', 부산: '부산광역시', 대구: '대구광역시', 인천: '인천광역시', 광주: '광주광역시',
     대전: '대전광역시', 울산: '울산광역시', 세종: '세종특별자치시', 경기: '경기도', 강원: '강원특별자치도',
     충북: '충청북도', 충남: '충청남도', 전북: '전북특별자치도', 전남: '전라남도', 경북: '경상북도',
     경남: '경상남도', 제주: '제주특별자치도', 제주도: '제주특별자치도',
   }
   return map[t] ?? t
+}
+
+/** 광주광역시의 자치구 5 — 전라남도에는 '구'가 없어 이것만으로 갈린다 */
+const GWANGJU_GU = new Set(['동구', '서구', '남구', '북구', '광산구'])
+
+/**
+ * 시·도를 정한다. 시군구가 필요한 경우(전남광주통합특별시)까지 여기서 판정한다.
+ *
+ * 통합 표기는 시군구로 가른다 — 광주는 전부 자치'구'이고 전라남도는 시·군뿐이라
+ * 접미사만으로 확실히 갈린다. 시군구가 없으면 판단을 미루고 원문을 그대로 둔다.
+ * 반반짜리 근거로 찍는 것보다 모른다고 두는 편이 낫다.
+ */
+export function resolveSido(sido?: string | null, sigungu?: string | null, address?: string | null): string | null {
+  const t = (sido ?? '').trim()
+  if (t === '전남광주통합특별시') {
+    const gu = (sigungu ?? '').trim() || (address ?? '').replace(t, '').trim().split(/\s+/)[0] || ''
+    if (GWANGJU_GU.has(gu)) return '광주광역시'
+    if (/(시|군)$/.test(gu)) return '전라남도'
+    return t
+  }
+  return canonSido(sido)
 }
