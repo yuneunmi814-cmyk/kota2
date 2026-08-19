@@ -188,7 +188,14 @@ const merged: Festival[] = groups.map((g) => {
   // 이름: 관광공사 공식 표기(kfes·tourapi)가 우선. 없으면 소스 순위가 아니라 '정보량'으로 고른다.
   // 표준데이터는 '맥주축제'처럼 지역명을 빼고 적는데, 소스 순위(stdfest > mcst)를 그대로 쓰면
   // 그 빈약한 이름이 '동대문구 맥주축제'를 이긴다. 긴 쪽이 대체로 지역명·주최를 담고 있다.
-  let name = displayName(bySrc('kfes')?.name ?? bySrc('tourapi')?.name ?? longest(sorted.map((x) => x.name)) ?? head.name)
+  // 이름은 공사 소스 → 우리가 손으로 적은 것 → 가장 긴 것 순으로 고른다.
+  //
+  // manual을 길이 경쟁 앞에 둔 이유: 수기 등록은 우리가 '사람들이 이렇게 부른다'고 판단해
+  // 적은 이름이다. 자라섬재즈페스티벌이 표준데이터에는 「재즈페스티벌 in 가평」으로 들어와
+  // 있는데, 길이로만 고르면 그 관청식 이름이 남는다(2026-08-19).
+  let name = displayName(
+    bySrc('kfes')?.name ?? bySrc('tourapi')?.name ?? bySrc('manual')?.name ?? longest(sorted.map((x) => x.name)) ?? head.name,
+  )
   // 회차는 매년 올라간다 — 소스마다 다르면 큰 쪽이 최신이다.
   // (경산대추축제: 표준데이터가 작년치 '제15회'를 들고 있어 문체부의 '제16회'를 눌렀다)
   const editions = sorted.map((x) => Number(x.name.match(/제?\s*(\d+)\s*회/)?.[1] ?? 0))
