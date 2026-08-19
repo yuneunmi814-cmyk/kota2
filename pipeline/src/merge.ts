@@ -228,6 +228,19 @@ const merged: Festival[] = groups.map((g) => {
     visitorLift: null,
     translations: [],
   }
+  // 원문 안의 「전남광주통합특별시」도 판정된 시·도로 바꾼다.
+  //
+  // 이 표기는 주소뿐 아니라 주최자·소개글에도 섞여 나온다(명량대첩축제의 주최는
+  // "전남광주통합특별시, 진도군, 해남군", 광주김치축제 소개는 "전남광주통합특별시는
+  // 예로부터…"). 화면에 그대로 나가면 존재하지 않는 행정구역명을 우리가 퍼뜨리는 셈이다.
+  //
+  // 축제마다 답이 다르므로(광주 축제면 광주광역시, 전남 축제면 전라남도) 위에서 이미
+  // 가려낸 f.sido로 바꾼다. 문장 안이라 통째로 갈아끼우지 않고 그 낱말만 바꾼다.
+  if (f.sido && f.sido !== '전남광주통합특별시') {
+    const fix = (v: string | null | undefined) => (v ? v.replaceAll('전남광주통합특별시', f.sido!) : v)
+    f.organizer = fix(f.organizer) ?? null
+    f.summary = fix(f.summary) ?? null
+  }
   f.themes = classifyThemes(f.name, `${f.summary ?? ''} ${f.category ?? ''}`)
   // 인기 — 관광공사 공식 근거를 위에 둔다.
   //  ① 문화관광축제 지정(kfes fstvlClCd=MF, 문체부 지정·관광공사 인증 65건) = 가장 강한 신호 +100
