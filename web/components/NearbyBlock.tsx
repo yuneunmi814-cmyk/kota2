@@ -98,14 +98,18 @@ export default function NearbyBlock({ all, lang }: { all: Festival[]; lang: Lang
         </div>
       )}
 
-      {near.length === 0 && (
-        <Link
-          href={`/${lang}/festivals/?sort=distance`}
-          className="inline-flex items-center gap-1 text-[15px] font-bold text-brand hover:underline"
-        >
-          {t(lang, 'nearby.seeAll')} <Icon name="arrow" size={16} />
-        </Link>
-      )}
+      {/* 좁은 화면용 — 위 제목 옆 링크가 sm 미만에서 숨으므로 여기 하나를 둔다.
+          둘 다 보이면 같은 링크가 두 번 나온다(반경 안에 축제가 없을 때 실제로 그랬다).
+          반대로 예전에는 축제가 있는 모바일 화면에 링크가 하나도 없었다 — 아래를
+          near.length === 0 일 때만 그렸기 때문이다. 화면 폭으로만 가른다. */}
+      <Link
+        href={`/${lang}/festivals/?sort=distance`}
+        className={`inline-flex items-center gap-1 text-[15px] font-bold text-brand hover:underline sm:hidden ${
+          near.length > 0 ? 'mt-4' : ''
+        }`}
+      >
+        {t(lang, 'nearby.seeAll')} <Icon name="arrow" size={16} />
+      </Link>
     </section>
   )
 }
