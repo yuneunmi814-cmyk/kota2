@@ -55,6 +55,15 @@ function monthTitle(y: number, m: number, lang: Lang) {
 
 const fmt = (d: string) => d.slice(5).replace('-', '.')
 
+/** 다른 달의 1일 — 구글 캘린더의 'Sep 1' 자리 */
+function monthDayLabel(isoDate: string, lang: Lang) {
+  const m = Number(isoDate.slice(5, 7))
+  if (lang === 'ko') return `${m}월 1`
+  if (lang === 'ja') return `${m}月1`
+  if (lang === 'th') return `${['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'][m - 1]} 1`
+  return `${['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][m - 1]} 1`
+}
+
 export default function MonthCalendar({
   items,
   lang,
@@ -136,54 +145,51 @@ export default function MonthCalendar({
 
   return (
     <div>
-      {/* 머리 — 달 이동. 구글 캘린더처럼 제목 왼쪽, 화살표 오른쪽 */}
-      <div className="mb-5 flex flex-wrap items-center gap-3">
-        <h2 className="h-display text-[22px] text-ink sm:text-[26px]">{monthTitle(cursor.y, cursor.m, lang)}</h2>
-        <span className="text-[13px] font-bold text-hint">
+      {/* 머리 — 구글 캘린더 배치를 그대로: 오늘 → 화살표 → 달 이름 순으로 왼쪽부터 */}
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          onClick={() => {
+            setCursor({ y: y0, m: m0 })
+            setPicked(null)
+          }}
+          className="rounded-lg border border-line px-4 py-1.5 text-[14px] font-semibold text-ink transition hover:bg-paper-2"
+        >
+          {lang === 'ko' ? '오늘' : lang === 'ja' ? '今日' : lang === 'th' ? 'วันนี้' : 'Today'}
+        </button>
+        <button
+          type="button"
+          onClick={() => move(-1)}
+          aria-label={lang === 'ko' ? '이전 달' : lang === 'ja' ? '前の月' : lang === 'th' ? 'เดือนก่อน' : 'Previous month'}
+          className="flex h-9 w-9 items-center justify-center rounded-full text-muted transition hover:bg-paper-2 hover:text-ink"
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+            <path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+        <button
+          type="button"
+          onClick={() => move(1)}
+          aria-label={lang === 'ko' ? '다음 달' : lang === 'ja' ? '次の月' : lang === 'th' ? 'เดือนหน้า' : 'Next month'}
+          className="flex h-9 w-9 items-center justify-center rounded-full text-muted transition hover:bg-paper-2 hover:text-ink"
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+            <path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+        <h2 className="ml-1 text-[20px] font-normal text-ink sm:text-[22px]">{monthTitle(cursor.y, cursor.m, lang)}</h2>
+        <span className="ml-auto text-[13px] text-hint">
           {lang === 'ko' ? `${monthCount}개 시작` : lang === 'ja' ? `${monthCount}件 開始` : lang === 'th' ? `เริ่ม ${monthCount}` : `${monthCount} starting`}
         </span>
-        <div className="ml-auto flex items-center gap-1">
-          <button
-            type="button"
-            onClick={() => move(-1)}
-            aria-label={lang === 'ko' ? '이전 달' : lang === 'ja' ? '前の月' : lang === 'th' ? 'เดือนก่อน' : 'Previous month'}
-            className="flex h-9 w-9 items-center justify-center rounded-full text-muted transition hover:bg-paper-2 hover:text-ink"
-          >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
-              <path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setCursor({ y: y0, m: m0 })
-              setPicked(null)
-            }}
-            className="rounded-full border border-line px-4 py-2 text-[13px] font-bold text-muted transition hover:border-brand/40 hover:text-brand"
-          >
-            {lang === 'ko' ? '오늘' : lang === 'ja' ? '今日' : lang === 'th' ? 'วันนี้' : 'Today'}
-          </button>
-          <button
-            type="button"
-            onClick={() => move(1)}
-            aria-label={lang === 'ko' ? '다음 달' : lang === 'ja' ? '次の月' : lang === 'th' ? 'เดือนหน้า' : 'Next month'}
-            className="flex h-9 w-9 items-center justify-center rounded-full text-muted transition hover:bg-paper-2 hover:text-ink"
-          >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
-              <path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </button>
-        </div>
       </div>
 
       {/* 격자 — 테두리는 한 겹만. 셀마다 두르면 표처럼 보인다 */}
       <div className="overflow-hidden rounded-[var(--radius-card)] border border-line bg-surface">
         <div className="grid grid-cols-7 border-b border-line">
-          {DOW[lang].map((d, i) => (
-            <div
-              key={d}
-              className={`py-2.5 text-center text-[12px] font-bold ${i === 0 ? 'text-r' : i === 6 ? 'text-brand-400' : 'text-hint'}`}
-            >
+          {/* 구글 캘린더는 요일에 색을 안 준다. 주말을 빨강·파랑으로 물들이면 달력이
+              시끄러워지고, 어차피 날짜 칸이 이미 정보를 잔뜩 이고 있다. */}
+          {DOW[lang].map((d) => (
+            <div key={d} className="py-2 text-center text-[11px] font-semibold uppercase tracking-[0.04em] text-hint">
               {d}
             </div>
           ))}
@@ -209,40 +215,50 @@ export default function MonthCalendar({
                     isPicked ? 'bg-brand-50' : has ? 'hover:bg-paper-2' : ''
                   } ${has ? 'cursor-pointer' : 'cursor-default'}`}
                 >
-                  <span
-                    className={`inline-flex h-6 min-w-6 items-center justify-center rounded-full px-1 text-[12px] font-bold tabular-nums ${
-                      isToday
-                        ? 'bg-brand text-white'
-                        : !d.inMonth
-                          ? 'text-hint/45'
-                          : 'text-ink'
-                    }`}
-                  >
-                    {d.day}
+                  {/* 날짜는 셀 상단 가운데. 구글 캘린더가 그렇고, 왼쪽에 붙이면
+                      그 아래 칩들과 세로줄이 겹쳐 보인다.
+                      다른 달의 1일에는 월 이름을 붙인다 — 격자 끝에서 달이 바뀐 것을
+                      숫자만으로는 알 수 없다(구글도 'Sep 1'로 적는다). */}
+                  <span className="flex justify-center">
+                    <span
+                      className={`inline-flex h-[22px] items-center justify-center rounded-full px-[7px] text-[12px] tabular-nums ${
+                        isToday
+                          ? 'bg-brand font-bold text-white'
+                          : !d.inMonth
+                            ? 'text-hint/50'
+                            : 'text-muted'
+                      }`}
+                    >
+                      {!d.inMonth && d.day === 1 ? monthDayLabel(d.iso, lang) : d.day}
+                    </span>
                   </span>
 
                   {/* 넓은 화면 — 그날 시작하는 축제의 이름 */}
-                  <span className="mt-1 hidden flex-col gap-0.5 sm:flex">
+                  {/* 구글 캘린더의 이벤트 막대 — 셀 폭을 꽉 채우고 한 줄로 자른다.
+                      '더 있음'은 +N으로, 구글의 '+3 more'와 같은 자리다. */}
+                  <span className="mt-1 hidden flex-col gap-[2px] sm:flex">
                     {d.starting.slice(0, 2).map((f) => (
                       <span
                         key={f.k}
-                        className="truncate rounded bg-brand/10 px-1.5 py-0.5 text-[11px] font-bold leading-[1.35] text-brand"
+                        className="block truncate rounded-[4px] bg-brand px-1.5 py-[3px] text-[11px] font-semibold leading-[1.3] text-white"
                       >
                         {f.n}
                       </span>
                     ))}
                     {d.starting.length > 2 && (
-                      <span className="px-1.5 text-[11px] font-bold text-hint">+{d.starting.length - 2}</span>
+                      <span className="px-1.5 text-[11px] font-semibold text-muted">
+                        +{d.starting.length - 2}
+                      </span>
                     )}
-                    {has && (
+                    {has && d.starting.length === 0 && (
                       <span className={`px-1.5 text-[11px] tabular-nums ${d.inMonth ? 'text-hint' : 'text-hint/45'}`}>
-                        {lang === 'ko' ? `${d.running.length}개` : d.running.length}
+                        {lang === 'ko' ? `${d.running.length}개 진행` : lang === 'ja' ? `${d.running.length}件` : lang === 'th' ? `${d.running.length}` : `${d.running.length} on`}
                       </span>
                     )}
                   </span>
 
                   {/* 좁은 화면 — 이름이 들어갈 자리가 없다. 점으로 있고 없고만 */}
-                  <span className="mt-1 flex gap-0.5 sm:hidden">
+                  <span className="mt-1 flex justify-center gap-[3px] sm:hidden">
                     {d.starting.slice(0, 3).map((f) => (
                       <span key={f.k} className="h-1.5 w-1.5 rounded-full bg-brand" />
                     ))}
