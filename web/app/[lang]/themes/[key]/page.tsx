@@ -67,7 +67,6 @@ export default async function ThemePage({ params }: { params: Promise<{ lang: st
             </Link>
           ))}
         </div>
-
         <FestivalList items={items} lang={l} initialTheme={key} />
       </main>
       <Footer lang={l} />

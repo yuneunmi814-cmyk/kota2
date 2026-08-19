@@ -202,10 +202,40 @@ let cached: { at: number; rows: Promise<Festival[]> } | null = null
 export function allFestivals(): Promise<Festival[]> {
   if (cached && Date.now() - cached.at < TTL) return cached.rows
   const rows = (async () => {
-    // Supabase는 기본 1,000행에서 끊는다. 지금은 424건이지만 해가 쌓이면 넘어가므로 범위를 넓혀 둔다.
-    const { data, error } = await supabase.from('festivals').select(SELECT).order('start_date').range(0, 19_999)
-    if (error) throw new Error(`축제 조회 실패: ${error.message}`)
-    return (data as unknown as Row[]).map(fromRow)
+    // 한 번에 다 가져오지 않고 나눠 가져온다.
+    //
+    // 전량은 1.3MB다(축제 463건 + 번역 1,323 + 사진). 이걸 한 응답으로 받으면 빌드 중에만
+    // 깨졌다 — 워커 9개가 모듈 캐시를 따로 들고 있어 같은 1.3MB를 아홉 번 동시에 당기는데,
+    // 그때 본문이 중간에서 잘린다. 잘린 JSON을 postgrest-js가 파싱하지 못하고 원문을 그대로
+    // error.message에 담아 던지는 바람에, 에러 메시지 자리에 축제 데이터가 찍혀 나와
+    // 처음엔 무슨 일인지 알아보지 못했다(2026-08-19).
+    //
+    // 빌드 밖에서 같은 쿼리를 아홉 번 동시에 던지면 아홉 번 다 성공한다. Supabase나 쿼리의
+    // 문제가 아니라 한 응답이 큰 것이 문제라, 조각으로 나눠 받는다. 요청 수는 늘지만 모듈
+    // 캐시 덕에 워커당 한 번뿐이고, 조각마다 재시도가 붙어 한 조각이 잘려도 살아난다.
+    const CHUNK = 150
+    const ATTEMPTS = 3
+    const out: Row[] = []
+    for (let from = 0; ; from += CHUNK) {
+      let page: Row[] | null = null
+      for (let i = 1; i <= ATTEMPTS; i++) {
+        const { data, error } = await supabase
+          .from('festivals')
+          .select(SELECT)
+          .order('start_date')
+          .range(from, from + CHUNK - 1)
+        if (!error) {
+          page = data as unknown as Row[]
+          break
+        }
+        if (i === ATTEMPTS) throw new Error(`축제 조회 실패(${from}~, ${ATTEMPTS}회): ${String(error.message).slice(0, 120)}`)
+        await new Promise((r) => setTimeout(r, 400 * i))
+      }
+      if (!page || page.length === 0) break
+      out.push(...page)
+      if (page.length < CHUNK) break
+    }
+    return out.map(fromRow)
   })()
   // 실패한 약속을 캐시에 남기면 TTL 동안 같은 오류만 되풀이한다
   rows.catch(() => { if (cached?.rows === rows) cached = null })
