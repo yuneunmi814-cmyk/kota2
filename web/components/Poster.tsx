@@ -15,20 +15,24 @@ import { useState } from 'react'
 
 const PLACEHOLDER = 'bg-[#f2f2f0]'
 
-// http:// 로만 열리는 포스터는 Next의 이미지 최적화기를 거쳐 부른다.
+// http:// 로만 열리는 포스터는 우리 중계(app/img)를 거쳐 부른다.
 //
 // 우리 페이지는 https라 브라우저가 http 이미지를 혼합 콘텐츠로 차단한다. 그래서 주최측
 // 사이트가 https를 지원하지 않으면 포스터가 있어도 못 썼다 — 노을동요제가 그랬다.
 // A4 300dpi 원본이 버젓이 올라와 있는데 화면에는 자리채움만 나왔다.
 //
-// 최적화기를 거치면 서버가 http로 가져와 우리 도메인에서 https로 내보낸다. 브라우저는
+// 중계를 거치면 서버가 http로 가져와 우리 도메인에서 https로 내보낸다. 브라우저는
 // 우리 주소만 보므로 차단할 이유가 없다. 원본을 우리 서버에 복제해 두는 것이 아니라
 // 요청이 올 때 거쳐 가는 것이라 저작권 취급도 핫링크와 같다.
 //
-// https 주소는 그대로 둔다. 굳이 최적화기를 태우면 그만큼 우리 대역폭을 쓴다.
+// next/image를 먼저 붙여 봤지만 원격 주소를 전부 거절했다(app/img/route.ts 머리말 참고).
+//
+// https 주소는 그대로 둔다. 굳이 중계를 태우면 그만큼 우리 대역폭을 쓴다.
 function proxied(url: string) {
   if (!url.startsWith('http://')) return url
-  return `/_next/image?url=${encodeURIComponent(url)}&w=750&q=70`
+  // 끝의 빗금을 붙여 부른다 — next.config의 trailingSlash 때문에 /img 는 308로 한 번
+  // 튕긴다. 목록 한 화면에 스무 장이면 스무 번의 왕복이 그냥 늘어난다.
+  return `/img/?u=${encodeURIComponent(url)}`
 }
 
 function initial(name: string) {
