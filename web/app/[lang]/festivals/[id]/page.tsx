@@ -136,7 +136,14 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
   const ytId = f.youtube?.match(/(?:youtu\.be\/|v=|shorts\/|embed\/)([A-Za-z0-9_-]{11})/)?.[1] ?? null
   // 옆 칸 우선순위: 실제 축제 사진 → 영상 → 지도. 사진이 있으면 그게 가장 정직한 대표 이미지다
   const extraPhoto = f.photos?.[1] ?? null
-  // 곁타일 — 사진 · 영상 · 지도. 사진이 둘 이상이면 사진을 먼저 쓴다(축제는 눈으로 파는 것이라).
+  // 곁타일 — 사진과 영상. 사진이 둘 이상이면 사진을 먼저 쓴다(축제는 눈으로 파는 것이라).
+  //
+  // 사진이 모자랄 때 지도로 칸을 메우고 있었는데 뺐다(2026-08-19).
+  //  · 아래 '위치'에 같은 지도가 이미 있어 한 페이지에 같은 지도가 두 번 그려졌다(BUG-19).
+  //  · 타일을 <a href="#location">으로 감쌌는데 KakaoMap 안에 카카오맵으로 나가는 <a>가 또
+  //    있어 앵커가 중첩됐다. 잘못된 HTML이라 하이드레이션이 통째로 깨졌고, 그 페이지의
+  //    클라이언트 기능이 전부 죽었다 — 리포트에 없던 건이다.
+  // 칸이 비면 그리드가 알아서 좁아진다. 지도를 두 번 그리는 것보다 낫다.
   const photo2 = f.photos?.[2] ?? null
   const sideTiles = [
     extraPhoto ? { kind: 'photo' as const, src: extraPhoto.thumb } : ytId ? { kind: 'yt' as const, id: ytId } : null,
@@ -144,9 +151,7 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
       ? { kind: 'photo' as const, src: photo2.thumb }
       : ytId && extraPhoto
         ? { kind: 'yt' as const, id: ytId }
-        : hasCoords
-          ? { kind: 'map' as const }
-          : null,
+        : null,
   ].filter(Boolean)
 
   const sido = f.sido ? sidoLabel(f.sido, l) : null
@@ -280,19 +285,7 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden><path d="M8 5v14l11-7z" /></svg>
                     </span>
                   </a>
-                ) : tile!.kind === 'map' ? (
-                  <a key="map" href="#location" className="relative block overflow-hidden">
-                    <div className="pointer-events-none h-full w-full [&_figure]:h-full [&_figure]:rounded-none [&_figure]:border-0 [&_figcaption]:hidden [&_.aspect-\[16\/9\]]:aspect-auto [&_.aspect-\[16\/9\]]:h-full">
-                      <KakaoMap
-                        lat={f.lat as number}
-                        lng={f.lng as number}
-                        label={L.placeName ?? L.name}
-                        linkLabel={t(l, 'map.open')}
-                        loadingLabel={t(l, 'map.loading')}
-                      />
-                    </div>
-                  </a>
-                ) : null,
+                                ) : null,
               )}
             </div>
           )}

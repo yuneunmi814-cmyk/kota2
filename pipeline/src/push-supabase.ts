@@ -89,12 +89,17 @@ const translations = items.flatMap((f) =>
 )
 
 // ── 사진 ────────────────────────────────────────────────────
+//
+// 주소는 https로 올려서 넣는다. 공공 API가 http://tong.visitkorea.or.kr 로 주는 것이 섞여
+// 있는데(BUG-21) 우리 페이지는 https라 브라우저가 혼합 콘텐츠로 차단한다 — 지금도 안 보이는
+// 사진이라 올린다고 잃을 것이 없다. merge에서 imageUrl에 같은 처리를 한다.
+const https = (u: string | null | undefined) => (u && u.startsWith('http://') ? 'https://' + u.slice(7) : u)
 const photos = items.flatMap((f) =>
   (f.photos ?? []).map((p, i) => ({
     festival_id: f.externalId,
     ord: i,
-    url: p.url,
-    thumb: p.thumb ?? null,
+    url: https(p.url)!,
+    thumb: https(p.thumb) ?? null,
     caption: p.name || null,
   })),
 )

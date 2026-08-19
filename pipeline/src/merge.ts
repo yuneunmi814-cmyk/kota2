@@ -55,8 +55,11 @@ for (const r of raws) {
   // 존재하지 않는 행정구역명을 보존할 값어치는 없다.
   if (r.address) {
     const m = r.address.match(/^\s*(\S+?(?:특별시|광역시|특별자치시|특별자치도|도))(\s|$)/)
-    const canon = m && resolveSido(m[1], r.sigungu, r.address)
-    if (m && canon && canon !== m[1]) r.address = canon + r.address.slice(m[1].length)
+    const head = m?.[1]
+    if (head) {
+      const canon = resolveSido(head, r.sigungu, r.address)
+      if (canon && canon !== head) r.address = canon + r.address.slice(head.length)
+    }
   }
   r.sigungu = validSigungu(r.sigungu) // '서초구남부순환로317길' 같은 주소 덩어리는 버린다
   if (!r.sido && r.address) {
@@ -245,6 +248,14 @@ const merged: Festival[] = groups.map((g) => {
     f.organizer = fix(f.organizer) ?? null
     f.summary = fix(f.summary) ?? null
   }
+  // 이미지 주소는 https로 올린다.
+  //
+  // 공공 API가 http://tong.visitkorea.or.kr 로 주는 것이 26건 있었다(BUG-21). 우리 페이지는
+  // https라 브라우저가 혼합 콘텐츠로 차단하므로 그 사진들은 지금도 안 보인다 — 올린다고
+  // 잃을 것이 없고, 같은 호스트가 https를 지원한다. 혹시 안 열리면 Poster의 onError가
+  // 자리채움으로 떨어뜨린다.
+  const https = (u: string | null | undefined) => (u && u.startsWith('http://') ? 'https://' + u.slice(7) : u)
+  f.imageUrl = https(f.imageUrl) ?? null
   f.themes = classifyThemes(f.name, `${f.summary ?? ''} ${f.category ?? ''}`)
   // 인기 — 관광공사 공식 근거를 위에 둔다.
   //  ① 문화관광축제 지정(kfes fstvlClCd=MF, 문체부 지정·관광공사 인증 65건) = 가장 강한 신호 +100
@@ -284,7 +295,9 @@ try {
         g += 1
       }
       if (!f.imageUrl && c.imageUrl) {
-        f.imageUrl = c.imageUrl
+        // 여기서도 https로. 위에서 한 번 올렸지만 이 되먹임이 그 뒤에 오므로 캐시에 남은
+        // 옛 http 주소가 그대로 다시 들어온다 — 실제로 25건이 그렇게 살아남았다.
+        f.imageUrl = c.imageUrl.startsWith('http://') ? 'https://' + c.imageUrl.slice(7) : c.imageUrl
         f.imageFrom = 'past'
         i += 1
       }

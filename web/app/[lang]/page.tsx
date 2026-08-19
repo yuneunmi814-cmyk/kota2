@@ -133,6 +133,14 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
         {/* 회전 배너 — 트립어드바이저 히어로 바로 아래의 형광 초록 자리 */}
         <RotatingPromo slides={promoSlides} total={weekend.length} curated={picked.length > 0} lang={l} />
 
+        {/* 내 주변 — 배너 바로 아래.
+            최하단에 있었다. 위치를 켜 주면 가장 쓸모 있는 자리인데, 거기까지 내려온 사람만
+            봤다(8/18 회의). 히어로 위로 올리자는 안은 첫 화면이 지저분해져 기각됐고,
+            KOTA's Pick 바로 아래로 정해졌다. */}
+        <div className="pb-4">
+          <NearbyBlock all={all} lang={l} />
+        </div>
+
         {/* 무엇을 — 트립어드바이저 '내 관심사에 맞는 즐길거리' 자리 */}
         <ThemeRail all={all} lang={l} title={t(l, 'purpose.title')} subtitle={t(l, 'purpose.sub')} />
 
@@ -151,13 +159,15 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
           href={`/${l}/festivals/?period=ongoing`}
           moreLabel={t(l, 'row.more')}
         />
-        <FestivalRow
-          title={t(l, 'popular.title')}
-          items={take(popular)}
-          lang={l}
-          href={`/${l}/festivals/?sort=popularity`}
-          moreLabel={t(l, 'row.more')}
-        />
+        <div className="pb-16">
+          <FestivalRow
+            title={t(l, 'popular.title')}
+            items={take(popular)}
+            lang={l}
+            href={`/${l}/festivals/?sort=popularity`}
+            moreLabel={t(l, 'row.more')}
+          />
+        </div>
         {/* 다음 달 행 — 2026-08-17 숨김. 홈이 길어져 잠시 내렸다.
             되살리려면 아래 주석만 풀면 된다.
         // <FestivalRow
@@ -170,10 +180,6 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
         // />
         */}
 
-        {/* 내 주변 — 진입 즉시 위치를 묻는다 */}
-        <div className="pb-16">
-          <NearbyBlock all={all} lang={l} />
-        </div>
       </main>
 
       <Footer lang={l} />
