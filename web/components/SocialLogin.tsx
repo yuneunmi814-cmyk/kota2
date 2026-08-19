@@ -22,11 +22,26 @@ export default function SocialLogin({ lang, redirectTo }: { lang: Lang; redirect
   const [busy, setBusy] = useState<string | null>(null)
   if (!ENABLED.kakao && !ENABLED.google) return null
 
+  // 카카오는 요청할 동의항목을 직접 적는다.
+  //
+  // 안 적으면 Supabase 기본값이 나가는데 거기에 프로필 사진(profile_image)이 들어 있다.
+  // 우리는 후기에 프로필 사진을 그리지 않는다 — 이름과 별점만 보여준다. 쓰지도 않을
+  // 사진을 달라고 하다가 카카오 콘솔에서 「사용 안 함」인 항목을 요청한 꼴이 되어
+  // 로그인 자체가 KOE205로 막혔다(2026-08-19).
+  //
+  // 콘솔에서 사진을 열어 주는 대신 요청을 지운 이유는, 안 쓰는 개인정보는 처음부터
+  // 받지 않는 게 맞아서다. 나중에 후기에 프로필 사진을 넣게 되면 그때
+  // 'profile_image'를 여기 더하고 콘솔에서도 함께 열면 된다.
+  const SCOPES: Record<string, string | undefined> = {
+    kakao: 'profile_nickname account_email',
+    google: undefined,
+  }
+
   async function go(provider: 'kakao' | 'google') {
     setBusy(provider)
     const { error } = await browserSupabase().auth.signInWithOAuth({
       provider,
-      options: { redirectTo: redirectTo ?? window.location.href },
+      options: { redirectTo: redirectTo ?? window.location.href, scopes: SCOPES[provider] },
     })
     if (error) setBusy(null)
   }
