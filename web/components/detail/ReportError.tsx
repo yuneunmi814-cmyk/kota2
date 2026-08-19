@@ -4,6 +4,7 @@ import { browserSupabase } from '@/lib/supabase-browser'
 import { track } from '@/lib/track'
 import { t } from '@/lib/ui'
 import type { Lang } from '@/lib/i18n'
+import Consent from './Consent'
 
 // 정보가 틀렸다고 알리는 창구.
 //
@@ -20,6 +21,8 @@ export default function ReportError({ festivalId, lang }: { festivalId: string; 
   const [kind, setKind] = useState<(typeof KINDS)[number]>('dates')
   const [body, setBody] = useState('')
   const [contact, setContact] = useState('')
+  // 연락처는 선택 입력이다. 그러니 동의도 적은 사람에게만 묻는다 — 안 적으면 받을 개인정보가 없다
+  const [agreed, setAgreed] = useState(false)
   const [state, setState] = useState<'idle' | 'sending' | 'done'>('idle')
   const [error, setError] = useState<string | null>(null)
 
@@ -33,6 +36,11 @@ export default function ReportError({ festivalId, lang }: { festivalId: string; 
       visitor = localStorage.getItem('kota_visitor')
     } catch {
       /* 저장소가 막힌 브라우저 */
+    }
+    if (contact.trim() && !agreed) {
+      setState('idle')
+      setError(t(lang, 'consent.required'))
+      return
     }
     const { error } = await browserSupabase().from('corrections').insert({
       festival_id: festivalId,
@@ -105,6 +113,10 @@ export default function ReportError({ festivalId, lang }: { festivalId: string; 
         placeholder={t(lang, 'report.contact')}
         className="mt-2 w-full rounded-xl border border-line bg-surface p-3 text-[14px] outline-none placeholder:text-hint focus:border-brand"
       />
+      {/* 연락처를 적기 전에는 묻지 않는다 — 한 줄 남기러 온 사람에게 동의부터 요구하면 그냥 닫는다 */}
+      {contact.trim() !== '' && (
+        <Consent lang={lang} checked={agreed} onChange={setAgreed} textKey="consent.contact" />
+      )}
       {error && <p className="mt-2 text-[13px] font-semibold text-r">{error}</p>}
 
       <div className="mt-3 flex justify-end gap-2">

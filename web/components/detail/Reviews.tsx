@@ -6,6 +6,7 @@ import { t } from '@/lib/ui'
 import type { Lang } from '@/lib/i18n'
 import Icon from '../Icon'
 import SocialLogin from '../SocialLogin'
+import Consent from './Consent'
 
 // 축제 리뷰 — 읽기는 서버가 미리 그려 넘기고, 쓰기와 로그인만 여기서 한다.
 //
@@ -51,6 +52,8 @@ export default function Reviews({
   const [email, setEmail] = useState<string | null>(null)
   const [rating, setRating] = useState(0)
   const [body, setBody] = useState('')
+  // 동의는 저장 대상이 아니라 저장의 조건이다 — 서버로 보내지 않고 제출을 막는 데 쓴다
+  const [agreed, setAgreed] = useState(false)
   const [state, setState] = useState<'idle' | 'sending' | 'sent' | 'submitted'>('idle')
   const [error, setError] = useState<string | null>(null)
   const [loginEmail, setLoginEmail] = useState('')
@@ -89,6 +92,10 @@ export default function Reviews({
       return setError(t(lang, 'review.needLogin'))
     }
     // 표시 이름이 없으면 만들어 둔다 — 리뷰에 '여행자'로만 뜨면 누가 썼는지 구분이 안 된다
+    if (!agreed) {
+      setState('idle')
+      return setError(t(lang, 'consent.required'))
+    }
     await sb.from('profiles').upsert({
       id: u.user.id,
       display_name: (u.user.email ?? '').split('@')[0] || '여행자',
@@ -141,11 +148,12 @@ export default function Reviews({
             placeholder={t(lang, 'review.placeholder')}
             className="w-full resize-y rounded-xl border border-line bg-surface p-3 text-[15px] outline-none placeholder:text-hint focus:border-brand"
           />
+          <Consent lang={lang} checked={agreed} onChange={setAgreed} textKey="consent.review" />
           {error && <p className="mt-2 text-[13px] font-semibold text-r">{error}</p>}
           <div className="mt-3 flex justify-end">
             <button
               type="submit"
-              disabled={state === 'sending'}
+              disabled={state === 'sending' || !agreed}
               className="rounded-full bg-brand px-5 py-2.5 text-[14px] font-bold text-white transition hover:bg-brand-600 disabled:opacity-50"
             >
               {t(lang, 'review.submit')}
