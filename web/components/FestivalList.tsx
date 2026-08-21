@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { requestPosition } from '../lib/geo'
 import Link from 'next/link'
 import { defaultOrder, type ListItem } from '@/lib/listData'
 import type { Lang } from '@/lib/i18n'
@@ -121,14 +122,28 @@ export default function FestivalList({
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null)
   const shown = page * PAGE
 
-  // 거리순을 고르면 그때 위치를 묻는다 — 목록에서까지 진입 즉시 물으면 성가시다
+  // 거리순을 고르면 그때 위치를 묻는다 — 목록에서까지 진입 즉시 물으면 성가시다.
+  //
+  // 실패하면 전에는 말없이 날짜순으로 되돌렸다. 고른 것이 저 혼자 풀리는데 이유는
+  // 어디에도 없어서, 쓰는 사람 눈에는 버튼이 안 먹는 것으로 보였다. 이유를 남긴다.
+  const [geoNote, setGeoNote] = useState<string | null>(null)
   useEffect(() => {
-    if (sort !== 'distance' || coords || !navigator.geolocation) return
-    navigator.geolocation.getCurrentPosition(
-      (p) => setCoords({ lat: p.coords.latitude, lng: p.coords.longitude }),
-      () => setSort('date'),
-      { enableHighAccuracy: false, timeout: 10_000, maximumAge: 300_000 },
-    )
+    if (sort !== 'distance' || coords) return
+    let alive = true
+    void (async () => {
+      const r = await requestPosition()
+      if (!alive) return
+      if (r.k === 'ok') {
+        setCoords(r.coords)
+        setGeoNote(null)
+      } else {
+        setSort('date')
+        setGeoNote(r.k === 'blocked' ? 'list.distanceBlocked' : 'nearby.unavailable')
+      }
+    })()
+    return () => {
+      alive = false
+    }
   }, [sort, coords])
 
   const list = useMemo(() => {
@@ -374,6 +389,16 @@ export default function FestivalList({
           )
         })}
       </div>
+
+      {/* 거리순이 풀린 이유 — 말없이 되돌리면 버튼이 고장난 것으로 보인다 */}
+      {geoNote && (
+        <div className="mb-4 rounded-[var(--radius-card)] border border-line bg-surface px-4 py-3 text-[13px] leading-relaxed text-muted">
+          {t(lang, geoNote)}
+          {geoNote === 'list.distanceBlocked' && (
+            <span className="mt-1 block text-hint">{t(lang, 'nearby.blockedHow')}</span>
+          )}
+        </div>
+      )}
 
       {/* 결과 수 + 정렬 */}
       <div className="mb-5 flex items-center justify-between gap-3">

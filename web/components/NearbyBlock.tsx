@@ -1,5 +1,6 @@
 'use client'
 import { useState } from 'react'
+import { requestPosition } from '@/lib/geo'
 import Link from 'next/link'
 import { distanceKm, isAlwaysOn, localized, statusOf, type Festival } from '@/lib/festivals'
 import { t } from '@/lib/ui'
@@ -16,20 +17,20 @@ type State =
   | { k: 'idle' }
   | { k: 'asking' }
   | { k: 'ok'; coords: { lat: number; lng: number } }
-  | { k: 'denied' }
+  /** 브라우저가 막았다 — 다시 눌러도 창이 안 뜬다 */
+  | { k: 'blocked' }
+  /** 위치를 못 잡았다 — 다시 눌러볼 만하다 */
+  | { k: 'unavailable' }
+  | { k: 'timeout' }
   | { k: 'unsupported' }
 
 export default function NearbyBlock({ all, lang }: { all: Festival[]; lang: Lang }) {
   const [state, setState] = useState<State>({ k: 'idle' })
 
-  const ask = () => {
-    if (!navigator.geolocation) return setState({ k: 'unsupported' })
+  const ask = async () => {
     setState({ k: 'asking' })
-    navigator.geolocation.getCurrentPosition(
-      (p) => setState({ k: 'ok', coords: { lat: p.coords.latitude, lng: p.coords.longitude } }),
-      () => setState({ k: 'denied' }),
-      { enableHighAccuracy: false, timeout: 10_000, maximumAge: 300_000 },
-    )
+    const r = await requestPosition()
+    setState(r.k === 'ok' ? { k: 'ok', coords: r.coords } : { k: r.k })
   }
 
   if (state.k === 'unsupported') return null
@@ -53,16 +54,33 @@ export default function NearbyBlock({ all, lang }: { all: Festival[]; lang: Lang
     )
   }
 
-  if (state.k === 'denied') {
+  // 브라우저가 막아둔 상태. 여기서 '다시 시도' 버튼을 주면 안 된다 —
+  // 눌러도 허용창이 뜨지 않아 같은 화면으로 돌아올 뿐이고, 그게 '아무 반응 없음'으로 보인다.
+  // 버튼 대신 푸는 방법을 적는다.
+  if (state.k === 'blocked') {
+    return (
+      <section className="mx-auto max-w-6xl px-5">
+        <div className="rounded-[var(--radius-card)] border border-line bg-surface px-6 py-5">
+          <p className="text-[15px] font-bold text-ink">{t(lang, 'nearby.blocked')}</p>
+          <p className="mt-2 text-[14px] leading-relaxed text-muted">{t(lang, 'nearby.blockedHow')}</p>
+        </div>
+      </section>
+    )
+  }
+
+  // 위치를 못 잡았거나 시간이 초과된 경우 — 이건 다시 눌러볼 만하다
+  if (state.k === 'unavailable' || state.k === 'timeout') {
     return (
       <section className="mx-auto max-w-6xl px-5">
         <div className="flex flex-col items-start gap-3 rounded-[var(--radius-card)] border border-line bg-surface px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-[15px] text-muted">{t(lang, 'nearby.denied')}</p>
+          <p className="text-[15px] text-muted">
+            {t(lang, state.k === 'unavailable' ? 'nearby.unavailable' : 'nearby.timeout')}
+          </p>
           <button
             onClick={ask}
             className="shrink-0 rounded-full bg-brand px-5 py-2.5 text-[14px] font-bold text-white transition hover:bg-brand-600"
           >
-            {t(lang, 'nearby.retry')}
+            {t(lang, 'nearby.tryAgain')}
           </button>
         </div>
       </section>
