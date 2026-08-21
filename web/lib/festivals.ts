@@ -232,7 +232,7 @@ async function overlayLive(rows: Row[]): Promise<Festival[]> {
         if (!f.imageUrl && k.imageUrl) {
           f.imageUrl = k.imageUrl
           f.imageFrom = 'own'
-          f.imageSource = '한국관광공사 대한민국구석구석'
+          f.imageSource = 'ⓒ한국관광공사'
         }
         if (!f.summary && k.summary) f.summary = k.summary
         if (!f.fee && k.fee) f.fee = k.fee
@@ -259,7 +259,7 @@ async function overlayLive(rows: Row[]): Promise<Festival[]> {
         if (!f.imageUrl && l.imageUrl) {
           f.imageUrl = l.imageUrl
           f.imageFrom = 'own'
-          f.imageSource = '한국관광공사 TourAPI'
+          f.imageSource = 'ⓒ한국관광공사'
         }
         if (!f.address && l.address) f.address = l.address
         if (!f.tel && l.tel) f.tel = l.tel
@@ -327,7 +327,7 @@ async function overlayLive(rows: Row[]): Promise<Festival[]> {
       sido: l.areaCode ? (AREA[l.areaCode] ?? null) : null, sigungu: null,
       address: l.address, lat: l.lat, lng: l.lng,
       imageUrl: l.imageUrl, imageFrom: l.imageUrl ? 'own' : null,
-      imageSource: l.imageUrl ? '한국관광공사 TourAPI' : null,
+      imageSource: l.imageUrl ? 'ⓒ한국관광공사' : null,
       summary: null, tel: l.tel, themes: [], popularity: 0,
       sources: ['tourapi'], translations: [], photos: [],
     } as Festival)
@@ -341,7 +341,7 @@ async function overlayLive(rows: Row[]): Promise<Festival[]> {
       sido: k.sido, sigungu: k.sigungu, address: k.address,
       lat: k.lat, lng: k.lng,
       imageUrl: k.imageUrl, imageFrom: k.imageUrl ? 'own' : null,
-      imageSource: k.imageUrl ? '한국관광공사 대한민국구석구석' : null,
+      imageSource: k.imageUrl ? 'ⓒ한국관광공사' : null,
       summary: k.summary, fee: k.fee, homepage: k.homepage, tel: k.tel,
       themes: [], popularity: 0,
       sources: ['kfes'], translations: [], photos: [],

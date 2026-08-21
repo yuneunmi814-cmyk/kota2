@@ -106,7 +106,7 @@ const ko: Record<LegalKind, Doc> = {
       {
         h: '1. 서비스의 내용',
         p: [
-          'KOTA는 한국관광공사 TourAPI와 공공데이터포털, 각 지방자치단체가 공개한 자료를 모아 전국의 축제를 날짜·지역·주제로 찾아볼 수 있게 하는 정보 서비스입니다. 한국어·영어·일본어·태국어로 제공합니다.',
+          'KOTA는 ⓒ한국관광공사와 공공데이터포털, 각 지방자치단체가 공개한 자료를 모아 전국의 축제를 날짜·지역·주제로 찾아볼 수 있게 하는 정보 서비스입니다. 한국어·영어·일본어·태국어로 제공합니다.',
           '모든 기능은 무료이며, 운영자는 축제를 주최하거나 입장권을 판매하지 않습니다.',
         ],
       },
@@ -179,7 +179,7 @@ const ko: Record<LegalKind, Doc> = {
       },
       {
         h: '5. 데이터 출처',
-        p: ['한국관광공사 TourAPI, 문화포털, 공공데이터포털의 전국문화축제표준데이터, 각 지방자치단체의 공개 자료를 이용합니다. 공공데이터는 공공누리 이용 조건을 따릅니다.'],
+        p: ['출처: ⓒ한국관광공사. 그 밖에 문화포털, 공공데이터포털의 전국문화축제표준데이터, 각 지방자치단체의 공개 자료를 이용합니다. 공공데이터는 공공누리 이용 조건을 따릅니다.'],
       },
     ],
   },
@@ -256,7 +256,7 @@ const en: Record<LegalKind, Doc> = {
       {
         h: '1. What the service is',
         p: [
-          'KOTA gathers festival information published by the Korea Tourism Organization (TourAPI), data.go.kr, and local governments, and lets you search it by date, region, and theme. It is available in Korean, English, Japanese, and Thai.',
+          'KOTA gathers festival information published by ⓒKorea Tourism Organization, data.go.kr, and local governments, and lets you search it by date, region, and theme. It is available in Korean, English, Japanese, and Thai.',
           'Everything is free. We neither host festivals nor sell tickets.',
         ],
       },
@@ -312,7 +312,7 @@ const en: Record<LegalKind, Doc> = {
           'Photographs are shown under each source\'s terms and are not altered. Copyright remains with the respective holders.',
         ],
       },
-      { h: '5. Data sources', p: ['Korea Tourism Organization TourAPI, Culture Portal, the national festival standard dataset on data.go.kr, and material published by local governments. Public data is used under the Korea Open Government Licence (KOGL).'] },
+      { h: '5. Data sources', p: ['Source: ⓒKorea Tourism Organization. Also Culture Portal, the national festival standard dataset on data.go.kr, and material published by local governments. Public data is used under the Korea Open Government Licence (KOGL).'] },
     ],
   },
 }
@@ -376,7 +376,7 @@ const ja: Record<LegalKind, Doc> = {
       {
         h: '1. サービスの内容',
         p: [
-          'KOTAは、韓国観光公社TourAPI、公共データポータル、各自治体が公開した資料をまとめ、全国のお祭りを日付・地域・テーマで探せるようにする情報サービスです。韓国語・英語・日本語・タイ語で提供します。',
+          'KOTAは、ⓒ韓国観光公社、公共データポータル、各自治体が公開した資料をまとめ、全国のお祭りを日付・地域・テーマで探せるようにする情報サービスです。韓国語・英語・日本語・タイ語で提供します。',
           'すべての機能は無料であり、運営者はお祭りを主催せず、チケットも販売しません。',
         ],
       },
@@ -421,7 +421,7 @@ const ja: Record<LegalKind, Doc> = {
           'お祭りの写真は各出典の利用条件に従って表示し、原本を改変しません。著作権は各著作権者に帰属します。',
         ],
       },
-      { h: '5. データの出典', p: ['韓国観光公社TourAPI、文化ポータル、公共データポータルの全国文化祭り標準データ、各自治体の公開資料を利用しています。公共データは公共누리（KOGL）の利用条件に従います。'] },
+      { h: '5. データの出典', p: ['出典: ⓒ韓国観光公社。ほかに文化ポータル、公共データポータルの全国文化祭り標準データ、各自治体の公開資料を利用しています。公共データは公共누리（KOGL）の利用条件に従います。'] },
     ],
   },
 }
@@ -485,7 +485,7 @@ const th: Record<LegalKind, Doc> = {
       {
         h: '1. บริการนี้คืออะไร',
         p: [
-          'KOTA รวบรวมข้อมูลเทศกาลที่เผยแพร่โดยองค์การส่งเสริมการท่องเที่ยวเกาหลี (TourAPI), data.go.kr และหน่วยงานท้องถิ่น เพื่อให้ค้นหาได้ตามวันที่ ภูมิภาค และธีม ให้บริการเป็นภาษาเกาหลี อังกฤษ ญี่ปุ่น และไทย',
+          'KOTA รวบรวมข้อมูลเทศกาลที่เผยแพร่โดย ⓒองค์การส่งเสริมการท่องเที่ยวเกาหลี, data.go.kr และหน่วยงานท้องถิ่น เพื่อให้ค้นหาได้ตามวันที่ ภูมิภาค และธีม ให้บริการเป็นภาษาเกาหลี อังกฤษ ญี่ปุ่น และไทย',
           'ทุกฟังก์ชันใช้ฟรี เราไม่ได้เป็นผู้จัดเทศกาลและไม่ได้ขายบัตร',
         ],
       },
@@ -530,7 +530,7 @@ const th: Record<LegalKind, Doc> = {
           'รูปภาพแสดงตามเงื่อนไขของแต่ละแหล่งที่มาและไม่มีการดัดแปลง ลิขสิทธิ์ยังคงเป็นของเจ้าของแต่ละราย',
         ],
       },
-      { h: '5. แหล่งข้อมูล', p: ['TourAPI ขององค์การส่งเสริมการท่องเที่ยวเกาหลี, Culture Portal, ชุดข้อมูลมาตรฐานเทศกาลแห่งชาติบน data.go.kr และข้อมูลที่หน่วยงานท้องถิ่นเผยแพร่ ข้อมูลสาธารณะใช้ภายใต้เงื่อนไข KOGL'] },
+      { h: '5. แหล่งข้อมูล', p: ['ที่มา: ⓒองค์การส่งเสริมการท่องเที่ยวเกาหลี, Culture Portal, ชุดข้อมูลมาตรฐานเทศกาลแห่งชาติบน data.go.kr และข้อมูลที่หน่วยงานท้องถิ่นเผยแพร่ ข้อมูลสาธารณะใช้ภายใต้เงื่อนไข KOGL'] },
     ],
   },
 }

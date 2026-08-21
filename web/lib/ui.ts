@@ -14,6 +14,8 @@ const ko: Dict = {
   'search.placeholder': '축제·지역 검색',
   'search.button': '검색',
   'nearby.title': '내 주변에서 진행 중인 축제',
+  'nearby.start': '내 주변 축제 보기',
+  'nearby.startNote': '위치를 허용하면 지금 가까이에서 열리는 축제를 찾아드려요.',
   'nearby.asking': '위치를 확인하는 중…',
   'nearby.denied': '위치를 켜면 지금 계신 곳 기준으로 가까운 축제를 보여드려요.',
   'nearby.retry': '위치 허용하기',
@@ -96,7 +98,7 @@ const ko: Dict = {
   'row.more': '모두 보기',
   'detail.about': '소개',
   'detail.photos': '사진',
-  'detail.photos.src': '사진 © 한국관광공사 TourAPI (공공누리 제3유형: 출처표시·변경금지)',
+  'detail.photos.src': '사진 출처: ⓒ한국관광공사 (공공누리 제3유형: 출처표시·변경금지)',
   'detail.food': '먹거리',
   'detail.program': '프로그램',
   'detail.lineup': '출연 라인업',
@@ -110,7 +112,7 @@ const ko: Dict = {
   'detail.less': '접기',
   'detail.share': '공유',
   'detail.copied': '링크를 복사했어요',
-  'detail.source': '출처: 한국관광공사·문화체육관광부·지자체 공공데이터. 현장 사정에 따라 바뀔 수 있어요.',
+  'detail.source': '출처: ⓒ한국관광공사 · 문화체육관광부 · 지자체 공공데이터. 현장 사정에 따라 바뀔 수 있어요.',
   'detail.source.manual': '출처: 주최측 공지를 저희가 직접 확인해 등록했어요. 공공데이터에는 아직 없는 축제입니다. 방문 전 공식 채널로 한 번 더 확인해 주세요.',
   'detail.booth.n': '{n}개 부스',
   'detail.booth.past': '지난 회차 기준 — 올해 메뉴·가격은 바뀔 수 있어요',
@@ -146,7 +148,7 @@ const ko: Dict = {
   'consent.required': '동의하셔야 보낼 수 있어요.',
   'consent.more': '자세히',
   'foot.disclaimer': '축제 일정·장소는 주최 측 사정으로 바뀔 수 있습니다. 방문 전 공식 채널로 확인해 주세요.',
-  'foot.source': '데이터: 한국관광공사 TourAPI · 공공데이터포털 · 각 지자체',
+  'foot.source': '출처: ⓒ한국관광공사 · 공공데이터포털 · 각 지자체',
 }
 
 const en: Dict = {
@@ -156,6 +158,8 @@ const en: Dict = {
   'search.placeholder': 'Search festivals or places',
   'search.button': 'Search',
   'nearby.title': 'On now near you',
+  'nearby.start': 'Find festivals near me',
+  'nearby.startNote': 'Allow location to find festivals happening near you now.',
   'nearby.asking': 'Finding your location…',
   'nearby.denied': 'Turn on location and we’ll show what’s on around you.',
   'nearby.retry': 'Allow location',
@@ -238,7 +242,7 @@ const en: Dict = {
   'row.more': 'See all',
   'detail.about': 'About',
   'detail.photos': 'Photos',
-  'detail.photos.src': 'Photos © Korea Tourism Organization TourAPI (KOGL Type 3: attribution, no derivatives)',
+  'detail.photos.src': 'Photos: ⓒKorea Tourism Organization (KOGL Type 3: attribution, no derivatives)',
   'detail.food': 'Food & drink',
   'detail.program': 'Program',
   'detail.lineup': 'Line-up',
@@ -252,7 +256,7 @@ const en: Dict = {
   'detail.less': 'Show less',
   'detail.share': 'Share',
   'detail.copied': 'Link copied',
-  'detail.source': 'Source: Korea Tourism Organization, Ministry of Culture, and local governments (open data). Details may change on site.',
+  'detail.source': 'Source: ⓒKorea Tourism Organization, Ministry of Culture, and local governments (open data). Details may change on site.',
   'detail.source.manual': 'Source: verified by us from the organiser’s own announcements — not yet in Korean open data. Please double-check with the organiser before you go.',
   'detail.booth.n': '{n} stalls',
   'detail.booth.past': 'From last edition — this year\'s menu and prices may differ',
@@ -288,7 +292,7 @@ const en: Dict = {
   'consent.required': 'Please agree before sending.',
   'consent.more': 'Details',
   'foot.disclaimer': 'Dates and venues can change. Please check the official channel before you go.',
-  'foot.source': 'Data: Korea Tourism Organization TourAPI · data.go.kr · local governments',
+  'foot.source': 'Source: ⓒKorea Tourism Organization Â· data.go.kr Â· local governments',
 }
 
 const ja: Dict = {
@@ -298,6 +302,8 @@ const ja: Dict = {
   'search.placeholder': '祭り・地域を検索',
   'search.button': '検索',
   'nearby.title': '近くで開催中の祭り',
+  'nearby.start': '近くの祭りを見る',
+  'nearby.startNote': '位置情報を許可すると、近くで開催中の祭りを探せます。',
   'nearby.asking': '現在地を確認しています…',
   'nearby.denied': '位置情報を許可すると、今いる場所の近くの祭りをお見せします。',
   'nearby.retry': '位置情報を許可',
@@ -380,7 +386,7 @@ const ja: Dict = {
   'row.more': 'すべて見る',
   'detail.about': '概要',
   'detail.photos': '写真',
-  'detail.photos.src': '写真 © 韓国観光公社 TourAPI（KOGL第3類型：出典表示・変更禁止）',
+  'detail.photos.src': 'åçåºå¸: ⓒéå½è¦³åå¬ç¤¾ï¼KOGLç¬¬3é¡åï¼åºå¸è¡¨ç¤ºã»å¤æ´ç¦æ­¢ï¼',
   'detail.food': 'グルメ',
   'detail.program': 'プログラム',
   'detail.lineup': '出演ラインナップ',
@@ -430,7 +436,7 @@ const ja: Dict = {
   'consent.required': '同意いただくと送信できます。',
   'consent.more': '詳しく',
   'foot.disclaimer': '日程・会場は主催者の都合で変更される場合があります。お出かけ前に公式情報をご確認ください。',
-  'foot.source': 'データ：韓国観光公社 TourAPI・公共データポータル・各自治体',
+  'foot.source': 'åºå¸: ⓒéå½è¦³åå¬ç¤¾ã»å¬å±ãã¼ã¿ãã¼ã¿ã«ã»åèªæ²»ä½',
 }
 
 const th: Dict = {
@@ -440,6 +446,8 @@ const th: Dict = {
   'search.placeholder': 'ค้นหาเทศกาลหรือพื้นที่',
   'search.button': 'ค้นหา',
   'nearby.title': 'เทศกาลที่กำลังจัดใกล้คุณ',
+  'nearby.start': 'ดูเทศกาลใกล้ฉัน',
+  'nearby.startNote': 'อนุญาตตำแหน่งเพื่อค้นหาเทศกาลที่กำลังจัดใกล้คุณ',
   'nearby.asking': 'กำลังตรวจสอบตำแหน่ง…',
   'nearby.denied': 'เปิดตำแหน่งแล้วเราจะแสดงเทศกาลรอบตัวคุณ',
   'nearby.retry': 'อนุญาตตำแหน่ง',
@@ -522,7 +530,7 @@ const th: Dict = {
   'row.more': 'ดูทั้งหมด',
   'detail.about': 'เกี่ยวกับ',
   'detail.photos': 'รูปภาพ',
-  'detail.photos.src': 'ภาพ © องค์การส่งเสริมการท่องเที่ยวเกาหลี TourAPI (KOGL ประเภท 3: ระบุที่มา ห้ามดัดแปลง)',
+  'detail.photos.src': 'à¸à¸µà¹à¸¡à¸²à¸à¸­à¸à¸ à¸²à¸: ⓒà¸­à¸à¸à¹à¸à¸²à¸£à¸ªà¹à¸à¹à¸ªà¸£à¸´à¸¡à¸à¸²à¸£à¸à¹à¸­à¸à¹à¸à¸µà¹à¸¢à¸§à¹à¸à¸²à¸«à¸¥à¸µ (KOGL à¸à¸£à¸°à¹à¸ à¸ 3: à¸£à¸°à¸à¸¸à¸à¸µà¹à¸¡à¸² à¸«à¹à¸²à¸¡à¸à¸±à¸à¹à¸à¸¥à¸)',
   'detail.food': 'อาหารและเครื่องดื่ม',
   'detail.program': 'โปรแกรม',
   'detail.lineup': 'ไลน์อัพศิลปิน',
@@ -572,7 +580,7 @@ const th: Dict = {
   'consent.required': 'กรุณายินยอมก่อนส่ง',
   'consent.more': 'รายละเอียด',
   'foot.disclaimer': 'วันและสถานที่อาจเปลี่ยนแปลงได้ กรุณาตรวจสอบกับผู้จัดก่อนเดินทาง',
-  'foot.source': 'ข้อมูล: องค์การส่งเสริมการท่องเที่ยวเกาหลี TourAPI · data.go.kr · หน่วยงานท้องถิ่น',
+  'foot.source': 'à¸à¸µà¹à¸¡à¸²: ⓒà¸­à¸à¸à¹à¸à¸²à¸£à¸ªà¹à¸à¹à¸ªà¸£à¸´à¸¡à¸à¸²à¸£à¸à¹à¸­à¸à¹à¸à¸µà¹à¸¢à¸§à¹à¸à¸²à¸«à¸¥à¸µ Â· data.go.kr Â· à¸«à¸à¹à¸§à¸¢à¸à¸²à¸à¸à¹à¸­à¸à¸à¸´à¹à¸',
 }
 
 const DICTS: Record<Lang, Dict> = { ko, en, ja, th }

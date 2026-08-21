@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import { distanceKm, isAlwaysOn, localized, statusOf, type Festival } from '@/lib/festivals'
 import { t } from '@/lib/ui'
@@ -7,22 +7,20 @@ import type { Lang } from '@/lib/i18n'
 import FestivalCard from './FestivalCard'
 import Icon from './Icon'
 
-// '내 주변' — 홈에 들어오자마자 위치를 묻는다(kfes와 같은 방식, 8/15 결정).
-//
-// 트레이드오프를 알고 쓰는 것: 진입 즉시 요청은 거부율이 높고 거부당하면 복구가 어렵다.
-// 대신 이 서비스의 첫 화면 가치가 '지금 여기서 뭐 하지'이므로, 한 번 더 누르게 하면
-// 그 가치가 안 보인다. 거부한 사용자를 위해 다시 요청하는 버튼을 남겨 둔다.
+// '내 주변' — 사용자가 필요를 드러낸 뒤에만 위치를 묻는다.
+// 진입 직후 권한 팝업은 거부율이 높으므로, 먼저 어떤 정보를 받는지 설명하고 선택권을 둔다.
 
 const RADIUS_KM = 20
 
 type State =
+  | { k: 'idle' }
   | { k: 'asking' }
   | { k: 'ok'; coords: { lat: number; lng: number } }
   | { k: 'denied' }
   | { k: 'unsupported' }
 
 export default function NearbyBlock({ all, lang }: { all: Festival[]; lang: Lang }) {
-  const [state, setState] = useState<State>({ k: 'asking' })
+  const [state, setState] = useState<State>({ k: 'idle' })
 
   const ask = () => {
     if (!navigator.geolocation) return setState({ k: 'unsupported' })
@@ -34,9 +32,26 @@ export default function NearbyBlock({ all, lang }: { all: Festival[]; lang: Lang
     )
   }
 
-  useEffect(ask, [])
-
   if (state.k === 'unsupported') return null
+
+  if (state.k === 'idle') {
+    return (
+      <section className="mx-auto max-w-6xl px-5">
+        <div className="flex flex-col items-start gap-4 rounded-[var(--radius-card)] border border-line bg-surface px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="h-display text-[22px] text-ink sm:text-[24px]">{t(lang, 'nearby.title')}</h2>
+            <p className="mt-1 text-[14px] text-muted">{t(lang, 'nearby.startNote')}</p>
+          </div>
+          <button
+            onClick={ask}
+            className="shrink-0 rounded-full bg-brand px-5 py-2.5 text-[14px] font-bold text-white transition hover:bg-brand-600"
+          >
+            {t(lang, 'nearby.start')}
+          </button>
+        </div>
+      </section>
+    )
+  }
 
   if (state.k === 'denied') {
     return (
