@@ -8,9 +8,12 @@ import type { Festival } from './lib/types.js'
 // (실측: 42501 insufficient_privilege), 데이터를 넣는 건 이 스크립트뿐이다.
 // 키는 코드나 저장소에 두지 않는다 — 로컬은 pipeline/.env, CI는 GitHub Secrets.
 //
-// ⚠ 지우지 않는다. 목록에서 빠진 축제도 DB에는 남긴다.
+// ⚠ 끝난 축제는 지우지 않는다. 목록에서 빠져도 DB에는 남긴다.
 // 축제는 매년 다시 열리고, 거기 달린 리뷰·사진은 회차가 바뀌어도 읽을 값어치가 있다.
 // '올해 목록'은 화면에서 날짜로 거르지, 과거를 삭제해서 만들지 않는다.
+//
+// 다만 '아직 안 끝났는데 이번 산출물에 없는 행'은 지운다 — 병합돼 사라졌거나 원천에서
+// 내려간 것이라 화면에 있으면 중복·유령이 된다. 맨 아래 정리 단계를 볼 것.
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.SUPABASE_URL
 const key = process.env.SUPABASE_SECRET_KEY
@@ -108,6 +111,38 @@ console.log(`▶ Supabase 적재 — 축제 ${festivals.length} · 번역 ${tran
 await push('festivals', festivals, 'id')
 await push('festival_translations', translations, 'festival_id,lang')
 await push('festival_photos', photos, 'festival_id,ord')
+
+// ── 병합돼 사라진 옛 행 걷어내기 ────────────────────────────
+//
+// 위 규칙("지우지 않는다")은 과거 축제를 위한 것이다. 그런데 그것만 지키다 보니 다른 것이
+// 같이 눌러앉았다 — 병합 규칙이 좋아져 한 건으로 합쳐진 축제의 '합쳐지기 전 행'이다.
+//
+// 예: 명량대첩축제는 tourapi:607417 하나로 병합됐는데 DB에는 kfes:607417이 그대로 남아,
+// 화면에 같은 축제가 두 번 떴다(2026-08-23 QA에서 8쌍). 산출물 475건 대 DB 510건,
+// 차이 35건 중 16건이 아직 안 끝난 축제였다.
+//
+// 그래서 조건을 좁혀 지운다 — 산출물에 없고, 아직 끝나지도 않은 행.
+// 아직 안 끝났는데 이번 산출물에 없다는 것은 둘 중 하나다: 다른 행으로 병합됐거나,
+// 원천에서 내려갔거나. 어느 쪽이든 화면에 있어서는 안 된다.
+// 끝난 축제는 건드리지 않는다 — 리뷰·사진을 남겨 두는 원래 뜻 그대로다.
+const alive = new Set(festivals.map((f) => f.id))
+const todayKstStr = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10)
+const { data: dbRows, error: listErr } = await db
+  .from('festivals')
+  .select('id,name,end_date')
+  .gte('end_date', todayKstStr)
+if (listErr) throw new Error(`정리 대상 조회 실패: ${listErr.message}`)
+
+const stale = (dbRows ?? []).filter((r) => !alive.has(r.id as string))
+if (stale.length === 0) {
+  console.log('   정리할 옛 행 없음')
+} else {
+  for (const part of chunks(stale)) {
+    const { error } = await db.from('festivals').delete().in('id', part.map((r) => r.id as string))
+    if (error) throw new Error(`옛 행 삭제 실패: ${error.message}`)
+  }
+  console.log(`   옛 행 ${stale.length}건 정리 — ${stale.slice(0, 5).map((r) => `${r.name}(${r.id})`).join(', ')}${stale.length > 5 ? ' 외' : ''}`)
+}
 
 const { count } = await db.from('festivals').select('*', { count: 'exact', head: true })
 console.log(`✔ 완료 — DB의 축제 ${count}건`)

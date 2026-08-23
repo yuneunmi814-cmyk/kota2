@@ -46,6 +46,8 @@ export default function Poster({
   className = '',
   letterClass = 'text-[2.4em]',
   pendingLabel,
+  whole = false,
+  eager = false,
 }: {
   src?: string | null
   name: string
@@ -53,22 +55,50 @@ export default function Poster({
   letterClass?: string
   /** 포스터가 아직 없을 때 자리채움 위에 얹는 안내 — 목록 카드에서만 쓴다 */
   pendingLabel?: string
+  /**
+   * 자르지 않고 포스터 전체를 보여준다 — 상세 히어로용.
+   *
+   * 히어로 칸은 가로로 길다(최대 1112×440, 2.5:1). 여기에 세로형 포스터를 object-cover로
+   * 넣으면 위아래가 잘린다 — 443×627짜리 TourAPI 포스터가 72%까지 사라졌다(BUG-07, 2026-08-23).
+   * 축제 포스터는 날짜·장소·출연진이 아래쪽에 몰려 있어서, 잘린 72%가 정보의 대부분이다.
+   *
+   * 목록 카드(4:3)는 그대로 둔다 — 거기서는 격자가 들쭉날쭉해지는 쪽이 더 나쁘고,
+   * 카드의 몫은 '무슨 축제인지 알아보게 하는 것'이지 포스터를 읽히는 것이 아니다.
+   */
+  whole?: boolean
+  /** 히어로처럼 첫 화면에 보이는 자리에서는 lazy를 끈다 */
+  eager?: boolean
 }) {
   const [failed, setFailed] = useState(false)
   // 이미지가 있어도 틴트+첫 글자를 먼저 깔고 그 위에 얹는다 — 지자체 서버가 느려서
   // 로딩에 몇 초 걸리는 동안 흰 공백이 보이던 문제(실측). 로드되면 이미지가 덮는다.
   return (
-    <div className={`relative flex h-full w-full items-center justify-center ${PLACEHOLDER} ${className}`}>
+    <div className={`relative flex h-full w-full items-center justify-center overflow-hidden ${PLACEHOLDER} ${className}`}>
       <span className={`font-black leading-none text-ink/15 select-none ${letterClass}`} aria-hidden="true">
         {initial(name)}
       </span>
+      {src && !failed && whole && (
+        // 남는 양옆은 같은 포스터를 크게 흐려 깐다. 배경은 장식이고 읽는 것은 앞의 원본이다.
+        // 단색으로 두면 세로 포스터마다 양쪽에 넓은 회색 띠가 생겨 화면이 비어 보인다.
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={proxied(src)}
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 h-full w-full scale-110 object-cover blur-xl saturate-125"
+        />
+      )}
       {src && !failed && (
         <img
           src={proxied(src)}
           alt={name}
-          loading="lazy"
+          loading={eager ? 'eager' : 'lazy'}
           onError={() => setFailed(true)}
-          className="absolute inset-0 h-full w-full object-cover"
+          className={
+            whole
+              ? 'relative mx-auto h-full max-w-full object-contain'
+              : 'absolute inset-0 h-full w-full object-cover'
+          }
         />
       )}
       {/* 포스터가 없거나 죽은 링크일 때 — 상태를 그대로 말한다 */}

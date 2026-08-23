@@ -257,10 +257,18 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
         {/* 지역 내 순위 — 트립어드바이저가 '서울의 즐길거리 1,619개 중에서 5위'를 놓는 자리.
             그쪽 근거는 리뷰 평점이고 우리 근거는 통신사 방문자 실측이다. 뱃지가 아니라 문장으로
             두는 이유: 이게 이 페이지에서 가장 무거운 한 줄이라 뱃지 무리에 섞이면 묻힌다. */}
+        {/* 산정 기준을 화면에 적는다.
+            전에는 title 속성에만 있었다 — 마우스를 올려야 보이니 모바일에서는 볼 방법이 아예
+            없었고, 데스크톱에서도 '올려보면 나온다'는 것을 알 도리가 없다(BUG-09, 2026-08-23).
+            근거를 숨긴 순위는 근거가 없는 것과 같다. title은 남겨 둔다 — 지우면 손해는 없지만
+            이득도 없다. */}
         {rank && (
-          <p className="mb-5 text-[15px] font-bold text-ink" title={t(l, 'rank.note')}>
-            {t(l, 'rank.region', { sido: sidoLabel(f.sido!, l), total: rank.total, rank: rank.rank })}
-          </p>
+          <div className="mb-5">
+            <p className="text-[15px] font-bold text-ink">
+              {t(l, 'rank.region', { sido: sidoLabel(f.sido!, l), total: rank.total, rank: rank.rank })}
+            </p>
+            <p className="mt-1 text-[12px] leading-relaxed text-hint">{t(l, 'rank.note')}</p>
+          </div>
         )}
 
         {/* 사진 그리드 — 큰 1 + 작은 2. 트립어드바이저 상세 상단. 옆 칸은 유튜브 썸네일·지도로 채운다 */}
@@ -272,7 +280,7 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
           style={{ height: 'clamp(210px, 52vw, 440px)' }}
         >
           <div className={`relative h-full overflow-hidden ${sideTiles.length ? 'sm:col-span-2' : ''}`}>
-            <Poster src={heroSrc} name={L.name} letterClass="text-[5em]" />
+            <Poster src={heroSrc} name={L.name} letterClass="text-[5em]" whole eager />
             {f.imageFrom === 'past' && (
               <span className="absolute bottom-3 left-3 rounded-full bg-ink/70 px-2.5 py-1 text-[11px] font-bold text-white backdrop-blur-sm">{t(l, 'poster.past')}</span>
             )}

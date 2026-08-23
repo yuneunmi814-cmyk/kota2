@@ -2,6 +2,7 @@ import { cache } from 'react'
 import { supabase } from './supabase'
 import { DEFAULT_LANG, type Lang } from './i18n'
 import { fetchLive, fetchLiveStdfest, fetchLiveKfes } from './tourapi-live'
+import { classifyThemes } from './classify-themes'
 
 // 축제 데이터 접근 — Supabase에서 읽는다.
 //
@@ -308,14 +309,88 @@ async function overlayLive(rows: Row[]): Promise<Festival[]> {
     '33': '충청북도', '34': '충청남도', '35': '경상북도', '36': '경상남도', '37': '전북특별자치도',
     '38': '전라남도', '39': '제주특별자치도',
   }
-  // 이미 목록에 있는 이름+시작일 — 소스가 달라도 같은 축제면 두 번 넣지 않는다
-  const known = new Set(kept.map((f) => `${f.name.replace(/\s+/g, '')}|${f.startDate}`))
+  // 이미 목록에 있는 축제 — 소스가 달라도 같은 축제면 두 번 넣지 않는다.
+  //
+  // 이름+시작일만으로 판정하던 것을 두 갈래로 넓힌다(BUG-01, 2026-08-23).
+  //
+  //  ① contentId — tourapi와 kfes는 같은 CMS라 숫자 id가 같다(파이프라인 merge.ts가 선 전제다).
+  //     런타임 경로만 이 사실을 안 쓰고 있어서, 두 원천이 이름을 조금 다르게 주거나
+  //     일정을 하루 어긋나게 주면 같은 축제가 tourapi:X와 kfes:X로 둘 다 들어갔다.
+  //     전수조사에서 이렇게 갈라진 것이 8쌍이었다(수원 국가유산야행 / 수원 국가유산 야행 …).
+  //  ② 정규화한 이름 + 시작일 — 회차·연도·'축제/페스티벌' 접미사와 공백·기호를 떼고 비교한다.
+  //     전에는 원문 이름에서 공백만 지웠던 탓에 '수원 국가유산야행'과 '수원 국가유산 야행'처럼
+  //     띄어쓰기 하나가 다른 것만 겨우 잡혔고, '제23회 …' 같은 회차 표기가 붙으면 놓쳤다.
+  //
+  // 시작일은 열쇠에 남긴다. 빼면 무창포처럼 한 해에 두 번 여는 축제가 한 건으로 합쳐진다
+  // (파이프라인 merge.ts가 같은 이유로 기간을 반드시 함께 본다).
+  //
+  // ①이 있어도 ②를 남기는 이유: contentId가 없는 소스(stdfest·manual)끼리는 이름이 유일한 근거다.
+  // 같은 축제인데 이름이 아예 다른 것 — 규칙으로는 못 잡아서 손으로 적는다.
+  // pipeline/src/lib/match.ts의 SAME과 같은 표다. ⚠ 한쪽만 고치면 다시 갈라진다.
+  const SAME: Record<string, string> = { 재즈in가평: '자라섬재즈' }
+
+  const bareName = (s: string) => {
+    const n = s
+      .replace(/[(（[].*?[)）\]]/g, '')
+      .replace(/제?\s*\d+\s*회/g, '')
+      .replace(/20\d{2}\s*년?/g, '')
+      .replace(/축제|페스티벌|페스타|한마당|문화제|축전/g, '')
+      .replace(/[^\p{L}\p{N}]/gu, '')
+      .toLowerCase()
+    return SAME[n] ?? n
+  }
+
+  /** tourapi:1916616 · kfes:1916616 → 1916616. 소스 접두사를 뗀 숫자 id */
+  const contentIdOf = (f: Festival): string | null => {
+    const m = f.externalId.match(/^(?:tourapi|kfes):(\d+)$/)
+    return m ? m[1]! : null
+  }
+
+  const knownIds = new Set<string>()
+  // 이름 → 그 이름으로 이미 잡혀 있는 기간들.
+  //
+  // 시작일이 정확히 같은지를 보던 것을 '기간이 겹치는지'로 바꾼다(2026-08-23 실측).
+  // 같은 축제인데 원천마다 시작일을 다르게 주는 경우가 흔하다 — 안동국제탈춤은 TourAPI가
+  // 9/24, 표준데이터가 9/25로 준다. 하루 차이로 같은 축제가 둘이 됐다. 이런 쌍이 7개였다.
+  //
+  // 그렇다고 이름만 보면 안 된다. 한 해에 두 번 여는 축제(무창포 신비의바닷길)와, 이름이
+  // 사실상 같은 별개 행사(파주포크페스티벌 전야제 9/4 · 본공연 9/5)가 한 건으로 합쳐진다.
+  // 기간이 겹치는지를 보면 둘 다 제자리를 지킨다 — 같은 축제는 날짜가 어긋나도 겹치고,
+  // 다른 회차·다른 행사는 애초에 안 겹친다.
+  const knownRanges = new Map<string, { s: string; e: string }[]>()
+
+  const overlaps = (a: { s: string; e: string }, b: { s: string; e: string }) => !(a.e < b.s || b.e < a.s)
+
+  const seenBefore = (f: Pick<Festival, 'name' | 'startDate' | 'endDate'>): boolean => {
+    const n = bareName(f.name)
+    if (!n) return false
+    const range = { s: f.startDate, e: f.endDate }
+    return (knownRanges.get(n) ?? []).some((r) => overlaps(r, range))
+  }
+
+  const remember = (f: Pick<Festival, 'name' | 'startDate' | 'endDate'>) => {
+    const n = bareName(f.name)
+    if (!n) return
+    const list = knownRanges.get(n)
+    if (list) list.push({ s: f.startDate, e: f.endDate })
+    else knownRanges.set(n, [{ s: f.startDate, e: f.endDate }])
+  }
+
+  for (const f of kept) {
+    const cid = contentIdOf(f)
+    if (cid) knownIds.add(cid)
+    remember(f)
+  }
+  // DB 행이 들고 있는 tourapi_id도 같은 열쇠다 — externalId가 kfes:… 인 행에도 붙어 있다
+  for (const r of rows) if (r.tourapi_id) knownIds.add(String(r.tourapi_id))
+
   const fresh: Festival[] = []
 
-  const push = (f: Festival) => {
-    const sig = `${f.name.replace(/\s+/g, '')}|${f.startDate}`
-    if (known.has(sig)) return
-    known.add(sig)
+  const push = (f: Festival, contentId?: string | null) => {
+    if (contentId && knownIds.has(contentId)) return
+    if (seenBefore(f)) return
+    if (contentId) knownIds.add(contentId)
+    remember(f)
     fresh.push(f)
   }
 
@@ -328,9 +403,9 @@ async function overlayLive(rows: Row[]): Promise<Festival[]> {
       address: l.address, lat: l.lat, lng: l.lng,
       imageUrl: l.imageUrl, imageFrom: l.imageUrl ? 'own' : null,
       imageSource: l.imageUrl ? 'ⓒ한국관광공사' : null,
-      summary: null, tel: l.tel, themes: [], popularity: 0,
+      summary: null, tel: l.tel, themes: classifyThemes(l.name), popularity: 0,
       sources: ['tourapi'], translations: [], photos: [],
-    } as Festival)
+    } as Festival, l.contentId)
   }
 
   for (const k of kfes) {
@@ -343,9 +418,9 @@ async function overlayLive(rows: Row[]): Promise<Festival[]> {
       imageUrl: k.imageUrl, imageFrom: k.imageUrl ? 'own' : null,
       imageSource: k.imageUrl ? 'ⓒ한국관광공사' : null,
       summary: k.summary, fee: k.fee, homepage: k.homepage, tel: k.tel,
-      themes: [], popularity: 0,
+      themes: classifyThemes(k.name, k.summary), popularity: 0,
       sources: ['kfes'], translations: [], photos: [],
-    } as Festival)
+    } as Festival, k.contentId)
   }
 
   for (const l of std) {
@@ -357,7 +432,7 @@ async function overlayLive(rows: Row[]): Promise<Festival[]> {
       lat: l.lat, lng: l.lng,
       imageUrl: null, imageFrom: null, imageSource: null,
       summary: l.summary, tel: l.tel, homepage: l.homepage,
-      themes: [], popularity: 0,
+      themes: classifyThemes(l.name, l.summary), popularity: 0,
       sources: ['stdfest'], translations: [], photos: [],
     } as Festival)
   }

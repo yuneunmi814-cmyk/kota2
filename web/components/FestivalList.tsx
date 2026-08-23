@@ -122,6 +122,55 @@ export default function FestivalList({
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null)
   const shown = page * PAGE
 
+  // ── 상세에 갔다 돌아오면 보던 자리로 ──────────────────────────
+  //
+  // 주소에 page=N을 남겨 둔 덕에 카드 수와 필터는 복원된다. 그런데 그건 마운트 뒤 효과에서
+  // 읽으므로, 브라우저가 스크롤을 되돌리려 할 때 화면에는 아직 첫 24장뿐이다. 되돌릴 자리가
+  // 문서 높이를 넘으니 끝까지 내려가다 만다 — 모바일에서 31250px이 3183px이 됐다(BUG-10,
+  // 2026-08-23). 90%를 잃으니 사실상 맨 위다.
+  //
+  // 그래서 우리가 직접 기억한다. 아무 때나 되돌리면 안 된다 — 홈에서 목록으로 새로 들어온
+  // 사람까지 지난번 자리로 끌어내리면 그건 다른 버그다. 카드를 눌러 상세로 떠날 때만 적고,
+  // 돌아와 그 주소가 그대로일 때 한 번 쓰고 지운다.
+  const SCROLL_KEY = 'kota_list_scroll'
+  const rememberScroll = () => {
+    try {
+      sessionStorage.setItem(
+        SCROLL_KEY,
+        JSON.stringify({ at: window.location.pathname + window.location.search, y: window.scrollY }),
+      )
+    } catch {
+      // 스토리지가 막혀 있으면 그냥 위에서 시작한다
+    }
+  }
+
+  const restored = useRef(false)
+  useEffect(() => {
+    if (!ready || restored.current) return
+    restored.current = true
+    let saved: { at?: string; y?: number } | null = null
+    try {
+      saved = JSON.parse(sessionStorage.getItem(SCROLL_KEY) ?? 'null')
+      sessionStorage.removeItem(SCROLL_KEY) // 한 번만 쓴다
+    } catch {
+      return
+    }
+    if (!saved?.y || saved.at !== window.location.pathname + window.location.search) return
+    const y = saved.y
+    // 카드가 실제로 그려진 다음 프레임에 옮긴다 — 그 전에는 문서가 아직 짧다
+    requestAnimationFrame(() => requestAnimationFrame(() => window.scrollTo(0, y)))
+  }, [ready])
+
+  // ── 맨 위·맨 아래 ─────────────────────────────────────────────
+  // 목록이 35,000px(≈42화면)까지 길어진다. 손가락으로 그만큼 쓸어 올리는 것은 이동이 아니라 노동이다.
+  const [farDown, setFarDown] = useState(false)
+  useEffect(() => {
+    const onScroll = () => setFarDown(window.scrollY > 1200)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
   // 거리순을 고르면 그때 위치를 묻는다 — 목록에서까지 진입 즉시 물으면 성가시다.
   //
   // 실패하면 전에는 말없이 날짜순으로 되돌렸다. 고른 것이 저 혼자 풀리는데 이유는
@@ -277,6 +326,28 @@ export default function FestivalList({
     return rs ? countBySido.filter((x) => rs.includes(x.sido)) : []
   }, [countBySido, region])
 
+  // ── 고른 칩을 화면 안으로 ──────────────────────────────────────
+  //
+  // 칩 줄은 가로로 길다. 시기 줄만 16개고, 390px 화면에는 다섯 개쯤 들어간다. 오른쪽 페이드로
+  // '더 있다'는 알렸지만(BUG-24, 8/18), 고른 칩 자체가 화면 밖이면 지금 뭐가 걸려 있는지
+  // 보이지 않는다 — 9월을 고르고 돌아오면 화면에는 '전체·진행중·이번주말'만 있고 어디에도
+  // 9월이 없다(BUG-08, 2026-08-23). 주소로 들어온 필터도 마찬가지다.
+  //
+  // 세로로는 건드리지 않는다(block:'nearest') — 칩을 보이려다 페이지가 위아래로 튀면
+  // 방금 고친 스크롤 복원과 싸운다.
+  const rowsRef = useRef<HTMLDivElement | null>(null)
+  useEffect(() => {
+    if (!ready) return
+    const host = rowsRef.current
+    if (!host) return
+    for (const row of host.querySelectorAll<HTMLElement>('[data-chip-row]')) {
+      const on = row.querySelector<HTMLElement>('[data-chip-on="1"]')
+      if (!on) continue
+      if (row.scrollWidth <= row.clientWidth) continue // 다 들어오는 줄은 건드릴 것이 없다
+      on.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'auto' })
+    }
+  }, [ready, period, region, sido, theme])
+
   const chip = (on: boolean) =>
     `shrink-0 rounded-full border px-4 py-2 text-[13px] font-bold transition ${
       on ? 'border-brand bg-brand text-white' : 'border-line bg-surface text-muted hover:border-brand/40 hover:text-brand'
@@ -289,7 +360,7 @@ export default function FestivalList({
     }`
 
   return (
-    <div>
+    <div ref={rowsRef}>
       {/* 검색 */}
       <div className="mb-5 flex items-center gap-2 rounded-full border border-line bg-surface px-5 py-1 focus-within:border-brand">
         <Icon name="search" size={18} className="text-hint" />
@@ -302,30 +373,31 @@ export default function FestivalList({
       </div>
 
       {/* 1축 — 시기. 축제는 '언제'가 먼저다 */}
-      <div className="-mx-5 mb-3 chip-row flex gap-2 overflow-x-auto px-5 pb-1 no-scrollbar">
-        <button className={chip(period === 'all')} onClick={() => setPeriod('all')}>
+      <div data-chip-row className="-mx-5 mb-3 chip-row flex gap-2 overflow-x-auto px-5 pb-1 no-scrollbar">
+        <button data-chip-on={period === 'all' ? '1' : undefined} className={chip(period === 'all')} onClick={() => setPeriod('all')}>
           {lang === 'ko' ? '전체' : lang === 'ja' ? 'すべて' : lang === 'th' ? 'ทั้งหมด' : 'All'}
         </button>
-        <button className={chip(period === 'ongoing')} onClick={() => setPeriod('ongoing')}>
+        <button data-chip-on={period === 'ongoing' ? '1' : undefined} className={chip(period === 'ongoing')} onClick={() => setPeriod('ongoing')}>
           {t(lang, 'status.ongoing')}
         </button>
-        <button className={chip(period === 'upcoming')} onClick={() => setPeriod('upcoming')}>
+        <button data-chip-on={period === 'upcoming' ? '1' : undefined} className={chip(period === 'upcoming')} onClick={() => setPeriod('upcoming')}>
           {t(lang, 'status.upcoming')}
         </button>
-        <button className={chip(period === 'weekend')} onClick={() => setPeriod('weekend')}>
+        <button data-chip-on={period === 'weekend' ? '1' : undefined} className={chip(period === 'weekend')} onClick={() => setPeriod('weekend')}>
           {t(lang, 'row.weekend')}
         </button>
         <span className="mx-1 w-px shrink-0 self-stretch bg-line" />
         {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
-          <button key={m} className={chip(period === m)} onClick={() => setPeriod(m)}>
+          <button key={m} data-chip-on={period === m ? '1' : undefined} className={chip(period === m)} onClick={() => setPeriod(m)}>
             {monthLabel(m, lang)}
           </button>
         ))}
       </div>
 
       {/* 2축 — 지역. 권역을 먼저 고르고, 고른 권역 안에서만 시·도로 좁힌다 */}
-      <div className="-mx-5 mb-3 chip-row flex gap-2 overflow-x-auto px-5 pb-1 no-scrollbar">
+      <div data-chip-row className="-mx-5 mb-3 chip-row flex gap-2 overflow-x-auto px-5 pb-1 no-scrollbar">
         <button
+          data-chip-on={!region ? '1' : undefined}
           className={chip(!region)}
           onClick={() => {
             setRegion(null)
@@ -340,6 +412,7 @@ export default function FestivalList({
           return (
             <button
               key={r.key}
+              data-chip-on={region === r.key ? '1' : undefined}
               className={chip(region === r.key)}
               onClick={() => {
                 setRegion(region === r.key ? null : r.key)
@@ -354,12 +427,12 @@ export default function FestivalList({
 
       {/* 고른 권역 안의 시·도 — 부산·제주처럼 그 자체가 목적지인 곳이 권역에 묻히지 않게 */}
       {subSidos.length > 1 && (
-        <div className="-mx-5 mb-3 chip-row flex gap-2 overflow-x-auto px-5 pb-1 no-scrollbar">
-          <button className={subChip(!sido)} onClick={() => setSido(null)}>
+        <div data-chip-row className="-mx-5 mb-3 chip-row flex gap-2 overflow-x-auto px-5 pb-1 no-scrollbar">
+          <button data-chip-on={!sido ? '1' : undefined} className={subChip(!sido)} onClick={() => setSido(null)}>
             {lang === 'ko' ? '전체' : lang === 'ja' ? 'すべて' : lang === 'th' ? 'ทั้งหมด' : 'All'}
           </button>
           {subSidos.map(({ sido: s, count }) => (
-            <button key={s} className={subChip(sido === s)} onClick={() => setSido(sido === s ? null : s)}>
+            <button key={s} data-chip-on={sido === s ? '1' : undefined} className={subChip(sido === s)} onClick={() => setSido(sido === s ? null : s)}>
               {sidoLabel(s, lang)} <span className="ml-1 font-normal opacity-60">{count}</span>
             </button>
           ))}
@@ -367,10 +440,10 @@ export default function FestivalList({
       )}
 
       {/* 3축 — 목적 */}
-      <div className="-mx-5 mb-6 chip-row flex gap-2 overflow-x-auto px-5 pb-1 no-scrollbar">
+      <div data-chip-row className="-mx-5 mb-6 chip-row flex gap-2 overflow-x-auto px-5 pb-1 no-scrollbar">
         {/* 테마를 푸는 칩. 시기·지역 줄에는 '전체'가 있는데 여기만 없어서, 한 번 고르면
             같은 칩을 다시 누르는 것 말고는 해제할 방법이 화면에 없었다(BUG-16) */}
-        <button className={chip(!theme)} onClick={() => setTheme(null)}>
+        <button data-chip-on={!theme ? '1' : undefined} className={chip(!theme)} onClick={() => setTheme(null)}>
           {lang === 'ko' ? '전체' : lang === 'ja' ? 'すべて' : lang === 'th' ? 'ทั้งหมด' : 'All'}
           <span className="ml-1 font-normal opacity-60">{baseForTheme.length}</span>
         </button>
@@ -381,7 +454,7 @@ export default function FestivalList({
           // 숫자의 합이 88로 나왔다(BUG-15). 숫자가 한 번 어긋나면 그다음부터는 아무도 안 믿는다.
           const n = baseForTheme.filter((f) => f.th.includes(k)).length
           return (
-            <button key={k} className={chip(theme === k)} onClick={() => setTheme(theme === k ? null : k)} disabled={n === 0}>
+            <button key={k} data-chip-on={theme === k ? '1' : undefined} className={chip(theme === k)} onClick={() => setTheme(theme === k ? null : k)} disabled={n === 0}>
               <Icon name={k} size={14} className="mr-1 -mt-0.5" />
               {themeLabel(k, lang)}
               <span className="ml-1 font-normal opacity-60">{n}</span>
@@ -439,6 +512,7 @@ export default function FestivalList({
               <Link
                 key={f.k}
                 href={`/${lang}/festivals/${toSlug(f.k)}/`}
+                onClick={rememberScroll}
                 className="lift group block overflow-hidden rounded-[var(--radius-card)] border border-line bg-surface hover:border-brand/40 hover:shadow-[0_10px_28px_-14px_rgba(79,50,22,.35)]"
               >
                 <div className="relative aspect-[4/3] overflow-hidden bg-surface">
@@ -484,6 +558,34 @@ export default function FestivalList({
                 <span className="font-normal text-hint">
                   {shown}/{list.length}
                 </span>
+              </button>
+            </div>
+          )}
+
+          {/* 맨 위·맨 아래 — 한참 내려간 뒤에만 나온다. 처음부터 떠 있으면 카드를 가릴 뿐이다.
+              '맨 아래'는 지금 펼쳐 놓은 만큼의 끝으로 간다(더 보기 자리) — 거기가 다음 행동이 있는 곳이다.
+              데스크톱에서도 목록은 길지만 마우스 휠과 스크롤바가 있어 급하지 않다. 좁은 화면만 띄운다. */}
+          {farDown && (
+            <div className="fixed bottom-5 right-4 z-30 flex flex-col gap-2 sm:hidden">
+              <button
+                type="button"
+                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                aria-label={t(lang, 'list.toTop')}
+                className="flex h-11 w-11 items-center justify-center rounded-full border border-line bg-surface/95 text-brand shadow-[0_6px_20px_-8px_rgba(79,50,22,.5)] backdrop-blur transition hover:border-brand/40"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <path d="M12 19V5M5 12l7-7 7 7" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                onClick={() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })}
+                aria-label={t(lang, 'list.toBottom')}
+                className="flex h-11 w-11 items-center justify-center rounded-full border border-line bg-surface/95 text-brand shadow-[0_6px_20px_-8px_rgba(79,50,22,.5)] backdrop-blur transition hover:border-brand/40"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <path d="M12 5v14M5 12l7 7 7-7" />
+                </svg>
               </button>
             </div>
           )}
