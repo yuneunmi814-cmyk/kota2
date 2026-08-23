@@ -25,7 +25,11 @@ export default function LegalPage({ lang, kind }: { lang: Lang; kind: LegalKind 
   const doc = legalDoc(lang, kind)
   return (
     <>
-      <Header lang={lang} />
+      {/* kind가 곧 주소 조각이다("terms"·"privacy"·"disclaimer"). 이걸 안 넘기면
+          언어를 바꿀 때 읽던 약관을 잃고 그 언어 홈으로 떨어진다. 바로 위
+          legalMetadata()는 이미 /{l}/{kind}/ 로 hreflang을 만들고 있어서,
+          검색엔진에 알리는 주소와 화면 링크가 서로 달랐다. */}
+      <Header lang={lang} path={kind} />
       <main className="mx-auto max-w-3xl px-5 py-10">
         <h1 className="text-[26px] font-bold tracking-tight text-ink">{doc.title}</h1>
         <p className="mt-2 text-[13px] text-hint">

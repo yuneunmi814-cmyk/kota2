@@ -535,7 +535,7 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
                   )}
                   {f.instagram && (
                     <a href={f.instagram} target="_blank" rel="noopener noreferrer" className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-full border border-line px-4 py-2.5 text-[13px] font-bold text-ink transition hover:border-insta/50 hover:text-insta">
-                      <Icon name="instagram" size={15} className="text-insta" /> Instagram
+                      <Icon name="instagram" size={15} className="text-insta" /> {t(l, 'official.insta')}
                     </a>
                   )}
                 </div>
