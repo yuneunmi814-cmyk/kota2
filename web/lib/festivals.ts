@@ -347,16 +347,39 @@ async function overlayLive(rows: Row[]): Promise<Festival[]> {
   }
 
   const knownIds = new Set<string>()
-  const knownNames = new Set<string>()
-  const nameSig = (f: Pick<Festival, 'name' | 'startDate'>) => {
+  // 이름 → 그 이름으로 이미 잡혀 있는 기간들.
+  //
+  // 시작일이 정확히 같은지를 보던 것을 '기간이 겹치는지'로 바꾼다(2026-08-23 실측).
+  // 같은 축제인데 원천마다 시작일을 다르게 주는 경우가 흔하다 — 안동국제탈춤은 TourAPI가
+  // 9/24, 표준데이터가 9/25로 준다. 하루 차이로 같은 축제가 둘이 됐다. 이런 쌍이 7개였다.
+  //
+  // 그렇다고 이름만 보면 안 된다. 한 해에 두 번 여는 축제(무창포 신비의바닷길)와, 이름이
+  // 사실상 같은 별개 행사(파주포크페스티벌 전야제 9/4 · 본공연 9/5)가 한 건으로 합쳐진다.
+  // 기간이 겹치는지를 보면 둘 다 제자리를 지킨다 — 같은 축제는 날짜가 어긋나도 겹치고,
+  // 다른 회차·다른 행사는 애초에 안 겹친다.
+  const knownRanges = new Map<string, { s: string; e: string }[]>()
+
+  const overlaps = (a: { s: string; e: string }, b: { s: string; e: string }) => !(a.e < b.s || b.e < a.s)
+
+  const seenBefore = (f: Pick<Festival, 'name' | 'startDate' | 'endDate'>): boolean => {
     const n = bareName(f.name)
-    return n ? `${n}|${f.startDate}` : null
+    if (!n) return false
+    const range = { s: f.startDate, e: f.endDate }
+    return (knownRanges.get(n) ?? []).some((r) => overlaps(r, range))
   }
+
+  const remember = (f: Pick<Festival, 'name' | 'startDate' | 'endDate'>) => {
+    const n = bareName(f.name)
+    if (!n) return
+    const list = knownRanges.get(n)
+    if (list) list.push({ s: f.startDate, e: f.endDate })
+    else knownRanges.set(n, [{ s: f.startDate, e: f.endDate }])
+  }
+
   for (const f of kept) {
     const cid = contentIdOf(f)
     if (cid) knownIds.add(cid)
-    const sig = nameSig(f)
-    if (sig) knownNames.add(sig)
+    remember(f)
   }
   // DB 행이 들고 있는 tourapi_id도 같은 열쇠다 — externalId가 kfes:… 인 행에도 붙어 있다
   for (const r of rows) if (r.tourapi_id) knownIds.add(String(r.tourapi_id))
@@ -365,10 +388,9 @@ async function overlayLive(rows: Row[]): Promise<Festival[]> {
 
   const push = (f: Festival, contentId?: string | null) => {
     if (contentId && knownIds.has(contentId)) return
-    const sig = nameSig(f)
-    if (sig && knownNames.has(sig)) return
+    if (seenBefore(f)) return
     if (contentId) knownIds.add(contentId)
-    if (sig) knownNames.add(sig)
+    remember(f)
     fresh.push(f)
   }
 
