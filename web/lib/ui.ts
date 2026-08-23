@@ -108,7 +108,7 @@ const ko: Dict = {
   'detail.about': '소개',
   'detail.photos': '사진',
   'detail.photos.src': '사진 출처: ⓒ한국관광공사 (공공누리 제3유형: 출처표시·변경금지)',
-  'detail.photos.srcOrganizer': '사진 출처: 각 축제 주최측 누리집. 저작권은 각 주최측에 있습니다.',
+  'detail.photos.srcOrganizer': '사진 출처: 각 축제 주최 측 누리집. 저작권은 각 주최 측에 있습니다.',
   'detail.food': '먹거리',
   'detail.program': '프로그램',
   'detail.lineup': '출연 라인업',
