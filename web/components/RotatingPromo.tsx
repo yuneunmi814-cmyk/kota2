@@ -56,7 +56,6 @@ export default function RotatingPromo({
   }, [slides.length, paused])
 
   if (slides.length === 0) return null
-  const cur = slides[i]!
 
   return (
     <section className="mx-auto max-w-6xl px-5 pb-16">
@@ -64,29 +63,39 @@ export default function RotatingPromo({
         <div className="grid items-stretch md:grid-cols-2">
           {/* 사진 — 넘어갈 때 부드럽게 교차 */}
           <div className="relative aspect-[16/10] md:aspect-auto md:min-h-[340px]">
+            {/* 사진과 이름표를 한 덩어리로 넘긴다.
+                전에는 사진만 0.7초에 걸쳐 교차되고 이름표·링크는 즉시 바뀌었다. 그 0.7초 동안
+                화면에 보이는 사진과 이름이 서로 다른 축제였고, 링크는 이름 쪽을 따라갔다 —
+                사진을 보고 누르면 엉뚱한 축제로 갔다(2026-08-23 점검, 30회 중 5회 어긋남).
+                이름표를 슬라이드 안으로 넣어 같은 투명도를 타게 하면 어긋날 수가 없다. */}
             {slides.map((s, n) => (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
+              <div
                 key={s.id}
-                src={s.image}
-                alt=""
-                loading={n === 0 ? 'eager' : 'lazy'}
                 aria-hidden={n !== i}
-                className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ${
-                  n === i ? 'opacity-100' : 'opacity-0'
+                className={`absolute inset-0 transition-opacity duration-700 ${
+                  n === i ? 'opacity-100' : 'pointer-events-none opacity-0'
                 }`}
-              />
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={s.image}
+                  alt=""
+                  loading={n === 0 ? 'eager' : 'lazy'}
+                  className="absolute inset-0 h-full w-full object-cover"
+                />
+                {/* 트립어드바이저가 @작성자를 놓는 자리 — 우리는 축제 이름과 배율 */}
+                <Link
+                  href={`/${lang}/festivals/${toSlug(s.id)}/`}
+                  tabIndex={n === i ? undefined : -1}
+                  className="absolute bottom-3 left-3 max-w-[calc(100%-1.5rem)] rounded-full bg-signal px-3 py-1.5 text-[12px] font-bold text-ink transition hover:bg-white"
+                >
+                  <span className="line-clamp-1">
+                    {s.lift ? `×${s.lift.toFixed(1)} · ` : ''}
+                    {s.name}
+                  </span>
+                </Link>
+              </div>
             ))}
-            {/* 트립어드바이저가 @작성자를 놓는 자리 — 우리는 축제 이름과 배율 */}
-            <Link
-              href={`/${lang}/festivals/${toSlug(cur.id)}/`}
-              className="absolute bottom-3 left-3 max-w-[calc(100%-1.5rem)] rounded-full bg-signal px-3 py-1.5 text-[12px] font-bold text-ink transition hover:bg-white"
-            >
-              <span className="line-clamp-1">
-                {cur.lift ? `×${cur.lift.toFixed(1)} · ` : ''}
-                {cur.name}
-              </span>
-            </Link>
           </div>
 
           {/* 말 — 초록 위 검정. 트립어드바이저와 같은 대비 */}

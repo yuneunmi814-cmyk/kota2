@@ -310,7 +310,7 @@ const en: Dict = {
   'consent.required': 'Please agree before sending.',
   'consent.more': 'Details',
   'foot.disclaimer': 'Dates and venues can change. Please check the official channel before you go.',
-  'foot.source': 'Source: ⓒKorea Tourism Organization Â· data.go.kr Â· local governments',
+  'foot.source': 'Source: ⓒKorea Tourism Organization · data.go.kr · local governments',
 }
 
 const ja: Dict = {
@@ -413,7 +413,7 @@ const ja: Dict = {
   'row.more': 'すべて見る',
   'detail.about': '概要',
   'detail.photos': '写真',
-  'detail.photos.src': 'åçåºå¸: ⓒéå½è¦³åå¬ç¤¾ï¼KOGLç¬¬3é¡åï¼åºå¸è¡¨ç¤ºã»å¤æ´ç¦æ­¢ï¼',
+  'detail.photos.src': '写真出典: ⓒ韓国観光公社（KOGL第3類型：出典表示・変更禁止）',
   'detail.food': 'グルメ',
   'detail.program': 'プログラム',
   'detail.lineup': '出演ラインナップ',
@@ -463,7 +463,7 @@ const ja: Dict = {
   'consent.required': '同意いただくと送信できます。',
   'consent.more': '詳しく',
   'foot.disclaimer': '日程・会場は主催者の都合で変更される場合があります。お出かけ前に公式情報をご確認ください。',
-  'foot.source': 'åºå¸: ⓒéå½è¦³åå¬ç¤¾ã»å¬å±ãã¼ã¿ãã¼ã¿ã«ã»åèªæ²»ä½',
+  'foot.source': '出典: ⓒ韓国観光公社・公共データポータル・各自治体',
 }
 
 const th: Dict = {
@@ -566,7 +566,7 @@ const th: Dict = {
   'row.more': 'ดูทั้งหมด',
   'detail.about': 'เกี่ยวกับ',
   'detail.photos': 'รูปภาพ',
-  'detail.photos.src': 'à¸à¸µà¹à¸¡à¸²à¸à¸­à¸à¸ à¸²à¸: ⓒà¸­à¸à¸à¹à¸à¸²à¸£à¸ªà¹à¸à¹à¸ªà¸£à¸´à¸¡à¸à¸²à¸£à¸à¹à¸­à¸à¹à¸à¸µà¹à¸¢à¸§à¹à¸à¸²à¸«à¸¥à¸µ (KOGL à¸à¸£à¸°à¹à¸ à¸ 3: à¸£à¸°à¸à¸¸à¸à¸µà¹à¸¡à¸² à¸«à¹à¸²à¸¡à¸à¸±à¸à¹à¸à¸¥à¸)',
+  'detail.photos.src': 'ที่มาของภาพ: ⓒองค์การส่งเสริมการท่องเที่ยวเกาหลี (KOGL ประเภท 3: ระบุที่มา ห้ามดัดแปลง)',
   'detail.food': 'อาหารและเครื่องดื่ม',
   'detail.program': 'โปรแกรม',
   'detail.lineup': 'ไลน์อัพศิลปิน',
@@ -580,7 +580,7 @@ const th: Dict = {
   'detail.less': 'ย่อ',
   'detail.share': 'แชร์',
   'detail.copied': 'คัดลอกลิงก์แล้ว',
-  'detail.source': 'ที่มา: องค์การส่งเสริมการท่องเที่ยวเกาหลี กระทรวงวัฒนธรรม และท้องถิ่น (ข้อมูลเปิด) รายละเอียดอาจเปลี่ยนแปลงหน้างาน',
+  'detail.source': 'ที่มา: ⓒองค์การส่งเสริมการท่องเที่ยวเกาหลี กระทรวงวัฒนธรรม และท้องถิ่น (ข้อมูลเปิด) รายละเอียดอาจเปลี่ยนแปลงหน้างาน',
   'detail.source.manual': 'ที่มา: เราตรวจสอบจากประกาศของผู้จัดงานโดยตรง ยังไม่มีในข้อมูลเปิดของเกาหลี กรุณาตรวจสอบกับผู้จัดงานอีกครั้งก่อนเดินทาง',
   'detail.booth.n': '{n} ร้าน',
   'detail.booth.past': 'ข้อมูลจากครั้งก่อน — เมนูและราคาปีนี้อาจเปลี่ยน',
@@ -616,7 +616,7 @@ const th: Dict = {
   'consent.required': 'กรุณายินยอมก่อนส่ง',
   'consent.more': 'รายละเอียด',
   'foot.disclaimer': 'วันและสถานที่อาจเปลี่ยนแปลงได้ กรุณาตรวจสอบกับผู้จัดก่อนเดินทาง',
-  'foot.source': 'à¸à¸µà¹à¸¡à¸²: ⓒà¸­à¸à¸à¹à¸à¸²à¸£à¸ªà¹à¸à¹à¸ªà¸£à¸´à¸¡à¸à¸²à¸£à¸à¹à¸­à¸à¹à¸à¸µà¹à¸¢à¸§à¹à¸à¸²à¸«à¸¥à¸µ Â· data.go.kr Â· à¸«à¸à¹à¸§à¸¢à¸à¸²à¸à¸à¹à¸­à¸à¸à¸´à¹à¸',
+  'foot.source': 'ที่มา: ⓒองค์การส่งเสริมการท่องเที่ยวเกาหลี · data.go.kr · หน่วยงานท้องถิ่น',
 }
 
 const DICTS: Record<Lang, Dict> = { ko, en, ja, th }
