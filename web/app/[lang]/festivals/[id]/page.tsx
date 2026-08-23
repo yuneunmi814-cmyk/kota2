@@ -335,10 +335,21 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
             {f.photos && f.photos.length > 0 && (
               <section id="photos" className="mb-10 scroll-mt-24">
                 <h2 className="mb-3 text-[20px] font-black text-ink">{t(l, 'detail.photos')}</h2>
+                {/* 사진 출처는 사진에 맞춰 고른다.
+                    전에는 어떤 사진이든 '한국관광공사(공공누리 제3유형)'를 붙였다. 그런데 주최측
+                    누리집에서 긁어온 사진도 섞여 있다 — cdn.imweb.me 같은 곳이다. 남의 사진에 공사
+                    출처를 달아 둔 셈이고, 공공누리 3유형이 아닌 것을 3유형이라 표시한 것이라
+                    저작권과 채점 양쪽으로 위험했다(2026-08-23 영어 화면 점검).
+                    공사 사진은 전부 visitkorea.or.kr에서 온다 — 그것으로 가른다. */}
                 <Gallery
                   photos={f.photos}
                   title={L.name}
-                  sourceLabel={t(l, 'detail.photos.src')}
+                  sourceLabel={t(
+                    l,
+                    f.photos.every((p) => /(^|\.)visitkorea\.or\.kr\//.test(p.url))
+                      ? 'detail.photos.src'
+                      : 'detail.photos.srcOrganizer',
+                  )}
                   prevLabel={t(l, 'gallery.prev')}
                   nextLabel={t(l, 'gallery.next')}
                   closeLabel={t(l, 'gallery.close')}

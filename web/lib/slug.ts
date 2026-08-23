@@ -28,4 +28,20 @@ export const toSlug = (externalId: string) => externalId.replace(':', '-')
 //
 // 옛 주소도 열리지만 페이지의 canonical은 항상 새 주소를 가리킨다 —
 // 검색엔진은 그걸 보고 하나로 합친다.
-export const fromSlug = (slug: string) => (slug.includes(':') ? slug : slug.replace('-', ':'))
+// 소스 이름은 이 넷뿐이다. 앞에서부터 맞춰 보는 이유는 아래 사고 때문이다.
+const SOURCES = ['tourapi', 'kfes', 'stdfest', 'manual'] as const
+
+export const fromSlug = (slug: string) => {
+  // 소스 이름으로 시작하면 그 뒤 첫 글자만 보면 된다.
+  //
+  // 전에는 '콜론이 들어 있으면 옛 주소'로 판단했다. 그런데 축제 **이름 자체에** 콜론이 든
+  // 것이 있었다 — `원도심골목길축제<여름:성안이즈백>`. 새 주소인데도 콜론이 보이니 옛 주소로
+  // 오해해 그대로 돌려줬고, 그 값은 DB의 id(`stdfest:원도심…`)와 달라 조회에 실패해 404가 났다.
+  // 목록에는 떠 있는데 누르면 없는 페이지가 나왔다(2026-08-23 영어 화면 점검에서 2건 발견).
+  for (const src of SOURCES) {
+    if (slug.startsWith(`${src}:`)) return slug                       // 옛 주소 — 그대로
+    if (slug.startsWith(`${src}-`)) return `${src}:${slug.slice(src.length + 1)}`
+  }
+  // 알 수 없는 접두사 — 예전 규칙으로 떨어뜨린다
+  return slug.includes(':') ? slug : slug.replace('-', ':')
+}
