@@ -12,6 +12,13 @@ export default function Header({ lang, path = '' }: { lang: Lang; path?: string 
   const clean = path.replace(/^\/+|\/+$/g, '')
   const calendarLabel =
     lang === 'ko' ? '축제 달력' : lang === 'ja' ? '祭りカレンダー' : lang === 'th' ? 'ปฏิทิน' : 'Calendar'
+  // 전체 목록 — 헤더에 입구가 없었다(BUG-02, 2026-08-23).
+  //
+  // 홈에서 목록으로 가는 길은 '지역으로 찾기' 섹션 제목이 통째로 링크인 것과, 검색창을
+  // 빈 채로 눌러 얻어걸리는 것 둘뿐이었다. 앞은 링크로 안 보이고 뒤는 우연이라, 둘 다
+  // 입구라고 부를 수 없다. 달력 옆이 자리다 — 달력과 목록은 같은 데이터의 두 가지 보기다.
+  const allLabel =
+    lang === 'ko' ? '축제 전체' : lang === 'ja' ? '祭り一覧' : lang === 'th' ? 'เทศกาลทั้งหมด' : 'All festivals'
   return (
     <header className="sticky top-0 z-30 border-b border-line bg-paper/90 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5">
@@ -20,6 +27,16 @@ export default function Header({ lang, path = '' }: { lang: Lang; path?: string 
         </Link>
 
         <nav className="flex items-center gap-1">
+          {/* 축제 전체 — 달력과 같은 규칙으로 좁은 화면에서는 아이콘만 남긴다 */}
+          <Link
+            href={`/${lang}/festivals/`}
+            aria-label={allLabel}
+            className="flex items-center gap-1.5 rounded-full px-3 py-2 text-[14px] font-bold text-muted transition hover:bg-paper-2 hover:text-brand"
+          >
+            <Icon name="search" size={16} />
+            <span className="hidden sm:inline">{allLabel}</span>
+          </Link>
+
           {/* 달력 — 모바일에서는 아이콘만 남긴다.
               전에는 아예 hidden이라 좁은 화면에서 달력에 갈 방법이 없었다(BUG-25).
               햄버거를 새로 만드는 것보다 아이콘 하나를 남기는 편이 눌리는 곳도 늘지 않고

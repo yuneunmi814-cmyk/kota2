@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { requestPosition } from '@/lib/geo'
 import Link from 'next/link'
 import { distanceKm, isAlwaysOn, localized, statusOf, type Festival } from '@/lib/festivals'
@@ -24,13 +24,64 @@ type State =
   | { k: 'timeout' }
   | { k: 'unsupported' }
 
+// 펼친 상태를 세션에 남긴다.
+//
+// 이 블록의 상태는 컴포넌트 메모리에만 있었다. 그래서 축제를 하나 열어보고 돌아오거나
+// 새로고침하면 매번 접힌 처음으로 되돌아갔고, 위치 허용도 다시 눌러야 했다(BUG-03, 2026-08-23).
+// 좌표까지 담는 이유는 그것이 '다시 묻지 않기' 위한 최소 조건이기 때문이다.
+//
+// sessionStorage다 — localStorage가 아니다. 위치는 탭을 닫으면 잊는 편이 맞고,
+// 다음에 다시 왔을 때 예전 좌표로 '내 주변'을 그리면 그건 틀린 화면이다.
+const SKEY = 'kota_nearby'
+
+type Saved = { coords: { lat: number; lng: number } } | null
+
+function loadSaved(): Saved {
+  try {
+    const raw = sessionStorage.getItem(SKEY)
+    if (!raw) return null
+    const v = JSON.parse(raw) as Saved
+    return v && typeof v.coords?.lat === 'number' && typeof v.coords?.lng === 'number' ? v : null
+  } catch {
+    return null // 스토리지가 막힌 브라우저(사파리 프라이빗 등)에서는 그냥 접힌 채로 시작한다
+  }
+}
+
 export default function NearbyBlock({ all, lang }: { all: Festival[]; lang: Lang }) {
   const [state, setState] = useState<State>({ k: 'idle' })
+
+  // 저장된 위치는 브라우저에만 있다. 서버가 그린 HTML과 어긋나지 않게 마운트한 뒤에,
+  // 그리는 것이 한 번 끝난 다음 프레임에 읽는다 — 같은 커밋 안에서 상태를 바꾸면
+  // 렌더가 연쇄로 한 번 더 돈다.
+  useEffect(() => {
+    const id = requestAnimationFrame(() => {
+      const saved = loadSaved()
+      if (saved) setState({ k: 'ok', coords: saved.coords })
+    })
+    return () => cancelAnimationFrame(id)
+  }, [])
 
   const ask = async () => {
     setState({ k: 'asking' })
     const r = await requestPosition()
-    setState(r.k === 'ok' ? { k: 'ok', coords: r.coords } : { k: r.k })
+    if (r.k === 'ok') {
+      setState({ k: 'ok', coords: r.coords })
+      try {
+        sessionStorage.setItem(SKEY, JSON.stringify({ coords: r.coords }))
+      } catch {
+        // 저장 못 해도 이번 화면은 그대로 쓴다
+      }
+    } else setState({ k: r.k })
+  }
+
+  // 접기 — 펼친 것을 되돌릴 방법이 화면에 없었다. 위치를 준 것도 같이 잊는다.
+  const collapse = () => {
+    try {
+      sessionStorage.removeItem(SKEY)
+    } catch {
+      // 지울 수 없어도 화면은 접는다
+    }
+    setState({ k: 'idle' })
   }
 
   if (state.k === 'unsupported') return null
@@ -115,12 +166,22 @@ export default function NearbyBlock({ all, lang }: { all: Festival[]; lang: Lang
               : t(lang, 'nearby.none', { r: RADIUS_KM })}
           </p>
         </div>
-        <Link
-          href={`/${lang}/festivals/?sort=distance&period=ongoing`}
-          className="hidden shrink-0 items-center gap-1 text-[14px] font-bold text-brand hover:underline sm:flex"
-        >
-          {t(lang, 'nearby.seeAll')} <Icon name="arrow" size={15} />
-        </Link>
+        <div className="flex shrink-0 items-center gap-3">
+          <Link
+            href={`/${lang}/festivals/?sort=distance&period=ongoing`}
+            className="hidden items-center gap-1 text-[14px] font-bold text-brand hover:underline sm:flex"
+          >
+            {t(lang, 'nearby.seeAll')} <Icon name="arrow" size={15} />
+          </Link>
+          {/* 접기 — 열었으면 닫을 수도 있어야 한다 */}
+          <button
+            type="button"
+            onClick={collapse}
+            className="rounded-full border border-line px-3 py-1.5 text-[13px] font-bold text-muted transition hover:border-brand/40 hover:text-brand"
+          >
+            {t(lang, 'nearby.collapse')}
+          </button>
+        </div>
       </div>
 
       {near.length > 0 && (

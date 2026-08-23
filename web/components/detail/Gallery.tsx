@@ -37,8 +37,16 @@ export default function Gallery({
     [photos.length],
   )
 
+  // 열려 있는지만 본다 — 몇 번째 사진인지는 보지 않는다.
+  //
+  // 전에는 이 효과가 open(사진 번호)에 걸려 있어서, 다음/이전을 누를 때마다 통째로 다시 돌았다.
+  // 정리 단계의 history.back()이 그때 같이 나가는데, 새로 등록된 popstate 리스너가 그걸 받아
+  // setOpen(null)을 불러 뷰어가 닫혔다 — 화살표를 누르면 사진이 넘어가는 대신 창이 사라졌다
+  // (BUG-06, 2026-08-23). 방문 기록에 얹는 칸은 '열림' 한 번에 하나여야 하므로 조건을 그것으로 좁힌다.
+  const isOpen = open !== null
+
   useEffect(() => {
-    if (open === null) return
+    if (!isOpen) return
 
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') history.back()
@@ -70,7 +78,7 @@ export default function Gallery({
       // popstate로 닫힌 경우에는 이미 브라우저가 걷어냈다 — 그때는 상태가 없다.
       if (history.state?.kotaLightbox) history.back()
     }
-  }, [open, go])
+  }, [isOpen, go])
 
   if (photos.length === 0) return null
 
