@@ -22,7 +22,17 @@ export default function Header({ lang, path = '' }: { lang: Lang; path?: string 
   return (
     <header className="sticky top-0 z-30 border-b border-line bg-paper/90 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5">
-        <Link href={`/${lang}/`} className="text-[21px] font-black tracking-tight text-brand">
+        {/* 축포 — 꼬깔에서 조각이 터져 나오는 표식.
+            글자만 있던 자리에 마크를 더한다. 이모지(🎉)를 쓰지 않는 이유는 기기·OS마다
+            다르게 그려져 로고 구실을 못 하기 때문이다. 인라인 SVG라 어디서나 같게 보인다. */}
+        <Link href={`/${lang}/`} className="flex items-center gap-2 text-[21px] font-black tracking-tight text-brand">
+          <svg viewBox="0 0 24 24" className="h-[22px] w-[22px] shrink-0" aria-hidden="true">
+            <path d="M2.6 21.4 9.4 9.2a1.1 1.1 0 0 1 1.7-.25l3.9 3.9a1.1 1.1 0 0 1-.25 1.7L2.6 21.4z" fill="currentColor" />
+            <circle cx="17.6" cy="6.4" r="2.5" fill="var(--color-signal)" />
+            <rect x="12.6" y="1.2" width="2.6" height="4.4" rx="1.3" transform="rotate(-24 13.9 3.4)" fill="var(--color-signal)" />
+            <rect x="19.8" y="9.4" width="4.4" height="2.6" rx="1.3" transform="rotate(-14 22 10.7)" fill="var(--color-signal)" />
+            <rect x="19.6" y="1.6" width="2.6" height="4" rx="1.3" transform="rotate(38 20.9 3.6)" fill="var(--color-signal)" />
+          </svg>
           KOTA
         </Link>
 

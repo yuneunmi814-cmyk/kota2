@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="KOTA">
+  <!-- 탭·북마크용. 배경을 딥그린으로 깔아야 밝은 브라우저 탭에서 형태가 산다.
+       꼬깔은 흰색으로 뒤집는다 — mark.svg를 그대로 쓰면 배경과 같은 색이라 사라진다. -->
+  <rect width="32" height="32" rx="7" fill="#002b11"/>
+  <path d="M6.4 25.6 15 10.2a1.4 1.4 0 0 1 2.2-.32l4.9 4.9a1.4 1.4 0 0 1-.32 2.2L6.4 25.6z" fill="#ffffff"/>
+  <circle cx="22.6" cy="9.4" r="3" fill="#00eb5b"/>
+  <rect x="16.6" y="3.4" width="3" height="5.2" rx="1.5" transform="rotate(-24 18.1 6)" fill="#00eb5b"/>
+  <rect x="25.2" y="13" width="5.2" height="3" rx="1.5" transform="rotate(-14 27.8 14.5)" fill="#00eb5b"/>
+</svg>

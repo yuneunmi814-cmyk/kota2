@@ -14,8 +14,52 @@ export function generateStaticParams() {
   return LANGS.map((lang) => ({ lang }))
 }
 
-export const metadata: Metadata = {
-  metadataBase: new URL(SITE_URL),
+// 공유 카드에 쓰는 문구 — 카카오톡·검색·SNS에서 링크 아래 붙는 줄이다.
+const SHARE: Record<Lang, { title: string; desc: string }> = {
+  ko: { title: 'KOTA — 전국 축제를 날짜와 위치로', desc: '지금 내 주변에서 열리는 축제까지. 한국어·영어·일본어·태국어로 봅니다.' },
+  en: { title: 'KOTA — Find Korean festivals by date and place', desc: 'Including what is on near you right now. Available in Korean, English, Japanese and Thai.' },
+  ja: { title: 'KOTA — 韓国のお祭りを日付と場所で', desc: '今いる場所の近くで開催中のお祭りも。韓国語・英語・日本語・タイ語で見られます。' },
+  th: { title: 'KOTA — ค้นหาเทศกาลเกาหลีตามวันที่และสถานที่', desc: 'รวมถึงเทศกาลที่กำลังจัดใกล้คุณตอนนี้ รองรับภาษาเกาหลี อังกฤษ ญี่ปุ่น และไทย' },
+}
+
+// 공유 카드와 파비콘.
+//
+// 왜 필요한가: 축제는 "같이 갈래?"로 퍼지는 물건이라 카카오톡 공유가 유입의 큰 몫이다.
+// 그런데 og:image가 없어서 지금까지 공유하면 회색 빈칸에 제목만 나갔다. 8/18에 공유가
+// 막히는 문제로 주소의 콜론까지 하이픈으로 바꿨는데, 정작 카드 그림이 비어 있었다.
+//
+// 파비콘도 Next.js 기본 아이콘이 그대로 남아 있어 탭·북마크에 남의 로고가 붙었다.
+export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
+  const { lang } = await params
+  const l: Lang = isLang(lang) ? lang : 'ko'
+  const s = SHARE[l]
+  return {
+    metadataBase: new URL(SITE_URL),
+    title: { default: s.title, template: '%s · KOTA' },
+    description: s.desc,
+    icons: {
+      icon: [
+        { url: '/icon.svg', type: 'image/svg+xml' },
+        { url: '/favicon.ico', sizes: '32x32' },
+      ],
+      apple: '/apple-icon.png',
+    },
+    openGraph: {
+      type: 'website',
+      siteName: 'KOTA',
+      locale: HTML_LANG[l].replace('-', '_'),
+      title: s.title,
+      description: s.desc,
+      url: `${SITE_URL}/${l}/`,
+      images: [{ url: '/og.png', width: 1200, height: 630, alt: 'KOTA' }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: s.title,
+      description: s.desc,
+      images: ['/og.png'],
+    },
+  }
 }
 
 export default async function LangLayout({
