@@ -243,7 +243,7 @@ export default function MonthCalendar({
                       <span
                         key={f.k}
                         title={f.n}
-                        className="block line-clamp-2 break-keep rounded-[4px] bg-brand px-1.5 py-[3px] text-[11px] font-semibold leading-[1.3] text-white"
+                        className="line-clamp-2 break-keep rounded-[4px] bg-brand px-1.5 py-[3px] text-[11px] font-semibold leading-[1.3] text-white"
                       >
                         {f.n}
                       </span>

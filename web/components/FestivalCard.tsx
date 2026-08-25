@@ -45,7 +45,11 @@ export default function FestivalCard({
       </div>
 
       <div className="p-4">
-        <div className="mb-1.5 flex items-center gap-2 text-[12px] font-semibold text-muted">
+        {/* 두 줄 자리를 늘 확보한다.
+            지역 줄만 두 줄로 늘렸더니 폭에 밀린 카드만 키가 14px 커져 같은 줄에서 밑선이
+            어긋났다. 가로 스크롤 줄이라 서로 맞춰지지도 않는다(2026-08-25 2차 검증).
+            늘 두 줄 높이를 잡아 두면 어느 카드나 키가 같다. */}
+        <div className="mb-1.5 flex min-h-[2.7em] items-start gap-2 text-[12px] font-semibold leading-[1.35] text-muted">
           {/* 지역 줄은 두 줄까지 허용한다.
               한 줄 고정(truncate)이라 영어에서는 대부분 잘렸다 — 'Changnyeong,
               Gyeongsangnam-do'는 208px가 필요한데 칸이 126px뿐이라 도(道)가 아예
