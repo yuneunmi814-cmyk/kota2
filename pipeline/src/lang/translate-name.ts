@@ -174,7 +174,16 @@ export function translateFestivalName(name: string): NameTranslation {
       return `${p.ja}（${kana}）`
     })
     .filter(Boolean)
-    .join('')
+    // 일본어는 낱말을 붙여 쓰지만 로마자끼리는 띄어야 한다.
+    //
+    // 통째로 join('')하니 'Asia Top Artist Festival'이 'AsiaTopArtistFestival'로,
+    // 'MADLY MEDLEY'가 'MADLYMEDLEY'로 붙었다(2026-08-23 점검). 앞뒤가 모두
+    // 라틴 문자·숫자일 때만 공백을 넣는다 — 한자·가나 사이에 공백을 넣으면 그게 어색하다.
+    .reduce((acc: string, cur: string) => {
+      if (!acc) return cur
+      const needSpace = /[A-Za-z0-9]$/.test(acc) && /^[A-Za-z0-9]/.test(cur)
+      return acc + (needSpace ? ' ' : '') + cur
+    }, '')
   const ja = [year, ordinal ? `第${ordinal}回` : '', jaBody].filter(Boolean).join(' ').trim()
 
   // 태국어 — 핵심어(행사유형)를 맨 앞에 두고 수식어를 뒤에 붙인 뒤 지명을 띄어 쓴다.
@@ -184,12 +193,21 @@ export function translateFestivalName(name: string): NameTranslation {
     const places = parts.filter((p) => p.isPlace && p.th)
     const trailing = parts.filter((p) => p.isTrailing && p.th)
     const core = parts.filter((p) => !p.isEvent && !p.isPlace && !p.isTrailing && p.th)
-    // 행사유형이 없으면 원래 순서를 지킨다(조어·시적인 이름)
+    // 행사유형이 없으면 원래 순서를 지킨다(조어·시적인 이름).
+    //
+    // 단 지명은 빼고 이어붙인다. 전에는 parts를 통째로 썼는데 그 안에 이미 지명이 들어
+    // 있었고, 아래 tail에서 같은 지명을 한 번 더 붙였다. 448개 중 56개(12.5%)가
+    // 'ย็องท็อก … ย็องท็อก'처럼 도시명을 두 번 달고 나왔다(2026-08-23 점검).
+    // 제목이 길어져 달력 칩이 잘리는 원인이기도 했다.
     const phrase = events.length
       ? [...events, ...core, ...trailing].map((p) => p.th).join('')
-      : parts.map((p) => p.th).filter(Boolean).join(' ')
+      : [...core, ...trailing].map((p) => p.th).filter(Boolean).join(' ')
     const tail = places.map((p) => p.th).join(' ')
-    return [ordinal ? `ครั้งที่ ${ordinal}` : '', phrase, tail, year].filter(Boolean).join(' ').trim()
+    // 회차는 뒤에 붙인다.
+    //
+    // 태국어는 「ครั้งที่ N」을 이름 뒤에 둔다. 앞에 놓으면 '제14회'를 그대로 옮긴 티가 난다.
+    // 46건이 앞, 4건이 뒤로 갈려 한 목록 안에서 두 방식이 섞여 있었다.
+    return [phrase, tail, ordinal ? `ครั้งที่ ${ordinal}` : '', year].filter(Boolean).join(' ').trim()
   })()
 
   return { en, ja, th, coverage: hangulTotal === 0 ? 1 : covered / hangulTotal }
