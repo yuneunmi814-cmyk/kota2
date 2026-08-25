@@ -26,7 +26,10 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
   const { lang } = await params
   const l: Lang = isLang(lang) ? lang : 'ko'
-  const n = (await allFestivals()).length
+  // 화면에서 실제로 볼 수 있는 수만 센다.
+  // 전체 길이를 쓰면 끝난 축제까지 세어 홈은 519곳을 약속하는데 목록에는 495곳뿐이었다.
+  // 숫자가 어긋나면 데이터 신뢰도로 바로 이어진다(2026-08-23 점검).
+  const n = (await allFestivals()).filter((f) => statusOf(f) !== 'ended').length
   return {
     title: `KOTA — ${t(l, 'brand.tagline')}`,
     description: t(l, 'home.sub', { n }),
@@ -123,7 +126,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
             {t(l, 'home.headline')}
           </h1>
           <p className="mx-auto mt-5 max-w-xl text-[16px] text-muted sm:text-[17px]">
-            {t(l, 'home.sub', { n: all.length })}
+            {t(l, 'home.sub', { n: all.filter((f) => statusOf(f) !== 'ended').length })}
           </p>
           <div className="mt-9">
             <SearchBar lang={l} />

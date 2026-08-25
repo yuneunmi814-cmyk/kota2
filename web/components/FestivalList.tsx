@@ -296,10 +296,18 @@ export default function FestivalList({
       const [sat, sun] = thisWeekend()
       base = base.filter((f) => f.s <= sun && f.e >= sat && !f.al)
     } else if (typeof period === 'number') base = base.filter((f) => f.m.includes(period) && !f.al)
+    // 검색어도 반영한다.
+    //
+    // 전에는 시기만 보고 세서, 검색 결과가 0건인데도 지역 칩은 「서울 82」를 그대로 달고
+    // 있었다. 바로 위에 「축제 0곳」이 떠 있는데 아래에서 82를 약속하니 어느 쪽을 믿어야
+    // 할지 알 수 없었다. 테마 칩(baseForTheme)은 이미 검색어를 반영하고 있어 두 줄이
+    // 서로 다른 규칙을 따르고 있었다(2026-08-23 점검).
+    const needle = q.trim().toLowerCase()
+    if (needle) base = base.filter((f) => `${f.n} ${f.p ?? ''}`.toLowerCase().includes(needle))
     const m = new Map<string, number>()
     for (const f of base) if (f.sd) m.set(f.sd, (m.get(f.sd) ?? 0) + 1)
     return [...m.entries()].map(([sido, count]) => ({ sido, count })).sort((a, b) => b.count - a.count)
-  }, [items, period])
+  }, [items, period, q])
 
   // 테마 칩의 근거가 되는 목록 — 테마만 빼고 지금 걸린 조건을 전부 적용한 것.
   const baseForTheme = useMemo(() => {
@@ -347,6 +355,9 @@ export default function FestivalList({
       on.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'auto' })
     }
   }, [ready, period, region, sido, theme])
+
+  // 걸어둔 필터가 하나라도 있는가 — 0건 안내 문구를 고르는 데 쓴다
+  const hasFilters = period !== 'all' || !!region || !!sido || !!theme || graded
 
   const chip = (on: boolean) =>
     `shrink-0 rounded-full border px-4 py-2 text-[13px] font-bold transition ${
@@ -497,13 +508,24 @@ export default function FestivalList({
 
       {list.length === 0 ? (
         <p className="rounded-[var(--radius-card)] border border-line bg-surface px-6 py-16 text-center text-[15px] text-muted">
-          {lang === 'ko'
-            ? '조건에 맞는 축제가 없어요. 필터를 하나 풀어보세요.'
-            : lang === 'ja'
-              ? '条件に合う祭りがありません。条件を一つ外してみてください。'
-              : lang === 'th'
-                ? 'ไม่พบเทศกาลตามเงื่อนไข ลองปลดตัวกรองสักหนึ่งข้อ'
-                : 'Nothing matches. Try removing one filter.'}
+          {/* 왜 0건인지에 따라 다른 말을 한다.
+              검색어만 넣어 0건이 된 사람에게 "필터를 풀어보라"고 하면, 풀 필터가 없어서
+              무엇을 하라는 말인지 알 수 없다(2026-08-23 점검). */}
+          {q.trim() && !hasFilters
+            ? lang === 'ko'
+              ? `'${q.trim()}'에 맞는 축제가 없어요. 다른 말로 찾아보시겠어요?`
+              : lang === 'ja'
+                ? `「${q.trim()}」に一致する祭りがありません。別の言葉で探してみてください。`
+                : lang === 'th'
+                  ? `ไม่พบเทศกาลที่ตรงกับ "${q.trim()}" ลองใช้คำอื่นดูไหม`
+                  : `No festivals match "${q.trim()}". Try another word?`
+            : lang === 'ko'
+              ? '조건에 맞는 축제가 없어요. 필터를 하나 풀어보세요.'
+              : lang === 'ja'
+                ? '条件に合う祭りがありません。条件を一つ外してみてください。'
+                : lang === 'th'
+                  ? 'ไม่พบเทศกาลตามเงื่อนไข ลองปลดตัวกรองสักหนึ่งข้อ'
+                  : 'Nothing matches. Try removing one filter.'}
         </p>
       ) : (
         <>

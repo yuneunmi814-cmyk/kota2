@@ -96,7 +96,16 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
 
   const nearby = hasCoords
     ? (await allFestivals())
-        .filter((x) => x.externalId !== f.externalId && x.lat != null && x.lng != null && statusOf(x) !== 'ended' && !isAlwaysOn(x))
+        // 같은 축제의 다른 회차도 뺀다.
+        //
+        // externalId만 보면 '거제맥주축제'(8/23)의 근처 목록에 '거제맥주축제'(9/11)가 들어왔다.
+        // 「다른 축제」라고 해놓고 같은 이름을 보여주니 쓰는 사람 눈에는 중복이다(2026-08-23 점검).
+        .filter(
+          (x) =>
+            x.externalId !== f.externalId &&
+            x.name.replace(/\s+/g, '') !== f.name.replace(/\s+/g, '') &&
+            x.lat != null && x.lng != null && statusOf(x) !== 'ended' && !isAlwaysOn(x),
+        )
         .map((x) => ({ x, km: distanceKm({ lat: f.lat as number, lng: f.lng as number }, { lat: x.lat as number, lng: x.lng as number }) }))
         .filter((o) => o.km <= 30)
         .sort((a, b) => a.km - b.km)
@@ -366,7 +375,7 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
                     {t(l, 'detail.food')}
                   </h2>
                   <span className="text-[13px] text-hint">
-                    {t(l, 'detail.booth.n', { n: boothCount })} · {t(l, 'detail.menu.n', { n: menuCount })}
+                    {t(l, boothCount === 1 ? 'detail.booth.n1' : 'detail.booth.n', { n: boothCount })} · {t(l, menuCount === 1 ? 'detail.menu.n1' : 'detail.menu.n', { n: menuCount })}
                   </span>
                 </div>
                 {f.boothsFromPastEdition && (
