@@ -383,8 +383,12 @@ export default function FestivalList({
         />
       </div>
 
-      {/* 1축 — 시기. 축제는 '언제'가 먼저다 */}
-      <div data-chip-row className="-mx-5 mb-3 chip-row flex gap-2 overflow-x-auto px-5 pb-1 no-scrollbar sm:[scrollbar-width:thin] sm:[&::-webkit-scrollbar]:h-1.5">
+      {/* 1축 — 시기. 축제는 '언제'가 먼저다.
+          넓은 화면에서는 줄을 감싼다. 칩이 16개(전체·진행중·주말 + 12달)라 한 줄에 안 들어가는데,
+          no-scrollbar가 붙어 있어 마우스로는 밀 수단이 없었다 — 마지막 달을 아예 누를 수 없었다.
+          영어 'Dec'는 59px 중 58px이 가려졌고 태국어는 약칭으로 줄인 뒤에도 12월이 안 잡혔다
+          (2026-08-25 실측). 좁은 화면은 원래 가로로 넘기는 UI라 그대로 둔다. */}
+      <div data-chip-row className="-mx-5 mb-3 chip-row flex gap-2 overflow-x-auto px-5 pb-1 no-scrollbar sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0">
         <button data-chip-on={period === 'all' ? '1' : undefined} className={chip(period === 'all')} onClick={() => setPeriod('all')}>
           {lang === 'ko' ? '전체' : lang === 'ja' ? 'すべて' : lang === 'th' ? 'ทั้งหมด' : 'All'}
         </button>
@@ -406,7 +410,7 @@ export default function FestivalList({
       </div>
 
       {/* 2축 — 지역. 권역을 먼저 고르고, 고른 권역 안에서만 시·도로 좁힌다 */}
-      <div data-chip-row className="-mx-5 mb-3 chip-row flex gap-2 overflow-x-auto px-5 pb-1 no-scrollbar sm:[scrollbar-width:thin] sm:[&::-webkit-scrollbar]:h-1.5">
+      <div data-chip-row className="-mx-5 mb-3 chip-row flex gap-2 overflow-x-auto px-5 pb-1 no-scrollbar">
         <button
           data-chip-on={!region ? '1' : undefined}
           className={chip(!region)}
@@ -438,7 +442,7 @@ export default function FestivalList({
 
       {/* 고른 권역 안의 시·도 — 부산·제주처럼 그 자체가 목적지인 곳이 권역에 묻히지 않게 */}
       {subSidos.length > 1 && (
-        <div data-chip-row className="-mx-5 mb-3 chip-row flex gap-2 overflow-x-auto px-5 pb-1 no-scrollbar sm:[scrollbar-width:thin] sm:[&::-webkit-scrollbar]:h-1.5">
+        <div data-chip-row className="-mx-5 mb-3 chip-row flex gap-2 overflow-x-auto px-5 pb-1 no-scrollbar">
           <button data-chip-on={!sido ? '1' : undefined} className={subChip(!sido)} onClick={() => setSido(null)}>
             {lang === 'ko' ? '전체' : lang === 'ja' ? 'すべて' : lang === 'th' ? 'ทั้งหมด' : 'All'}
           </button>
@@ -451,7 +455,7 @@ export default function FestivalList({
       )}
 
       {/* 3축 — 목적 */}
-      <div data-chip-row className="-mx-5 mb-6 chip-row flex gap-2 overflow-x-auto px-5 pb-1 no-scrollbar sm:[scrollbar-width:thin] sm:[&::-webkit-scrollbar]:h-1.5">
+      <div data-chip-row className="-mx-5 mb-6 chip-row flex gap-2 overflow-x-auto px-5 pb-1 no-scrollbar">
         {/* 테마를 푸는 칩. 시기·지역 줄에는 '전체'가 있는데 여기만 없어서, 한 번 고르면
             같은 칩을 다시 누르는 것 말고는 해제할 방법이 화면에 없었다(BUG-16) */}
         <button data-chip-on={!theme ? '1' : undefined} className={chip(!theme)} onClick={() => setTheme(null)}>
@@ -558,7 +562,7 @@ export default function FestivalList({
                         목록은 카드 컴포넌트를 쓰지 않고 마크업이 여기 따로 있어서,
                         8/25 수정이 홈·상세에만 닿고 정작 카드가 제일 많은 이 화면은
                         그대로였다(2026-08-25 2차 검증에서 네 언어 모두 지적). */}
-                    <span className="line-clamp-2 leading-[1.35]">{f.p}</span>
+                    <span className="line-clamp-2 min-w-0 flex-1 leading-[1.35]">{f.p}</span>
                     {km != null && (
                       <span className="shrink-0 font-bold text-brand-400">
                         {km < 10 ? km.toFixed(1) : Math.round(km)}km

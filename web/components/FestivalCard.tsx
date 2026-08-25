@@ -53,8 +53,13 @@ export default function FestivalCard({
           {/* 지역 줄은 두 줄까지 허용한다.
               한 줄 고정(truncate)이라 영어에서는 대부분 잘렸다 — 'Changnyeong,
               Gyeongsangnam-do'는 208px가 필요한데 칸이 126px뿐이라 도(道)가 아예
-              안 보였다(2026-08-23 점검). 어느 도인지 못 읽으면 지역 줄의 몫이 없다. */}
-          <span className="line-clamp-2 leading-[1.35]">{L.placeName}</span>
+              안 보였다(2026-08-23 점검). 어느 도인지 못 읽으면 지역 줄의 몫이 없다.
+
+              min-w-0 flex-1 이 함께 있어야 한다 — flex 자식의 기본 min-width 는 auto 라
+              옆의 shrink-0 형제(방문객 배지·거리)가 자리를 먼저 가져가면 이 칸이 0px 로
+              눌린다. 그러면 글자는 한 자도 안 보이면서 두 줄 높이만 차지한다.
+              (2026-08-25 verify-ko 실측: 폭 0px, 카드 키만 280px 로 튐) */}
+          <span className="line-clamp-2 min-w-0 flex-1 leading-[1.35]">{L.placeName}</span>
           {f.visitorLift != null && f.visitorLift >= 2 && (
             <span className="shrink-0 rounded-full bg-brand-50 px-1.5 py-0.5 text-[10px] font-bold text-brand" title={t(lang, 'lift.note')}>
               {t(lang, 'lift.label', { x: f.visitorLift.toFixed(1) })}
