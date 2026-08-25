@@ -46,7 +46,11 @@ export default function FestivalCard({
 
       <div className="p-4">
         <div className="mb-1.5 flex items-center gap-2 text-[12px] font-semibold text-muted">
-          <span className="truncate">{L.placeName}</span>
+          {/* 지역 줄은 두 줄까지 허용한다.
+              한 줄 고정(truncate)이라 영어에서는 대부분 잘렸다 — 'Changnyeong,
+              Gyeongsangnam-do'는 208px가 필요한데 칸이 126px뿐이라 도(道)가 아예
+              안 보였다(2026-08-23 점검). 어느 도인지 못 읽으면 지역 줄의 몫이 없다. */}
+          <span className="line-clamp-2 leading-[1.35]">{L.placeName}</span>
           {f.visitorLift != null && f.visitorLift >= 2 && (
             <span className="shrink-0 rounded-full bg-brand-50 px-1.5 py-0.5 text-[10px] font-bold text-brand" title={t(lang, 'lift.note')}>
               {t(lang, 'lift.label', { x: f.visitorLift.toFixed(1) })}
@@ -59,7 +63,13 @@ export default function FestivalCard({
           )}
         </div>
 
-        <h3 className="mb-1.5 line-clamp-2 text-[16px] font-bold leading-snug text-ink">{L.name}</h3>
+        {/* 제목은 세 줄까지.
+            두 줄 고정이라 긴 이름이 3분의 1만 보였다 — 한국 축제명은 '제N회'와 후원사가
+            앞에 붙어 길고, 영어로 옮기면 더 길어진다. 정작 축제를 구분하는 고유명은
+            뒤쪽에 있어서 앞 두 줄만으로는 어떤 축제인지 알 수 없었다.
+            태국어는 낱말 사이에 공백이 없어 브라우저가 아무 데서나 끊는다 —
+            음차어가 글자 단위로 쪼개지지 않도록 break-keep을 함께 건다. */}
+        <h3 className="mb-1.5 line-clamp-3 break-keep text-[16px] font-bold leading-snug text-ink">{L.name}</h3>
 
         <p className="text-[13px] tabular-nums text-hint">
           {always ? t(lang, 'status.always') : `${fmt(f.startDate)} – ${fmt(f.endDate)}`}

@@ -234,13 +234,16 @@ export default function MonthCalendar({
                   </span>
 
                   {/* 넓은 화면 — 그날 시작하는 축제의 이름 */}
-                  {/* 구글 캘린더의 이벤트 막대 — 셀 폭을 꽉 채우고 한 줄로 자른다.
-                      '더 있음'은 +N으로, 구글의 '+3 more'와 같은 자리다. */}
+                  {/* 구글 캘린더의 이벤트 막대 — 셀 폭을 꽉 채운다. '더 있음'은 +N.
+                      한 줄로 자르던 것을 두 줄까지 허용한다. 칸이 123px인데 영어 이름은
+                      그보다 훨씬 길어 8월 20개 칸이 전부 잘렸다 — 달력에서 어떤 축제인지
+                      하나도 못 읽었다(2026-08-23 점검). 그래도 넘치면 title로 전체를 본다. */}
                   <span className="mt-1 hidden flex-col gap-[2px] sm:flex">
                     {d.starting.slice(0, 2).map((f) => (
                       <span
                         key={f.k}
-                        className="block truncate rounded-[4px] bg-brand px-1.5 py-[3px] text-[11px] font-semibold leading-[1.3] text-white"
+                        title={f.n}
+                        className="block line-clamp-2 break-keep rounded-[4px] bg-brand px-1.5 py-[3px] text-[11px] font-semibold leading-[1.3] text-white"
                       >
                         {f.n}
                       </span>
