@@ -4,6 +4,7 @@ import { DEFAULT_LANG, type Lang } from './i18n'
 import { fetchLive, fetchLiveStdfest, fetchLiveKfes } from './tourapi-live'
 import { classifyThemes } from './classify-themes'
 import { daysBetween, festivalStatus, todayKst, type FestivalStatus } from './date'
+import { externalIdsToSlugs } from './festival-routes'
 
 // 축제 데이터 접근 — Supabase에서 읽는다.
 //
@@ -459,6 +460,47 @@ const SELECT = '*, festival_translations(*), festival_photos(*)'
 // 60초면 충분하다.
 const TTL = 60_000
 let cached: { at: number; rows: Promise<Festival[]> } | null = null
+
+// 경로 생성과 사이트맵에는 상세·번역·사진·실시간 보정이 필요 없다.
+// ID만 읽는 작은 조회를 따로 두어 외부 API 장애가 공개 경로 목록까지 흔들지 않게 한다.
+const SLUG_TTL = 3_600_000
+let slugCached: { at: number; rows: Promise<string[]> } | null = null
+
+export function listFestivalSlugs(): Promise<string[]> {
+  if (slugCached && Date.now() - slugCached.at < SLUG_TTL) return slugCached.rows
+
+  const rows = (async () => {
+    const CHUNK = 1_000
+    const ATTEMPTS = 3
+    const ids: string[] = []
+
+    for (let from = 0; ; from += CHUNK) {
+      let page: Array<{ id: string }> | null = null
+      for (let i = 1; i <= ATTEMPTS; i++) {
+        const { data, error } = await supabase
+          .from('festivals')
+          .select('id')
+          .order('id')
+          .range(from, from + CHUNK - 1)
+        if (!error) {
+          page = data as Array<{ id: string }>
+          break
+        }
+        if (i === ATTEMPTS) throw new Error(`축제 경로 조회 실패(${from}~, ${ATTEMPTS}회): ${String(error.message).slice(0, 120)}`)
+        await new Promise((r) => setTimeout(r, 400 * i))
+      }
+      if (!page || page.length === 0) break
+      ids.push(...page.map((row) => row.id))
+      if (page.length < CHUNK) break
+    }
+
+    return externalIdsToSlugs(ids)
+  })()
+
+  rows.catch(() => { if (slugCached?.rows === rows) slugCached = null })
+  slugCached = { at: Date.now(), rows }
+  return rows
+}
 
 export function allFestivals(): Promise<Festival[]> {
   if (cached && Date.now() - cached.at < TTL) return cached.rows

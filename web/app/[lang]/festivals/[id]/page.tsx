@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound, permanentRedirect } from 'next/navigation'
-import { allFestivals, distanceKm, feeKind, findByKey, isAlwaysOn, isLongRun, isPublicData, localized, regionRank, statusOf } from '@/lib/festivals'
+import { allFestivals, distanceKm, feeKind, findByKey, isAlwaysOn, isLongRun, isPublicData, listFestivalSlugs, localized, regionRank, statusOf } from '@/lib/festivals'
 import { toSlug } from '@/lib/slug'
 import { festivalRoutePath, resolveFestivalRoute } from '@/lib/festival-routes'
 import { LANGS, SITE_URL, isLang, type Lang } from '@/lib/i18n'
@@ -37,7 +37,7 @@ export const revalidate = 3600
 //   평점 자리에 공공 데이터로 만든 근거가 들어간다.
 
 export async function generateStaticParams() {
-  const ids = (await allFestivals()).map((f) => toSlug(f.externalId))
+  const ids = await listFestivalSlugs()
   return LANGS.flatMap((lang) => ids.map((id) => ({ lang, id })))
 }
 

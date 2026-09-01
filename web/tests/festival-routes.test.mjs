@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { festivalRoutePath, resolveFestivalRoute } from '../lib/festival-routes.ts'
+import { externalIdsToSlugs, festivalRoutePath, resolveFestivalRoute } from '../lib/festival-routes.ts'
 
 const festivals = new Map([
   ['stdfest:제22회제천국제음악영화제-2026-09-03', { externalId: 'stdfest:제22회제천국제음악영화제-2026-09-03', name: '제22회 제천국제음악영화제' }],
@@ -37,4 +37,11 @@ test('한글이 든 현재 주소를 HTTP Location 헤더에 안전한 형태로
 
 test('현재 데이터와 별칭에 모두 없는 주소는 찾지 못한다', async () => {
   assert.equal(await resolveFestivalRoute('kfes-does-not-exist', find), null)
+})
+
+test('경로 목록은 상세 데이터 없이 externalId만 slug로 바꾼다', () => {
+  assert.deepEqual(
+    externalIdsToSlugs(['tourapi:506523', 'manual:jimff-2026']),
+    ['tourapi-506523', 'manual-jimff-2026'],
+  )
 })

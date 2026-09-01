@@ -31,6 +31,10 @@ export function festivalRoutePath(lang: string, canonicalSlug: string): string {
   return `/${lang}/festivals/${encodeURIComponent(canonicalSlug)}/`
 }
 
+export function externalIdsToSlugs(externalIds: readonly string[]): string[] {
+  return externalIds.map(toSlug)
+}
+
 export async function resolveFestivalRoute<T extends { externalId: string }>(
   slug: string,
   findByExternalId: (externalId: string) => Promise<T | undefined>,
