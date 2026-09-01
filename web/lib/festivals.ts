@@ -516,7 +516,9 @@ export function allFestivals(): Promise<Festival[]> {
     // 빌드 밖에서 같은 쿼리를 아홉 번 동시에 던지면 아홉 번 다 성공한다. Supabase나 쿼리의
     // 문제가 아니라 한 응답이 큰 것이 문제라, 조각으로 나눠 받는다. 요청 수는 늘지만 모듈
     // 캐시 덕에 워커당 한 번뿐이고, 조각마다 재시도가 붙어 한 조각이 잘려도 살아난다.
-    const CHUNK = 150
+    // 축제 수와 번역·사진이 늘면서 150건 응답도 빌드 중 잘리기 시작했다(2026-09-01).
+    // 한 요청의 본문을 절반 수준으로 낮춰 워커 9개가 동시에 읽어도 파싱 여유를 둔다.
+    const CHUNK = 75
     const ATTEMPTS = 3
     const out: Row[] = []
     for (let from = 0; ; from += CHUNK) {
