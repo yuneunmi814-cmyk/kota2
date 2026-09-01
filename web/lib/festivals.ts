@@ -3,6 +3,7 @@ import { supabase } from './supabase'
 import { DEFAULT_LANG, type Lang } from './i18n'
 import { fetchLive, fetchLiveStdfest, fetchLiveKfes } from './tourapi-live'
 import { classifyThemes } from './classify-themes'
+import { daysBetween, festivalStatus, todayKst, type FestivalStatus } from './date'
 
 // 축제 데이터 접근 — Supabase에서 읽는다.
 //
@@ -206,7 +207,7 @@ async function overlayLive(rows: Row[]): Promise<Festival[]> {
   const [live, std, kfes] = await Promise.all([fetchLive(), fetchLiveStdfest(), fetchLiveKfes()])
   if (live.length === 0 && std.length === 0 && kfes.length === 0) return base // 셋 다 실패 — DB 그대로
 
-  const today = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10)
+  const today = todayKst()
   const byId = new Map(live.map((l) => [l.contentId, l]))
   const byStd = new Map(std.map((l) => [l.key, l]))
   const byKfes = new Map(kfes.map((l) => [l.contentId, l]))
@@ -483,6 +484,10 @@ export function allFestivals(): Promise<Festival[]> {
           .from('festivals')
           .select(SELECT)
           .order('start_date')
+          // 같은 날 시작하는 축제가 많다. start_date만으로 페이지를 나누면 동점 행의
+          // 순서가 요청마다 달라져 어떤 워커에서는 행이 빠지고 다른 행이 중복될 수 있다.
+          // PK를 두 번째 기준으로 고정해 모든 빌드 워커가 같은 목록을 읽게 한다.
+          .order('id')
           .range(from, from + CHUNK - 1)
         if (!error) {
           page = data as unknown as Row[]
@@ -547,15 +552,10 @@ export function isAlwaysOn(f: Festival): boolean {
   return new Date(f.endDate).getTime() - new Date(f.startDate).getTime() >= 300 * DAY
 }
 
-export type Status = 'ongoing' | 'upcoming' | 'ended'
+export type Status = FestivalStatus
 
-export function statusOf(f: Festival, today = new Date()): Status {
-  const t = new Date(today.toISOString().slice(0, 10)).getTime()
-  const s = new Date(f.startDate).getTime()
-  const e = new Date(f.endDate).getTime()
-  if (t < s) return 'upcoming'
-  if (t > e) return 'ended'
-  return 'ongoing'
+export function statusOf(f: Festival, today = todayKst()): Status {
+  return festivalStatus(f.startDate, f.endDate, today)
 }
 
 /** 축제가 걸쳐 있는 달(1~12) — 월별 필터는 kfes에 있고 우리에겐 없던 축이다 */
@@ -611,13 +611,10 @@ export async function regionRank(f: Festival): Promise<{ rank: number; total: nu
  */
 export type DayBadge = { kind: 'endsToday' | 'countdown' | 'ongoing'; days?: number } | null
 
-export function dayBadge(f: Festival, today = new Date()): DayBadge {
+export function dayBadge(f: Festival, today = todayKst()): DayBadge {
   if (isAlwaysOn(f)) return null
-  const t = new Date(today.toISOString().slice(0, 10)).getTime()
-  const s = new Date(f.startDate).getTime()
-  const e = new Date(f.endDate).getTime()
-  if (t > e) return null
-  if (t >= s) return e === t ? { kind: 'endsToday' } : { kind: 'ongoing' }
-  const days = Math.round((s - t) / DAY)
+  if (today > f.endDate) return null
+  if (today >= f.startDate) return f.endDate === today ? { kind: 'endsToday' } : { kind: 'ongoing' }
+  const days = daysBetween(today, f.startDate)
   return days <= 14 ? { kind: 'countdown', days } : null
 }

@@ -13,6 +13,7 @@ import Icon from './Icon'
 import Poster from './Poster'
 import DayBadgeChip from './DayBadge'
 import { toSlug } from '@/lib/slug'
+import { weekendRange } from '@/lib/date'
 
 // 축제 목록 — 시기 × 지역 × 목적 3축 필터와 3정렬.
 //
@@ -30,14 +31,7 @@ const fmt = (d: string) => d.slice(5).replace('-', '.')
 
 /** 이번 주말(토·일) — 오늘이 일요일이면 오늘, 아니면 돌아오는 토·일. 홈 배너와 같은 규칙 */
 function thisWeekend(): [string, string] {
-  const now = Date.now()
-  const day = 86_400_000
-  const dow = new Date().getUTCDay()
-  const off = dow === 0 ? 0 : 6 - dow
-  return [
-    new Date(now + off * day).toISOString().slice(0, 10),
-    new Date(now + (off + (dow === 0 ? 0 : 1)) * day).toISOString().slice(0, 10),
-  ]
+  return weekendRange()
 }
 
 export default function FestivalList({

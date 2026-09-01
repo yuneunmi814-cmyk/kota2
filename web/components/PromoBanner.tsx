@@ -3,6 +3,7 @@ import type { Festival } from '@/lib/festivals'
 import { localized } from '@/lib/festivals'
 import type { Lang } from '@/lib/i18n'
 import { t } from '@/lib/ui'
+import { todayKst } from '@/lib/date'
 
 // 홈 중앙 프로모션 띠 — 트립어드바이저 홈의 초록 배너 자리.
 //
@@ -19,7 +20,7 @@ import { t } from '@/lib/ui'
 // 색은 우리 딥그린으로 간다.
 
 export default function PromoBanner({ all, lang }: { all: Festival[]; lang: Lang }) {
-  const today = new Date().toISOString().slice(0, 10)
+  const today = todayKst()
   const graded = all.filter((f) => f.category === 'MF' && f.endDate >= today)
   if (graded.length < 3) return null
 

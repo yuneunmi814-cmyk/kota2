@@ -1,8 +1,9 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
+import { notFound, permanentRedirect } from 'next/navigation'
 import { allFestivals, distanceKm, feeKind, findByKey, isAlwaysOn, isLongRun, isPublicData, localized, regionRank, statusOf } from '@/lib/festivals'
-import { fromSlug, toSlug } from '@/lib/slug'
+import { toSlug } from '@/lib/slug'
+import { festivalRoutePath, resolveFestivalRoute } from '@/lib/festival-routes'
 import { LANGS, SITE_URL, isLang, type Lang } from '@/lib/i18n'
 import { t } from '@/lib/ui'
 import { sidoLabel } from '@/lib/sido'
@@ -43,8 +44,9 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: { params: Promise<{ lang: string; id: string }> }): Promise<Metadata> {
   const { lang, id } = await params
   const l: Lang = isLang(lang) ? lang : 'ko'
-  const f = await findByKey(fromSlug(decodeURIComponent(id)))
-  if (!f) return {}
+  const route = await resolveFestivalRoute(decodeURIComponent(id), findByKey)
+  if (!route) return {}
+  const f = route.festival
   const L = localized(f, l)
   const desc = [L.summary, `${f.startDate} ~ ${f.endDate}`, L.placeName].filter(Boolean).join(' · ').slice(0, 160)
   return {
@@ -82,8 +84,10 @@ const won = (n: number, l: Lang) => t(l, 'detail.won', { n: n.toLocaleString(l =
 export default async function FestivalDetailPage({ params }: { params: Promise<{ lang: string; id: string }> }) {
   const { lang, id } = await params
   const l: Lang = isLang(lang) ? lang : 'ko'
-  const f = await findByKey(fromSlug(decodeURIComponent(id)))
-  if (!f) notFound()
+  const route = await resolveFestivalRoute(decodeURIComponent(id), findByKey)
+  if (!route) notFound()
+  if (route.isAlias) permanentRedirect(festivalRoutePath(l, route.canonicalSlug))
+  const f = route.festival
 
   const L = localized(f, l)
   const st = statusOf(f)

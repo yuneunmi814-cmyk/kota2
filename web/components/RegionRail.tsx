@@ -3,6 +3,7 @@ import type { Festival } from '@/lib/festivals'
 import { REGIONS } from '@/lib/sido'
 import type { Lang } from '@/lib/i18n'
 import Icon from './Icon'
+import { todayKst } from '@/lib/date'
 
 // 지역으로 고르기 — 트립어드바이저 홈의 '놓칠 수 없는 명소'(로마·파리·런던…) 자리.
 //
@@ -25,7 +26,7 @@ export default function RegionRail({
   title: string
   subtitle?: string
 }) {
-  const today = new Date().toISOString().slice(0, 10)
+  const today = todayKst()
   const live = all.filter((f) => f.endDate >= today)
 
   const cards = REGIONS.map((r) => {

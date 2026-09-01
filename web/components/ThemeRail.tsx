@@ -3,6 +3,7 @@ import type { Festival } from '@/lib/festivals'
 import { THEMES, themeLabel } from '@/lib/themes'
 import type { Lang } from '@/lib/i18n'
 import Icon from './Icon'
+import { todayKst } from '@/lib/date'
 
 // 목적으로 고르기 — 트립어드바이저 홈의 '내 관심사에 맞는 즐길거리를 찾아보세요' 자리.
 //
@@ -24,7 +25,7 @@ export default function ThemeRail({
   title: string
   subtitle?: string
 }) {
-  const today = new Date().toISOString().slice(0, 10)
+  const today = todayKst()
   const live = all.filter((f) => f.endDate >= today)
 
   const cards = THEMES.map((k) => {

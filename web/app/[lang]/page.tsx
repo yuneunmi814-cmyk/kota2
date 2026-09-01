@@ -14,6 +14,7 @@ import RotatingPromo from '@/components/RotatingPromo'
 import { curatedPromos } from '@/lib/reviews'
 import RegionRail from '@/components/RegionRail'
 import ThemeRail from '@/components/ThemeRail'
+import { addDays, todayKst, weekendRange } from '@/lib/date'
 
 
 // 1시간마다 다시 굽는다 — 축제 데이터는 주 1회만 바뀌므로 요청마다 DB를 볼 이유가 없다
@@ -46,10 +47,11 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
   const l: Lang = isLang(lang) ? lang : 'ko'
   const all = await allFestivals()
 
-  const ongoing = all.filter((f) => statusOf(f) === 'ongoing' && !isAlwaysOn(f))
+  const today = todayKst()
+  const ongoing = all.filter((f) => statusOf(f, today) === 'ongoing' && !isAlwaysOn(f))
   // 인기 — 진행 중 + 30일 안에 시작하는 축제. 진행 중만 보면 비수기엔 소규모가 상위에 뜬다(실측)
-  const soon = Date.now() + 30 * 86_400_000
-  const upcomingSoon = all.filter((f) => statusOf(f) === 'upcoming' && !isAlwaysOn(f) && new Date(f.startDate).getTime() <= soon)
+  const upcomingCutoff = addDays(today, 30)
+  const upcomingSoon = all.filter((f) => statusOf(f, today) === 'upcoming' && !isAlwaysOn(f) && f.startDate <= upcomingCutoff)
   // 홈 행의 동점 가르기 — 홈은 진열창이라 사진 없는 카드가 앞에 오면 안 된다.
   // '곧 끝나요'는 오늘 끝나는 것만 35건이라 종료일만으로는 변별이 안 된다(실측).
   const showcase = (a: Festival, b: Festival) =>
@@ -60,18 +62,12 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
 
 
   // 시간축 두 개 — 여행자가 실제로 묻는 것은 '지금 갈 수 있나', '주말에 뭐 있나'다.
-  const now = Date.now()
-  const day = 86_400_000
   const endingSoon = ongoing
-    .filter((f) => new Date(f.endDate).getTime() - now <= 7 * day)
+    .filter((f) => f.endDate <= addDays(today, 7))
     .sort((a, b) => a.endDate.localeCompare(b.endDate) || showcase(a, b))
 
   // 다음 토·일 — 오늘이 주말이면 이번 주말, 아니면 돌아오는 주말
-  const today = new Date()
-  const dow = today.getUTCDay() // 0=일
-  const satOffset = dow === 0 ? 0 : 6 - dow
-  const sat = new Date(now + satOffset * day).toISOString().slice(0, 10)
-  const sun = new Date(now + (satOffset + (dow === 0 ? 0 : 1)) * day).toISOString().slice(0, 10)
+  const [sat, sun] = weekendRange(today)
   const weekend = [...ongoing, ...upcomingSoon]
     .filter((f) => f.startDate <= sun && f.endDate >= sat)
     .sort(showcase)
@@ -110,9 +106,9 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
   // '문화관광축제(문체부 지정)' 행을 여기 뒀다가 뺐다 — 지정은 진짜 신호지만(방문객 배율 중앙값
   // 1.32배 vs 비지정 1.03배) 지금 열리는 MF가 1건뿐이라 두 달 뒤 축제로 행을 채우게 됐고,
   // '문화관광축제'는 여행자가 아니라 주최자의 언어다. 신호는 카드·상세의 뱃지가 이미 전한다.
-  const nextMonthEnd = new Date(now + 45 * day).toISOString().slice(0, 10)
+  const nextMonthEnd = addDays(today, 45)
   const nextMonth = all
-    .filter((f) => statusOf(f) === 'upcoming' && !isAlwaysOn(f) && !isLongRun(f) && f.startDate <= nextMonthEnd)
+    .filter((f) => statusOf(f, today) === 'upcoming' && !isAlwaysOn(f) && !isLongRun(f) && f.startDate <= nextMonthEnd)
     .sort(showcase)
 
   return (

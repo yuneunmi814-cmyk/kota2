@@ -1,3 +1,5 @@
+import { todayKst as todayKstDate } from './date'
+
 // 한국관광공사 TourAPI — 화면을 그릴 때 직접 부른다.
 //
 // 왜 이렇게 바꿨나(2026-08-19):
@@ -61,8 +63,7 @@ function dash(v?: string): string {
 }
 
 function todayKst(): string {
-  const now = new Date(Date.now() + 9 * 3600 * 1000)
-  return now.toISOString().slice(0, 10).replace(/-/g, '')
+  return todayKstDate().replace(/-/g, '')
 }
 
 function num(v?: string): number | null {

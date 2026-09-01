@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { browserSupabase } from '@/lib/supabase-browser'
 import SocialLogin from '../SocialLogin'
 import { toSlug } from '@/lib/slug'
+import { todayKst } from '@/lib/date'
 
 // 관리자 보드 — 배너 큐레이션과 리뷰 검토.
 //
@@ -112,7 +113,7 @@ export default function AdminBoard() {
         .from('festivals')
         .select('id, name, start_date, end_date, image_url')
         .ilike('name', `%${needle}%`)
-        .gte('end_date', new Date().toISOString().slice(0, 10))
+        .gte('end_date', todayKst())
         .order('popularity', { ascending: false })
         .limit(8)
       setFound((data ?? []) as unknown as Row[])

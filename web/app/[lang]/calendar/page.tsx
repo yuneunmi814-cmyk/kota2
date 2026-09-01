@@ -5,6 +5,7 @@ import { t } from '@/lib/ui'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import MonthCalendar from '@/components/MonthCalendar'
+import { todayKst } from '@/lib/date'
 
 // 1시간마다 다시 굽는다 — 축제 데이터는 주 1회만 바뀌므로 요청마다 DB를 볼 이유가 없다
 export const revalidate = 3600
@@ -38,8 +39,7 @@ export default async function CalendarPage({ params }: { params: Promise<{ lang:
   const items = (await listItems(l)).filter((f) => f.st !== 'ended' && !f.al)
 
   // 오늘은 서버가 정해 넘긴다. 클라이언트 시계로 잡으면 첫 렌더가 서버와 어긋난다.
-  const now = new Date()
-  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+  const today = todayKst()
 
   return (
     <>
