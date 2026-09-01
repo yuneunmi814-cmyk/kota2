@@ -2,7 +2,7 @@
 
 ## 마지막 갱신
 
-2026-09-01 19:34 · 코덱스
+2026-09-02 00:32 · 코덱스
 
 ## 지금 하는 일
 
@@ -19,6 +19,7 @@
 - 경로 생성·사이트맵 전용 `listFestivalSlugs()`를 추가해 상세·번역·사진·TourAPI 실시간 보정 없이 ID만 조회하도록 분리했다.
 - 컨설팅 우선순위·완료/잔여 작업 문서와 영속 축제 ID ADR을 작성했다.
 - 디스코드 팀 공유용 요약문 3개와 상세 진행·계획 자료를 `docs/discord-team-update-consulting-followup-2026-09-01.md`에 작성했다.
+- 9월 1일 22:30 팀 회의를 위한 기술컨설팅·후속작업·잔여작업·전도준/최용우 현황 원페이퍼를 `docs/meeting-onepager-2026-09-01.md`에 작성했다.
 - ORCA에 `kota-id-audit`, `kota-query-audit` 두 읽기 전용 검토 작업공간을 만들고 각각 ID 이전 위험과 조회 분리 순서를 점검했다. 검토자는 파일을 수정하지 않았다.
 - `npm test` 10개 통과, `npm run build` 통과(2379 정적 페이지, 축제 경로 2321개).
 - 로컬 HTTP 확인: 과거 주소 2개는 308, 현재 JIMFF 상세는 200.
@@ -55,5 +56,6 @@
 - `docs/consulting-followup-2026-09-01.md`
 - `docs/ADR-001-stable-festival-identity.md`
 - `docs/discord-team-update-consulting-followup-2026-09-01.md`
+- `docs/meeting-onepager-2026-09-01.md`
 - 상담자료: `/Users/piglet/Downloads/2026-08-29_KOTA_코드구조_리뷰_상담자료 (1).md`
 - 녹취: `/Users/piglet/Downloads/코타 기술컨설팅 (1).txt`
