@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "audit:db": "tsx --env-file-if-exists=.env src/audit-production.ts",
     "sync": "tsx --env-file-if-exists=.env src/sync.ts",
     "merge": "tsx --env-file-if-exists=.env src/merge.ts",
     "translate": "tsx --env-file-if-exists=.env src/translate.ts",

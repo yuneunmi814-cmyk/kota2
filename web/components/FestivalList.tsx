@@ -2,12 +2,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { requestPosition } from '../lib/geo'
 import Link from 'next/link'
-import { defaultOrder, type ListItem } from '@/lib/listData'
+import { filterListItems, sortListItems, type ListItem, type ListPeriod, type ListSort } from '@/lib/listData'
 import type { Lang } from '@/lib/i18n'
 import { t } from '@/lib/ui'
 import { monthLabel, REGIONS, sidoLabel } from '@/lib/sido'
 import { THEMES, themeLabel, type Theme } from '@/lib/themes'
-import { distanceKm } from '@/lib/festivals'
 import { track } from '@/lib/track'
 import Icon from './Icon'
 import Poster from './Poster'
@@ -23,8 +22,8 @@ import { weekendRange } from '@/lib/date'
 // '시기'를 첫 축으로 둔 이유: 축제는 '언제 하느냐'가 갈 수 있냐를 결정한다.
 // 지역부터 고르게 하면 이미 끝난 축제를 한참 보다가 돌아 나온다.
 
-type Period = 'all' | 'ongoing' | 'upcoming' | 'weekend' | number // number = 월(1~12)
-type Sort = 'date' | 'distance' | 'popularity'
+type Period = ListPeriod // number = 월(1~12)
+type Sort = ListSort
 const PAGE = 24
 
 const fmt = (d: string) => d.slice(5).replace('-', '.')
@@ -114,6 +113,7 @@ export default function FestivalList({
     setReady(true)
   }, [])
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null)
+  const weekend = useMemo(() => thisWeekend(), [])
   const shown = page * PAGE
 
   // ── 상세에 갔다 돌아오면 보던 자리로 ──────────────────────────
@@ -190,44 +190,9 @@ export default function FestivalList({
   }, [sort, coords])
 
   const list = useMemo(() => {
-    let out = items.filter((f) => f.st !== 'ended')
-
-    if (period === 'ongoing') out = out.filter((f) => f.st === 'ongoing' && !f.al)
-    else if (period === 'upcoming') out = out.filter((f) => f.st === 'upcoming')
-    else if (period === 'weekend') {
-      const [sat, sun] = thisWeekend()
-      out = out.filter((f) => f.s <= sun && f.e >= sat && !f.al)
-    } else if (typeof period === 'number') out = out.filter((f) => f.m.includes(period) && !f.al)
-
-    if (sido) out = out.filter((f) => f.sd === sido)
-    else if (region) {
-      const rs = REGIONS.find((r) => r.key === region)?.sidos ?? []
-      out = out.filter((f) => f.sd != null && rs.includes(f.sd))
-    }
-    if (theme) out = out.filter((f) => f.th.includes(theme))
-    if (graded) out = out.filter((f) => f.mf)
-
-    const needle = q.trim().toLowerCase()
-    if (needle) out = out.filter((f) => `${f.n} ${f.p ?? ''}`.toLowerCase().includes(needle))
-
-    const withKm =
-      sort === 'distance' && coords
-        ? out.map((f) => ({
-            f,
-            km: f.lat != null && f.lng != null ? distanceKm(coords, { lat: f.lat, lng: f.lng }) : null,
-          }))
-        : out.map((f) => ({ f, km: null as number | null }))
-
-    if (sort === 'distance' && coords) withKm.sort((a, b) => (a.km ?? Infinity) - (b.km ?? Infinity))
-    else if (sort === 'popularity') withKm.sort((a, b) => b.f.pop - a.f.pop)
-    // 날짜순 — '가까운 날짜' 순(lib/listData의 defaultOrder와 같은 규칙, 서버 fallback과 일치시킨다)
-    else {
-      const order = new Map(defaultOrder(withKm.map((x) => x.f)).map((f, i) => [f.k, i]))
-      withKm.sort((a, b) => (order.get(a.f.k) ?? 0) - (order.get(b.f.k) ?? 0))
-    }
-
-    return withKm
-  }, [items, period, region, sido, theme, graded, q, sort, coords])
+    const filtered = filterListItems(items, { period, region, sido, theme, graded, query: q, weekend })
+    return sortListItems(filtered, sort, coords)
+  }, [items, period, region, sido, theme, graded, q, sort, coords, weekend])
 
   // 상태 → 주소. 기본값은 적지 않는다 — 주소가 길어지면 공유할 때 겁을 준다.
   useEffect(() => {
@@ -283,45 +248,38 @@ export default function FestivalList({
   // 시기 필터가 걸리면 지역 개수도 따라 줄어야 한다 — 눌렀을 때 나오는 건수와 칩의 숫자가 어긋나면
   // 사용자는 숫자를 못 믿는다
   const countBySido = useMemo(() => {
-    let base = items.filter((f) => f.st !== 'ended')
-    if (period === 'ongoing') base = base.filter((f) => f.st === 'ongoing' && !f.al)
-    else if (period === 'upcoming') base = base.filter((f) => f.st === 'upcoming')
-    else if (period === 'weekend') {
-      const [sat, sun] = thisWeekend()
-      base = base.filter((f) => f.s <= sun && f.e >= sat && !f.al)
-    } else if (typeof period === 'number') base = base.filter((f) => f.m.includes(period) && !f.al)
+    const base = filterListItems(items, {
+      period,
+      region: null,
+      sido: null,
+      theme: null,
+      graded: false,
+      query: q,
+      weekend,
+    })
     // 검색어도 반영한다.
     //
     // 전에는 시기만 보고 세서, 검색 결과가 0건인데도 지역 칩은 「서울 82」를 그대로 달고
     // 있었다. 바로 위에 「축제 0곳」이 떠 있는데 아래에서 82를 약속하니 어느 쪽을 믿어야
     // 할지 알 수 없었다. 테마 칩(baseForTheme)은 이미 검색어를 반영하고 있어 두 줄이
     // 서로 다른 규칙을 따르고 있었다(2026-08-23 점검).
-    const needle = q.trim().toLowerCase()
-    if (needle) base = base.filter((f) => `${f.n} ${f.p ?? ''}`.toLowerCase().includes(needle))
     const m = new Map<string, number>()
     for (const f of base) if (f.sd) m.set(f.sd, (m.get(f.sd) ?? 0) + 1)
     return [...m.entries()].map(([sido, count]) => ({ sido, count })).sort((a, b) => b.count - a.count)
-  }, [items, period, q])
+  }, [items, period, q, weekend])
 
   // 테마 칩의 근거가 되는 목록 — 테마만 빼고 지금 걸린 조건을 전부 적용한 것.
   const baseForTheme = useMemo(() => {
-    let out = items.filter((f) => f.st !== 'ended')
-    if (period === 'ongoing') out = out.filter((f) => f.st === 'ongoing' && !f.al)
-    else if (period === 'upcoming') out = out.filter((f) => f.st === 'upcoming')
-    else if (period === 'weekend') {
-      const [sat, sun] = thisWeekend()
-      out = out.filter((f) => f.s <= sun && f.e >= sat && !f.al)
-    } else if (typeof period === 'number') out = out.filter((f) => f.m.includes(period) && !f.al)
-    if (sido) out = out.filter((f) => f.sd === sido)
-    else if (region) {
-      const rs = REGIONS.find((r) => r.key === region)?.sidos ?? []
-      out = out.filter((f) => f.sd != null && rs.includes(f.sd))
-    }
-    if (graded) out = out.filter((f) => f.mf)
-    const needle = q.trim().toLowerCase()
-    if (needle) out = out.filter((f) => `${f.n} ${f.p ?? ''}`.toLowerCase().includes(needle))
-    return out
-  }, [items, period, region, sido, graded, q])
+    return filterListItems(items, {
+      period,
+      region,
+      sido,
+      theme: null,
+      graded,
+      query: q,
+      weekend,
+    })
+  }, [items, period, region, sido, graded, q, weekend])
 
   const subSidos = useMemo(() => {
     const rs = REGIONS.find((r) => r.key === region)?.sidos

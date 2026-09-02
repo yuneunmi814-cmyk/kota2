@@ -1,5 +1,22 @@
-import { allFestivals, dayBadge, isAlwaysOn, isLongRun, localized, monthsOf, statusOf, type DayBadge, type Festival } from './festivals'
+import { dayBadge, isAlwaysOn, isLongRun, listFestivalSummaries, localized, monthsOf, statusOf, type Festival } from './festivals'
 import type { Lang } from './i18n'
+import {
+  defaultOrder as applyDefaultOrder,
+  filterListItems as applyListFilters,
+  sortListItems as applyListSort,
+  type ListFilters,
+  type ListItem,
+  type ListSort,
+  type LocatedListItem,
+} from './list-rules'
+
+export {
+  type ListFilters,
+  type ListItem,
+  type ListPeriod,
+  type ListSort,
+  type LocatedListItem,
+} from './list-rules'
 
 // 목록 화면에 넘길 최소 데이터.
 //
@@ -7,30 +24,8 @@ import type { Lang } from './i18n'
 // 850KB이고 4개 언어판을 각각 찍으므로, 그대로 넣으면 페이지가 무거워진다.
 // 필터·정렬·카드 표시에 실제로 쓰는 필드만 골라 언어별로 이미 번역된 문자열로 굳힌다.
 
-export interface ListItem {
-  k: string // externalId
-  n: string // 표시 이름(그 언어)
-  p: string | null // 표시 지명(그 언어)
-  s: string // startDate
-  e: string // endDate
-  st: 'ongoing' | 'upcoming' | 'ended'
-  al: boolean // 상시 여부
-  lr: boolean // 장기(60일 초과) — 상설 프로그램에 가깝다
-  db: DayBadge // 오늘 종료 / D-N / 진행중
-  mf: boolean // 문화관광축제 지정
-  m: number[] // 걸쳐 있는 달
-  sd: string | null // 시·도(지역 필터용, 한국어 정식명)
-  th: string[] // 목적 테마
-  img: string | null
-  /** 지난 회차 포스터인가 */
-  ip: boolean
-  lat: number | null
-  lng: number | null
-  pop: number
-}
-
 export async function listItems(lang: Lang): Promise<ListItem[]> {
-  return (await allFestivals()).map((f: Festival) => {
+  return (await listFestivalSummaries()).map((f: Festival) => {
     const L = localized(f, lang)
     return {
       k: f.externalId,
@@ -59,11 +54,22 @@ export async function listItems(lang: Lang): Promise<ListItem[]> {
  * 진행중(단기)은 곧 끝나는 순, 예정은 곧 시작하는 순, 장기 → 상시 순으로 뒤로.
  * 서버 fallback과 클라이언트 목록이 같은 순서를 써야 하이드레이션 때 화면이 안 튄다. */
 export function defaultOrder(items: ListItem[]): ListItem[] {
-  const rank = (x: ListItem) => (x.al ? 3 : x.lr ? 2 : x.st === 'ongoing' ? 0 : 1)
-  return [...items].sort((a, b) => {
-    const ra = rank(a)
-    const rb = rank(b)
-    if (ra !== rb) return ra - rb
-    return ra === 0 ? a.e.localeCompare(b.e) : a.s.localeCompare(b.s)
-  })
+  return applyDefaultOrder(items)
+}
+
+/**
+ * 목록 화면의 필터 규칙. 화면 상태나 브라우저 API를 읽지 않아
+ * 같은 입력은 항상 같은 결과를 낸다.
+ */
+export function filterListItems(items: ListItem[], filters: ListFilters): ListItem[] {
+  return applyListFilters(items, filters)
+}
+
+/** 날짜·거리·인기 정렬 규칙. 원본 배열은 바꾸지 않는다. */
+export function sortListItems(
+  items: ListItem[],
+  sort: ListSort,
+  coords: { lat: number; lng: number } | null,
+): LocatedListItem[] {
+  return applyListSort(items, sort, coords)
 }

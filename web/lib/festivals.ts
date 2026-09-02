@@ -142,6 +142,28 @@ interface Row {
   festival_photos?: { ord: number; url: string; thumb: string | null; caption: string | null }[]
 }
 
+// 목록·달력·테마 화면이 실제로 쓰는 DB 필드만 읽는 행.
+// 상세 소개·프로그램·부스·사진은 제외하되, 실시간 출처 병합에 필요한
+// sources/tourapi_id는 남긴다.
+interface SummaryRow {
+  id: string
+  name: string
+  start_date: string
+  end_date: string
+  sido: string | null
+  sigungu: string | null
+  lat: number | null
+  lng: number | null
+  image_url: string | null
+  image_from: string | null
+  category: string | null
+  themes: string[] | null
+  popularity: number | null
+  sources: string[] | null
+  tourapi_id: string | null
+  festival_translations?: { lang: string; name: string | null; place_name: string | null }[]
+}
+
 function fromRow(r: Row): Festival {
   return {
     id: r.id,
@@ -187,6 +209,31 @@ function fromRow(r: Row): Festival {
   }
 }
 
+function fromSummaryRow(r: SummaryRow): Festival {
+  return {
+    id: r.id,
+    externalId: r.id,
+    name: r.name,
+    startDate: r.start_date,
+    endDate: r.end_date,
+    sido: r.sido,
+    sigungu: r.sigungu,
+    lat: r.lat,
+    lng: r.lng,
+    imageUrl: r.image_url,
+    imageFrom: (r.image_from as Festival['imageFrom']) ?? null,
+    category: r.category,
+    themes: r.themes ?? [],
+    popularity: r.popularity ?? 0,
+    sources: r.sources ?? [],
+    translations: (r.festival_translations ?? []).map((t) => ({
+      langCode: t.lang,
+      name: t.name ?? '',
+      placeName: t.place_name,
+    })),
+  }
+}
+
 
 // TourAPI 실시간 응답을 DB 데이터 위에 덮는다.
 //
@@ -201,8 +248,7 @@ function fromRow(r: Row): Festival {
 //
 // TourAPI에만 있고 DB에 없는 축제는 목록에 새로 넣는다. 번역이 없으므로 4개 언어에서
 // 한국어 이름으로 보이지만, 없는 것보다는 낫다 — 다음 파이프라인 실행 때 번역이 붙는다.
-async function overlayLive(rows: Row[]): Promise<Festival[]> {
-  const base = rows.map(fromRow)
+async function overlayLive(base: Festival[], rows: Array<{ tourapi_id: string | null }>): Promise<Festival[]> {
 
   // 두 원천을 동시에 부른다. 하나가 늦어도 다른 하나를 기다리게 하지 않는다.
   const [live, std, kfes] = await Promise.all([fetchLive(), fetchLiveStdfest(), fetchLiveKfes()])
@@ -446,6 +492,8 @@ async function overlayLive(rows: Row[]): Promise<Festival[]> {
 }
 
 const SELECT = '*, festival_translations(*), festival_photos(*)'
+const SUMMARY_SELECT =
+  'id, name, start_date, end_date, sido, sigungu, lat, lng, image_url, image_from, category, themes, popularity, sources, tourapi_id, festival_translations(lang, name, place_name)'
 
 // 조회는 모듈 수준에서 한 번만 한다.
 //
@@ -465,6 +513,7 @@ let cached: { at: number; rows: Promise<Festival[]> } | null = null
 // ID만 읽는 작은 조회를 따로 두어 외부 API 장애가 공개 경로 목록까지 흔들지 않게 한다.
 const SLUG_TTL = 3_600_000
 let slugCached: { at: number; rows: Promise<string[]> } | null = null
+let summaryCached: { at: number; rows: Promise<Festival[]> } | null = null
 
 export function listFestivalSlugs(): Promise<string[]> {
   if (slugCached && Date.now() - slugCached.at < SLUG_TTL) return slugCached.rows
@@ -499,6 +548,50 @@ export function listFestivalSlugs(): Promise<string[]> {
 
   rows.catch(() => { if (slugCached?.rows === rows) slugCached = null })
   slugCached = { at: Date.now(), rows }
+  return rows
+}
+
+/**
+ * 목록·달력·테마 화면용 축제 요약.
+ *
+ * 상세 화면용 전량 조회와 같은 실시간 TourAPI 보정을 적용하므로
+ * 상세와 카드가 다른 날짜를 말하지 않는다. 다만 카드에 안 쓰는 소개,
+ * 프로그램, 부스, 사진 원문은 DB에서 가져오지 않는다.
+ */
+export function listFestivalSummaries(): Promise<Festival[]> {
+  if (summaryCached && Date.now() - summaryCached.at < TTL) return summaryCached.rows
+
+  const rows = (async () => {
+    const CHUNK = 200
+    const ATTEMPTS = 3
+    const out: SummaryRow[] = []
+
+    for (let from = 0; ; from += CHUNK) {
+      let page: SummaryRow[] | null = null
+      for (let i = 1; i <= ATTEMPTS; i++) {
+        const { data, error } = await supabase
+          .from('festivals')
+          .select(SUMMARY_SELECT)
+          .order('start_date')
+          .order('id')
+          .range(from, from + CHUNK - 1)
+        if (!error) {
+          page = data as unknown as SummaryRow[]
+          break
+        }
+        if (i === ATTEMPTS) throw new Error(`축제 요약 조회 실패(${from}~, ${ATTEMPTS}회): ${String(error.message).slice(0, 120)}`)
+        await new Promise((r) => setTimeout(r, 400 * i))
+      }
+      if (!page || page.length === 0) break
+      out.push(...page)
+      if (page.length < CHUNK) break
+    }
+
+    return overlayLive(out.map(fromSummaryRow), out)
+  })()
+
+  rows.catch(() => { if (summaryCached?.rows === rows) summaryCached = null })
+  summaryCached = { at: Date.now(), rows }
   return rows
 }
 
@@ -544,7 +637,7 @@ export function allFestivals(): Promise<Festival[]> {
       out.push(...page)
       if (page.length < CHUNK) break
     }
-    return overlayLive(out)
+    return overlayLive(out.map(fromRow), out)
   })()
   // 실패한 약속을 캐시에 남기면 TTL 동안 같은 오류만 되풀이한다
   rows.catch(() => { if (cached?.rows === rows) cached = null })
