@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs'
+import { randomUUID } from 'node:crypto'
 import { createClient } from '@supabase/supabase-js'
 import type { Festival } from './lib/types.js'
 
@@ -42,9 +43,99 @@ async function push<T extends object>(table: string, rows: T[], conflict: string
   process.stdout.write(`\r   ${table.padEnd(24)} ${rows.length}행 ✔\n`)
 }
 
+type SourceRow = {
+  external_id: string
+  festival_uid: string
+}
+
+const sourceIdsOf = (festival: Festival) =>
+  [...new Set([festival.externalId, ...(festival.sourceIds ?? [])])]
+
+/**
+ * 영속 ID 표가 적용된 환경에서만 같은 축제의 UUID를 찾아 재사용한다.
+ *
+ * 아직 이전 SQL을 적용하지 않은 운영 환경에서는 테이블 없음 오류만 무시해 기존 적재를
+ * 그대로 이어 간다. 그 밖의 오류와 한 축제에 서로 다른 UUID가 잡히는 충돌은 중단한다.
+ */
+async function prepareStableIds(festivals: Festival[]): Promise<Map<string, string> | null> {
+  const allSourceIds = [...new Set(festivals.flatMap(sourceIdsOf))]
+  const knownBySource = new Map<string, string>()
+
+  for (const part of chunks(allSourceIds)) {
+    const { data, error } = await db
+      .from('festival_sources')
+      .select('external_id,festival_uid')
+      .in('external_id', part)
+
+    if (error) {
+      if (error.code === '42P01' || error.code === 'PGRST205') {
+        console.log('   영속 ID 표 미적용 — 기존 text ID 방식으로 적재')
+        return null
+      }
+      throw new Error(`영속 ID 조회 실패: ${error.message}`)
+    }
+
+    for (const row of (data ?? []) as SourceRow[]) {
+      knownBySource.set(row.external_id, row.festival_uid)
+    }
+  }
+
+  const uidByRepresentative = new Map<string, string>()
+  const ownerBySource = new Map<string, string>()
+  const newUids = new Set<string>()
+  const sourceRows: Array<{
+    external_id: string
+    source: string
+    festival_uid: string
+    match_basis: string
+    last_seen: string
+  }> = []
+  const now = new Date().toISOString()
+
+  for (const festival of festivals) {
+    const sourceIds = sourceIdsOf(festival)
+    const knownUids = [...new Set(sourceIds.map((id) => knownBySource.get(id)).filter((id): id is string => Boolean(id)))]
+
+    if (knownUids.length > 1) {
+      throw new Error(
+        `영속 ID 충돌: ${festival.name}(${festival.externalId})의 출처들이 서로 다른 UUID를 가리킵니다 — ${knownUids.join(', ')}`,
+      )
+    }
+
+    const festivalUid = knownUids[0] ?? randomUUID()
+    if (knownUids.length === 0) newUids.add(festivalUid)
+    uidByRepresentative.set(festival.externalId, festivalUid)
+
+    for (const externalId of sourceIds) {
+      const previousOwner = ownerBySource.get(externalId)
+      if (previousOwner && previousOwner !== festivalUid) {
+        throw new Error(`출처 ID 중복: ${externalId}가 한 번의 산출물에서 서로 다른 축제에 포함됐습니다.`)
+      }
+      ownerBySource.set(externalId, festivalUid)
+      sourceRows.push({
+        external_id: externalId,
+        source: externalId.split(':', 1)[0] ?? festival.source,
+        festival_uid: festivalUid,
+        match_basis: externalId === festival.externalId ? 'current-representative' : 'current-merge-member',
+        last_seen: now,
+      })
+    }
+  }
+
+  if (newUids.size > 0) {
+    await push('festival_ids', [...newUids].map((id) => ({ id })), 'id')
+  }
+  await push('festival_sources', sourceRows, 'external_id')
+  console.log(`   영속 ID ${festivals.length - newUids.size}건 재사용 · ${newUids.size}건 신규`)
+
+  return uidByRepresentative
+}
+
 // ── 축제 본체 ───────────────────────────────────────────────
+const stableIds = await prepareStableIds(items)
 const festivals = items.map((f) => ({
   id: f.externalId,
+  ...(stableIds ? { festival_uid: stableIds.get(f.externalId) } : {}),
   name: f.name,
   start_date: f.startDate,
   end_date: f.endDate,

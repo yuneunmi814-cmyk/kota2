@@ -2,7 +2,7 @@
 
 ## 마지막 갱신
 
-2026-09-02 22:50 · 코덱스
+2026-09-02 23:00 · 코덱스
 
 ## 지금 하는 일
 
@@ -25,22 +25,25 @@
 - `listFestivalSummaries()`를 추가해 목록·달력·테마의 DB 응답에서 상세 본문·부스·사진 원문을 제외했고, 기존 실시간 TourAPI 보정은 유지했다.
 - 목록 필터·날짜순·거리순·인기순을 `web/lib/list-rules.ts`로 분리하고 회귀 테스트 3개를 추가했다.
 - DB에 아직 없는 신규 축제 `tourapi:3343694`의 상세 URL 200, 과거 JIMFF URL 308을 로컬 빌드 서버에서 확인했다.
+- 병합 결과가 모든 참여 출처 ID를 `sourceIds`로 보존하게 했다. 기존 JSON도 계속 읽도록 선택 필드로 두었다.
+- 영속 ID 운영 이전·검증·롤백 SQL 초안을 각각 작성했다. 운영 DB에는 실행하지 않았다.
+- 주간 적재가 새 구조 적용 후 기존 UUID를 재사용하게 했다. 서로 다른 UUID 충돌·출처 ID 중복은 자동 중단하고, 새 구조 미적용 환경은 기존 방식으로 동작한다.
 - ORCA에 `kota-id-audit`, `kota-query-audit` 두 읽기 전용 검토 작업공간을 만들고 각각 ID 이전 위험과 조회 분리 순서를 점검했다. 검토자는 파일을 수정하지 않았다.
 - `npm test` 10개 통과, `npm run build` 통과(2379 정적 페이지, 축제 경로 2321개).
 - 로컬 HTTP 확인: 과거 주소 2개는 308, 현재 JIMFF 상세는 200.
 
 ## 다음에 할 일
 
-1. 9개 과거 ID에서 확정 연결 3개와 과거 행사 보존 2개를 제외한 나머지 4개의 일정 변경 근거를 사람이 확인한다.
-2. 실측 결과를 바탕으로 `festival_ids`, `festival_sources`, `festival_route_aliases` SQL과 검증/롤백 SQL을 준비한다. 아직 운영 DB에 적용하지 않는다.
-3. 파이프라인이 모든 병합 출처 ID를 보존하고 기존 영속 ID를 재사용하도록 수정한다.
+1. 확정 연결 3개와 과거 행사 보존 2개를 제외한 나머지 과거 ID 4개의 공식 일정 변경 근거를 사람이 확인한다.
+2. `supabase/stable-festival-ids-draft.sql`을 별도 검토한 뒤 운영 DB에 적용하고 verify SQL을 즉시 실행한다. 그전에는 `pipeline` 적재를 실행하지 않는다.
+3. 적용 후 첫 주간 수집에서 신규·재사용 UUID 수와 충돌 여부를 관찰하고 웹 별칭 조회를 DB 기반으로 전환한다.
 4. 달력 기간 조회·상세 1건 조회를 순서대로 분리한다.
 5. 목록 URL·스크롤·위치 상태와 상세 페이지 역할을 별도 모듈로 분리한다.
 6. 기존 린트 오류 5건(`setState`를 effect에서 바로 호출)을 별도 작업으로 정리한다.
 
 ## 막힌 것 / 결정 대기
 
-- 영속 ID DB 이전은 21건의 끊긴 로그 중 일정 변경과 과거 행사를 먼저 분류해야 한다. 검증·롤백 SQL 완성 전에는 운영 DB를 바꾸지 않는다.
+- 영속 ID SQL은 준비됐지만 미실행이다. 사람 확인 대상 4개는 SQL에서 제외했으므로 운영 적용 전 별도 검토가 필요하다.
 - 운영 배포는 하지 않았다. main에 push하면 Vercel이 자동 배포된다.
 - `npm run lint`는 이번 변경 전부터 있던 React effect 오류 5건 때문에 실패한다. 이번 변경의 테스트와 빌드는 통과한다.
 - ORCA에서 `codex` 실행 파일이 터미널 PATH에 잡히지 않아, 두 작업공간의 읽기 전용 검토는 Claude CLI로 완료했다. 메인 수정·검증·커밋은 코덱스가 담당했다.
@@ -65,5 +68,9 @@
 - `docs/meeting-onepager-2026-09-01.md`
 - `docs/meeting-followup-2026-09-02.md`
 - `pipeline/src/audit-production.ts`
+- `pipeline/src/push-supabase.ts`
+- `supabase/stable-festival-ids-draft.sql`
+- `supabase/stable-festival-ids-verify.sql`
+- `supabase/stable-festival-ids-rollback.sql`
 - 상담자료: `/Users/piglet/Downloads/2026-08-29_KOTA_코드구조_리뷰_상담자료 (1).md`
 - 녹취: `/Users/piglet/Downloads/코타 기술컨설팅 (1).txt`

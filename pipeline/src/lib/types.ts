@@ -55,6 +55,8 @@ export interface RawFestival {
 export interface Festival extends RawFestival {
   /** 이 축제를 구성한 소스들 — 디버깅·출처 표기용 */
   sources: string[]
+  /** 병합에 참여한 모든 출처의 실제 ID. 영속 ID 재사용의 근거로 쓴다. */
+  sourceIds?: string[]
   themes: string[]
   popularity: number
   /** 관광빅데이터 — 지난 회차 축제 기간 개최지 외지인 방문자 피크 ÷ 전후 4주 같은 요일 중앙값 */

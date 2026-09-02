@@ -207,6 +207,10 @@ const merged: Festival[] = groups.map((g) => {
     externalId: head.externalId,
     source: head.source,
     sources: [...new Set(sorted.map((x) => x.source))],
+    // 소스 이름만으로는 다음 동기화 때 같은 축제를 다시 찾을 수 없다.
+    // 병합에 참여한 실제 externalId를 모두 남겨 대표 출처가 바뀌어도
+    // 기존 영속 ID를 재사용할 수 있게 한다.
+    sourceIds: [...new Set(sorted.map((x) => x.externalId))],
     tourapiId: first(sorted.map((x) => x.tourapiId)),
     name,
     startDate,
