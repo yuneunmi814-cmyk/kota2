@@ -4,6 +4,10 @@ import { externalIdsToSlugs, festivalRoutePath, resolveFestivalRoute } from '../
 
 const festivals = new Map([
   ['stdfest:제22회제천국제음악영화제-2026-09-03', { externalId: 'stdfest:제22회제천국제음악영화제-2026-09-03', name: '제22회 제천국제음악영화제' }],
+  ['tourapi:2614762', { externalId: 'tourapi:2614762', name: '거제맥주축제' }],
+  ['tourapi:140911', { externalId: 'tourapi:140911', name: '홍성남당항 대하축제' }],
+  ['tourapi:2751090', { externalId: 'tourapi:2751090', name: '수원화성 미디어아트' }],
+  ['tourapi:3351268', { externalId: 'tourapi:3351268', name: '동대문구 맥주축제' }],
 ])
 const find = async (externalId) => festivals.get(externalId)
 
@@ -21,6 +25,21 @@ test('상담 당시 현재 주소도 지금 존재하는 축제로 연결한다'
   const route = await resolveFestivalRoute('manual-jimff-2026', find)
   assert.equal(route?.canonicalSlug, 'stdfest-제22회제천국제음악영화제-2026-09-03')
   assert.equal(route?.isAlias, true)
+})
+
+test('공식 자료로 확인한 과거 ID 네 개를 현재 축제로 연결한다', async () => {
+  const cases = [
+    ['stdfest-거제맥주축제-2026-08-23', 'tourapi-2614762'],
+    ['stdfest-홍성남당항대하축제-2026-08-21', 'tourapi-140911'],
+    ['stdfest-2026수원화성미디어아트-2026-10-03', 'tourapi-2751090'],
+    ['stdfest-맥주축제-2026-08-28', 'tourapi-3351268'],
+  ]
+
+  for (const [oldSlug, currentSlug] of cases) {
+    const route = await resolveFestivalRoute(oldSlug, find)
+    assert.equal(route?.canonicalSlug, currentSlug)
+    assert.equal(route?.isAlias, true)
+  }
 })
 
 test('실제로 존재하는 현재 주소는 리다이렉트하지 않는다', async () => {

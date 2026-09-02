@@ -18,6 +18,24 @@ const ROUTE_CANDIDATES: Readonly<Record<string, readonly string[]>> = {
     'stdfest:제22회제천국제음악영화제-2026-09-03',
     'kfes:2026-jimff',
   ],
+  // 9/2 회의 후 공식 주최·지자체 페이지와 당시 원본의 이름·장소·회차를 대조해
+  // 같은 2026년 행사임을 확인했다. 공공데이터의 날짜가 정정되며 대표 ID가 바뀐 사례다.
+  'stdfest:거제맥주축제-2026-08-23': [
+    'tourapi:2614762',
+    'stdfest:거제맥주축제-2026-08-23',
+  ],
+  'stdfest:홍성남당항대하축제-2026-08-21': [
+    'tourapi:140911',
+    'stdfest:홍성남당항대하축제-2026-08-21',
+  ],
+  'stdfest:2026수원화성미디어아트-2026-10-03': [
+    'tourapi:2751090',
+    'stdfest:2026수원화성미디어아트-2026-10-03',
+  ],
+  'stdfest:맥주축제-2026-08-28': [
+    'tourapi:3351268',
+    'stdfest:맥주축제-2026-08-28',
+  ],
 }
 
 export interface ResolvedFestivalRoute<T> {

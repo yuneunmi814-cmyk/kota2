@@ -103,7 +103,11 @@ from (values
   ('manual:jimff-2026', 'stdfest:제22회제천국제음악영화제-2026-09-03'),
   ('kfes:2026-jimff', 'stdfest:제22회제천국제음악영화제-2026-09-03'),
   ('manual:jarasum-jazz-2026', 'stdfest:2026년재즈페스티벌in가평-2026-10-09'),
-  ('kfes:1916616', 'tourapi:1916616')
+  ('kfes:1916616', 'tourapi:1916616'),
+  ('stdfest:거제맥주축제-2026-08-23', 'tourapi:2614762'),
+  ('stdfest:홍성남당항대하축제-2026-08-21', 'tourapi:140911'),
+  ('stdfest:2026수원화성미디어아트-2026-10-03', 'tourapi:2751090'),
+  ('stdfest:맥주축제-2026-08-28', 'tourapi:3351268')
 ) as confirmed(old_id, current_id)
 join festivals f on f.id = confirmed.current_id
 on conflict (external_id) do nothing;
@@ -113,7 +117,11 @@ select old_slug, f.festival_uid, 'legacy-url-confirmed-2026-09-02'
 from (values
   ('manual-jimff-2026', 'stdfest:제22회제천국제음악영화제-2026-09-03'),
   ('kfes-2026-jimff', 'stdfest:제22회제천국제음악영화제-2026-09-03'),
-  ('manual-jarasum-jazz-2026', 'stdfest:2026년재즈페스티벌in가평-2026-10-09')
+  ('manual-jarasum-jazz-2026', 'stdfest:2026년재즈페스티벌in가평-2026-10-09'),
+  ('stdfest-거제맥주축제-2026-08-23', 'tourapi:2614762'),
+  ('stdfest-홍성남당항대하축제-2026-08-21', 'tourapi:140911'),
+  ('stdfest-2026수원화성미디어아트-2026-10-03', 'tourapi:2751090'),
+  ('stdfest-맥주축제-2026-08-28', 'tourapi:3351268')
 ) as aliases(old_slug, current_id)
 join festivals f on f.id = aliases.current_id
 on conflict (slug) do nothing;
