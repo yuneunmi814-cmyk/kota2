@@ -5,6 +5,7 @@ import { fetchLive, fetchLiveStdfest, fetchLiveKfes } from './tourapi-live'
 import { classifyThemes } from './classify-themes'
 import { daysBetween, festivalStatus, todayKst, type FestivalStatus } from './date'
 import { externalIdsToSlugs } from './festival-routes'
+import { bareName, buildAbsorbedIndex, isAbsorbed } from './absorbed'
 
 // 축제 데이터 접근 — Supabase에서 읽는다.
 //
@@ -373,20 +374,8 @@ async function overlayLive(base: Festival[], rows: Array<{ tourapi_id: string | 
   // (파이프라인 merge.ts가 같은 이유로 기간을 반드시 함께 본다).
   //
   // ①이 있어도 ②를 남기는 이유: contentId가 없는 소스(stdfest·manual)끼리는 이름이 유일한 근거다.
-  // 같은 축제인데 이름이 아예 다른 것 — 규칙으로는 못 잡아서 손으로 적는다.
-  // pipeline/src/lib/match.ts의 SAME과 같은 표다. ⚠ 한쪽만 고치면 다시 갈라진다.
-  const SAME: Record<string, string> = { 재즈in가평: '자라섬재즈' }
-
-  const bareName = (s: string) => {
-    const n = s
-      .replace(/[(（[].*?[)）\]]/g, '')
-      .replace(/제?\s*\d+\s*회/g, '')
-      .replace(/20\d{2}\s*년?/g, '')
-      .replace(/축제|페스티벌|페스타|한마당|문화제|축전/g, '')
-      .replace(/[^\p{L}\p{N}]/gu, '')
-      .toLowerCase()
-    return SAME[n] ?? n
-  }
+  // 이름 정규화(bareName)와 '이미 흡수된 원천인지' 판정은 lib/absorbed.ts에 따로 두었다 —
+  // 순수 함수라 테스트로 고정해 두기 위해서다. 손으로 적는 SAME 표도 그쪽에 있다.
 
   /** tourapi:1916616 · kfes:1916616 → 1916616. 소스 접두사를 뗀 숫자 id */
   const contentIdOf = (f: Festival): string | null => {
@@ -432,11 +421,26 @@ async function overlayLive(base: Festival[], rows: Array<{ tourapi_id: string | 
   // DB 행이 들고 있는 tourapi_id도 같은 열쇠다 — externalId가 kfes:… 인 행에도 붙어 있다
   for (const r of rows) if (r.tourapi_id) knownIds.add(String(r.tourapi_id))
 
+  // 대표가 아닌 출처는 실시간 응답과 맞춰볼 열쇠가 없다.
+  //
+  // 병합 때 표준데이터 행을 흡수한 축제라도 대표 externalId가 tourapi:…이면
+  // 표준데이터 쪽 usedStd에 표시되지 않는다. 그래서 그 행이 '새 축제'로 다시 들어오고,
+  // 두 원천이 날짜를 다르게 주면 기간겹침 판정으로도 못 잡아 같은 축제가 두 장 뜬다.
+  //   한국유교문화축전 — DB는 09-12~09-20(sources: tourapi·kfes·stdfest) 한 건인데
+  //   라이브 목록에는 09-12~09-13(stdfest)과 09-18~09-20(tourapi)이 따로 떴다(2026-09-04 실측).
+  //
+  // DB 행의 sources는 '이 축제가 어느 원천을 흡수했는지'를 이미 알고 있다. 대표가 그 원천이
+  // 아닌데 sources에 들어 있으면, 같은 이름·같은 지역의 그 원천 행은 흡수된 그 행으로 본다.
+  // 대표가 그 원천이면 이 규칙을 쓰지 않는다 — 그때는 usedTour/usedKfes/usedStd로 정확히
+  // 짚을 수 있고, 한 해에 두 번 여는 같은 원천의 축제를 잘못 지우면 안 되기 때문이다.
+  const absorbed = buildAbsorbedIndex(kept)
+
   const fresh: Festival[] = []
 
   const push = (f: Festival, contentId?: string | null) => {
     if (contentId && knownIds.has(contentId)) return
     if (seenBefore(f)) return
+    if (isAbsorbed(absorbed, f, f.sources?.[0] ?? '')) return
     if (contentId) knownIds.add(contentId)
     remember(f)
     fresh.push(f)
