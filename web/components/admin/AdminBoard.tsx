@@ -101,12 +101,14 @@ export default function AdminBoard() {
   }, [sb])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- 관리자 여부가 확인된 뒤에야 DB를 읽는다. 렌더 중에 할 일이 아니다.
     if (admin) void load()
   }, [admin, load])
 
   // ── 축제 검색 ──
   useEffect(() => {
     const needle = q.trim()
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- 두 글자 미만이면 이전 결과를 지운다. 검색은 효과 안에서만 일어난다.
     if (needle.length < 2) return setFound([])
     const id = setTimeout(async () => {
       const { data } = await sb

@@ -50,6 +50,7 @@ export default function ShareButton({
   // 카카오 SDK는 공유를 열려고 할 때만 불러온다 — 모든 방문자가 쓰지 않는 스크립트다
   useEffect(() => {
     if (!open || !KAKAO_KEY || window.Kakao?.isInitialized()) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- window.Kakao는 브라우저에만 있다. 렌더 중에는 볼 수 없다.
       if (window.Kakao?.isInitialized()) setKakaoReady(true)
       return
     }

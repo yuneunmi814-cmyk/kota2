@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { localized, statusOf, isAlwaysOn, isLongRun, dayBadge, type Festival } from '@/lib/festivals'
+import { localized, isAlwaysOn, isLongRun, dayBadge, type Festival } from '@/lib/festivals'
 import DayBadgeChip from './DayBadge'
 import { t } from '@/lib/ui'
 import type { Lang } from '@/lib/i18n'
@@ -21,7 +21,6 @@ export default function FestivalCard({
   distanceKm?: number | null
 }) {
   const L = localized(f, lang)
-  const st = statusOf(f)
   const always = isAlwaysOn(f)
 
   return (

@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import { requestPosition } from '@/lib/geo'
 import Link from 'next/link'
-import { distanceKm, isAlwaysOn, localized, statusOf, type Festival } from '@/lib/festivals'
+import { distanceKm, isAlwaysOn, statusOf, type Festival } from '@/lib/festivals'
 import { t } from '@/lib/ui'
 import type { Lang } from '@/lib/i18n'
 import FestivalCard from './FestivalCard'

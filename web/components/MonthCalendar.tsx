@@ -3,7 +3,6 @@ import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import type { ListItem } from '@/lib/listData'
 import type { Lang } from '@/lib/i18n'
-import { t } from '@/lib/ui'
 import { toSlug } from '@/lib/slug'
 import Poster from './Poster'
 import Icon from './Icon'
@@ -84,6 +83,7 @@ export default function MonthCalendar({
   useEffect(() => {
     const u = new URLSearchParams(window.location.search)
     const m = u.get('m')
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- 주소는 서버에 없다. 정적으로 구운 HTML과 맞추려면 마운트 뒤에 읽어야 한다.
     if (m && /^\d{4}-\d{2}$/.test(m)) setCursor({ y: Number(m.slice(0, 4)), m: Number(m.slice(5, 7)) })
     const d = u.get('d')
     if (d && /^\d{4}-\d{2}-\d{2}$/.test(d)) setPicked(d)
