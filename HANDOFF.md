@@ -1,8 +1,14 @@
 # KOTA 작업 인계장 — 클로드코드 ↔ 코덱스 공용
 
+## 색인
+
+| 갈래 | 한 줄 요약 | 마지막 갱신 | 급한 순서 |
+|---|---|---|---:|
+| A. 기술컨설팅·9/2 회의 후속 | 안정화 코드 완료, 영속 ID 운영 이전과 후속 구조 분리 남음 | 2026-09-03 16:12 | 1 |
+
 ## 마지막 갱신
 
-2026-09-02 23:20 · 코덱스
+2026-09-03 16:12 · 코덱스
 
 ## 지금 하는 일
 
@@ -33,6 +39,8 @@
 - 병합·웹 데이터 527건을 다시 만들었고 527건 모두 `sourceIds`가 있다. 수원 일정 정정도 생성 파일에 반영했다.
 - 자동 테스트 14개, 웹·파이프라인 TypeScript 검사, 2,379페이지 전체 빌드가 통과했다.
 - 과거 주소 4개는 로컬 HTTP에서 각각 현재 `tourapi` 주소로 308 이동하는 것을 확인했다.
+- 9월 2일 회의 녹취를 코드의 실제 진행 상태와 대조해 `docs/meeting-minutes-2026-09-02.md`로 정리했다. 개인적인 사업·가정 대화는 저장소에서 제외했다.
+- 팀 공유용 완료 작업·인계 작업 메시지를 `docs/discord-update-2026-09-03.md`에 작성했다.
 - ORCA에 `kota-id-audit`, `kota-query-audit` 두 읽기 전용 검토 작업공간을 만들고 각각 ID 이전 위험과 조회 분리 순서를 점검했다. 검토자는 파일을 수정하지 않았다.
 - `npm test` 10개 통과, `npm run build` 통과(2379 정적 페이지, 축제 경로 2321개).
 - 로컬 HTTP 확인: 과거 주소 2개는 308, 현재 JIMFF 상세는 200.
@@ -71,6 +79,8 @@
 - `docs/discord-team-update-consulting-followup-2026-09-01.md`
 - `docs/meeting-onepager-2026-09-01.md`
 - `docs/meeting-followup-2026-09-02.md`
+- `docs/meeting-minutes-2026-09-02.md`
+- `docs/discord-update-2026-09-03.md`
 - `pipeline/src/audit-production.ts`
 - `pipeline/src/push-supabase.ts`
 - `supabase/stable-festival-ids-draft.sql`
