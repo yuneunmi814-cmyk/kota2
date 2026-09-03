@@ -3,7 +3,7 @@ import { supabase } from './supabase'
 import { DEFAULT_LANG, type Lang } from './i18n'
 import { fetchLive, fetchLiveStdfest, fetchLiveKfes } from './tourapi-live'
 import { classifyThemes } from './classify-themes'
-import { daysBetween, festivalStatus, todayKst, type FestivalStatus } from './date'
+import { addDays, daysBetween, festivalStatus, todayKst, type FestivalStatus } from './date'
 import { externalIdsToSlugs } from './festival-routes'
 import { bareName, buildAbsorbedIndex, isAbsorbed } from './absorbed'
 
@@ -160,6 +160,7 @@ interface SummaryRow {
   category: string | null
   themes: string[] | null
   popularity: number | null
+  visitor_lift: number | null
   sources: string[] | null
   tourapi_id: string | null
   festival_translations?: { lang: string; name: string | null; place_name: string | null }[]
@@ -226,6 +227,7 @@ function fromSummaryRow(r: SummaryRow): Festival {
     category: r.category,
     themes: r.themes ?? [],
     popularity: r.popularity ?? 0,
+    visitorLift: r.visitor_lift,
     sources: r.sources ?? [],
     translations: (r.festival_translations ?? []).map((t) => ({
       langCode: t.lang,
@@ -249,7 +251,15 @@ function fromSummaryRow(r: SummaryRow): Festival {
 //
 // TourAPI에만 있고 DB에 없는 축제는 목록에 새로 넣는다. 번역이 없으므로 4개 언어에서
 // 한국어 이름으로 보이지만, 없는 것보다는 낫다 — 다음 파이프라인 실행 때 번역이 붙는다.
-async function overlayLive(base: Festival[], rows: Array<{ tourapi_id: string | null }>): Promise<Festival[]> {
+/**
+ * @param addFresh 원천에만 있는 새 축제를 목록에 더할지. 한 건 조회에서는 false —
+ *   그 축제 하나를 고치러 왔는데 원천의 수백 건을 딸려 보낼 이유가 없다.
+ */
+async function overlayLive(
+  base: Festival[],
+  rows: Array<{ tourapi_id: string | null }>,
+  addFresh = true,
+): Promise<Festival[]> {
 
   // 두 원천을 동시에 부른다. 하나가 늦어도 다른 하나를 기다리게 하지 않는다.
   const [live, std, kfes] = await Promise.all([fetchLive(), fetchLiveStdfest(), fetchLiveKfes()])
@@ -432,6 +442,7 @@ async function overlayLive(base: Festival[], rows: Array<{ tourapi_id: string | 
   const absorbed = buildAbsorbedIndex(kept)
 
   const fresh: Festival[] = []
+  if (!addFresh) return kept
 
   const push = (f: Festival, contentId?: string | null) => {
     if (contentId && knownIds.has(contentId)) return
@@ -493,7 +504,7 @@ async function overlayLive(base: Festival[], rows: Array<{ tourapi_id: string | 
 
 const SELECT = '*, festival_translations(*), festival_photos(*)'
 const SUMMARY_SELECT =
-  'id, name, start_date, end_date, sido, sigungu, lat, lng, image_url, image_from, category, themes, popularity, sources, tourapi_id, festival_translations(lang, name, place_name)'
+  'id, name, start_date, end_date, sido, sigungu, lat, lng, image_url, image_from, category, themes, popularity, visitor_lift, sources, tourapi_id, festival_translations(lang, name, place_name)'
 
 // 조회는 모듈 수준에서 한 번만 한다.
 //
@@ -572,6 +583,18 @@ export function listFestivalSummaries(): Promise<Festival[]> {
         const { data, error } = await supabase
           .from('festivals')
           .select(SUMMARY_SELECT)
+          // 오래전에 끝난 축제는 DB에서 거른다. 다만 넉넉히 남긴다.
+          //
+          // 목록·달력·테마는 종료 축제를 화면에서 빼므로, 전량을 가져와 JS에서 거르는 것은
+          // 쓰지도 않을 행을 실어 나르는 일이다. 끝난 축제는 리뷰·사진 때문에 DB에 계속 쌓이니
+          // 그대로 두면 이 조회가 해마다 무거워진다.
+          //
+          // 그런데 `end_date >= 오늘`로 딱 자르면 안 된다. DB의 종료일이 최신이 아닐 수 있다 —
+          // 원천이 기간을 늘리면 실시간 보정이 그 값을 고쳐 주는데, DB 값 기준으로 미리
+          // 걸러 버리면 고칠 기회조차 없이 사라진다. 실제로 그런 축제가 있었다(2026-09-04):
+          //   트레저헌터 in 진안 — DB 08-29 종료, TourAPI는 09-19까지 (21일 연장)
+          // 90일 여유를 두면 그런 연장은 다 걸리고, 오래 묵은 행만 빠진다.
+          .gte('end_date', addDays(todayKst(), -90))
           .order('start_date')
           .order('id')
           .range(from, from + CHUNK - 1)
@@ -645,12 +668,39 @@ export function allFestivals(): Promise<Festival[]> {
   return rows
 }
 
-// 한 건 조회도 위 목록에서 꺼낸다.
+// 한 건 조회 — 이미 전량을 들고 있으면 거기서 꺼내고, 아니면 그 한 건만 묻는다.
 //
-// 전에는 페이지마다 별도 쿼리를 날렸다 — 그것만으로 빌드에 1,776번이었다.
-// 어차피 전체를 이미 들고 있으므로 다시 물을 이유가 없다.
+// 전에는 무조건 전량 조회에서 꺼냈다. 빌드에서는 그게 맞다 — 워커마다 모듈 캐시가 한 번
+// 차고 나면 2,200여 개 상세 페이지가 그걸 나눠 쓴다. 페이지마다 따로 물으면 빌드에만
+// 1,776번이던 시절로 되돌아간다.
+//
+// 그런데 배포 뒤 상세 한 장을 다시 굽는 순간에는 이야기가 다르다. 그때는 캐시가 비어 있어
+// 축제 한 건을 그리려고 552건 전량(번역·사진 포함 1.3MB 이상)을 여덟 조각으로 끌어온다.
+// 여기서 갈랐다 — 캐시가 이미 차 있으면 그대로 쓰고(빌드), 비어 있으면 한 건만 묻는다(운영).
+// 전량 캐시를 새로 채우지는 않는다. 한 장 굽자고 전량을 당기지 않는 것이 이 분리의 목적이다.
+// 몇 번째 단건 조회인지 센다. 한 프로세스가 서로 다른 축제를 이만큼 물었다면 그건
+// 상세 한 장을 굽는 중이 아니라 빌드다. 그때는 전량을 한 번 당겨 놓는 편이 훨씬 싸다.
+// 값은 실측으로 정했다 — 단건만 쓰면 2,475쪽 빌드가 17초에서 4.8분이 됐다.
+let singleFetches = 0
+const BULK_AFTER = 8
+
 export const findByKey = cache(async (externalId: string): Promise<Festival | undefined> => {
-  return (await allFestivals()).find((f) => f.externalId === externalId)
+  const warm = cached && Date.now() - cached.at < TTL ? await cached.rows : null
+  if (warm) return warm.find((f) => f.externalId === externalId)
+
+  if (++singleFetches > BULK_AFTER) {
+    // 여기서 전량 캐시가 차고, 이 프로세스의 다음 호출부터는 위 warm 갈래로 빠진다.
+    return (await allFestivals()).find((f) => f.externalId === externalId)
+  }
+
+  const { data, error } = await supabase.from('festivals').select(SELECT).eq('id', externalId).limit(1)
+  if (error) throw new Error(`축제 한 건 조회 실패(${externalId}): ${String(error.message).slice(0, 120)}`)
+  const row = (data as unknown as Row[])?.[0]
+  if (!row) return undefined
+
+  // 한 건에도 같은 실시간 보정을 건다 — 상세와 목록이 다른 날짜를 말하면 안 된다.
+  const [f] = await overlayLive([fromRow(row)], [row], false)
+  return f
 })
 
 /** 그 언어로 보이는 이름·요약·지명. 번역이 없으면 한국어 원문으로 떨어진다 */

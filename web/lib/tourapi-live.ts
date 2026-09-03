@@ -24,6 +24,29 @@ const BASE = 'https://apis.data.go.kr/B551011/KorService2'
 /** 한 시간. 페이지의 revalidate와 맞춘다 */
 const REVALIDATE = 3600
 
+// 한 프로세스 안에서 원천마다 한 번만 부른다.
+//
+// 화면 하나를 그리는 동안 실시간 보정이 여러 번 일어날 수 있다 — 목록용 요약 조회와
+// 상세용 전량 조회가 각각 이 함수들을 부른다. 그때마다 원천을 다시 부르면 특히 kfes가
+// 비싸다(12건씩 52번을 4개 묶음으로 순차 호출). 실제로 빌드에서 이 중복이 드러났다:
+// 워커마다 두 번씩 부르면서 정적 생성이 17초에서 117초가 됐다(2026-09-04 실측).
+//
+// 페이지의 revalidate와 같은 한 시간을 쓴다. 실패한 약속은 캐시에 남기지 않는다 —
+// 남기면 TTL 동안 같은 오류만 되풀이한다.
+function memoHour<T>(fn: () => Promise<T>): () => Promise<T> {
+  let hit: { at: number; rows: Promise<T> } | null = null
+  return () => {
+    if (hit && Date.now() - hit.at < REVALIDATE * 1000) return hit.rows
+    const rows = fn()
+    rows.catch(() => {
+      if (hit?.rows === rows) hit = null
+    })
+    hit = { at: Date.now(), rows }
+    return rows
+  }
+}
+
+
 export interface LiveRow {
   contentId: string
   name: string
@@ -77,7 +100,7 @@ function num(v?: string): number | null {
  * 실패하면 던지지 않고 빈 배열을 준다 — 공사 API가 잠깐 흔들려도 사이트는 DB 데이터로
  * 계속 뜨는 게 맞다. 심사 기간에 남의 서버 사정으로 화면이 비면 안 된다.
  */
-export async function fetchLive(): Promise<LiveRow[]> {
+async function fetchLiveRaw(): Promise<LiveRow[]> {
   const key = process.env.TOURAPI_SERVICE_KEY
   if (!key) {
     console.warn('[tourapi-live] TOURAPI_SERVICE_KEY 없음 — 실시간 호출을 건너뛴다')
@@ -194,7 +217,7 @@ function stdKey(name: string, start: string): string {
   return `${name}-${start}`.replace(/\s+/g, '').slice(0, 80)
 }
 
-export async function fetchLiveStdfest(): Promise<StdRow[]> {
+async function fetchLiveStdfestRaw(): Promise<StdRow[]> {
   const key = process.env.TOURAPI_SERVICE_KEY
   if (!key) return []
 
@@ -353,7 +376,7 @@ async function kfesPage(startIdx: number): Promise<{ total: number; list: KfesIt
   return { total: j.totalCnt ?? 0, list: j.resultList ?? [] }
 }
 
-export async function fetchLiveKfes(): Promise<KfesRow[]> {
+async function fetchLiveKfesRaw(): Promise<KfesRow[]> {
   const out: KfesRow[] = []
   const seen = new Set<string>()
   // kfes는 지난 축제까지 전부 준다(TourAPI·표준데이터와 다른 점). 끝난 건 걸러야
@@ -418,3 +441,7 @@ export async function fetchLiveKfes(): Promise<KfesRow[]> {
 
   return out
 }
+
+export const fetchLive = memoHour(fetchLiveRaw)
+export const fetchLiveStdfest = memoHour(fetchLiveStdfestRaw)
+export const fetchLiveKfes = memoHour(fetchLiveKfesRaw)

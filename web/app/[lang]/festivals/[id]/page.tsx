@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound, permanentRedirect } from 'next/navigation'
-import { allFestivals, distanceKm, feeKind, findByKey, isAlwaysOn, isLongRun, isPublicData, listFestivalSlugs, localized, regionRank, statusOf } from '@/lib/festivals'
+import { listFestivalSummaries, distanceKm, feeKind, findByKey, isAlwaysOn, isLongRun, isPublicData, listFestivalSlugs, localized, regionRank, statusOf } from '@/lib/festivals'
 import { toSlug } from '@/lib/slug'
 import { festivalRoutePath, resolveFestivalRoute } from '@/lib/festival-routes'
 import { lookupAliasTargets } from '@/lib/route-aliases'
@@ -100,7 +100,8 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
   const hasCoords = f.lat != null && f.lng != null
 
   const nearby = hasCoords
-    ? (await allFestivals())
+    // 주변 축제도 카드만 그린다 — 요약 조회로 충분하다.
+    ? (await listFestivalSummaries())
         // 같은 축제의 다른 회차도 뺀다.
         //
         // externalId만 보면 '거제맥주축제'(8/23)의 근처 목록에 '거제맥주축제'(9/11)가 들어왔다.

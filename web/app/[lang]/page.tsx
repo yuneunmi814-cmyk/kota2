@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import type { Festival } from '@/lib/festivals'
-import { allFestivals, isAlwaysOn, isLongRun, localized, statusOf } from '@/lib/festivals'
+import { listFestivalSummaries, isAlwaysOn, isLongRun, localized, statusOf } from '@/lib/festivals'
 import { LANGS, SITE_URL, isLang, type Lang } from '@/lib/i18n'
 import { t } from '@/lib/ui'
 import { themeLabel } from '@/lib/themes'
@@ -30,7 +30,7 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
   // 화면에서 실제로 볼 수 있는 수만 센다.
   // 전체 길이를 쓰면 끝난 축제까지 세어 홈은 519곳을 약속하는데 목록에는 495곳뿐이었다.
   // 숫자가 어긋나면 데이터 신뢰도로 바로 이어진다(2026-08-23 점검).
-  const n = (await allFestivals()).filter((f) => statusOf(f) !== 'ended').length
+  const n = (await listFestivalSummaries()).filter((f) => statusOf(f) !== 'ended').length
   return {
     title: `KOTA — ${t(l, 'brand.tagline')}`,
     description: t(l, 'home.sub', { n }),
@@ -45,7 +45,9 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
 export default async function HomePage({ params }: { params: Promise<{ lang: string }> }) {
   const { lang } = await params
   const l: Lang = isLang(lang) ? lang : 'ko'
-  const all = await allFestivals()
+  // 홈은 카드에 쓰는 값만 있으면 된다 — 소개·프로그램·부스·사진 원문은 상세에서만 쓴다.
+  // 전량 조회를 쓰면 홈 한 장을 굽는 데 1.3MB를 끌어왔다.
+  const all = await listFestivalSummaries()
 
   const today = todayKst()
   const ongoing = all.filter((f) => statusOf(f, today) === 'ongoing' && !isAlwaysOn(f))
