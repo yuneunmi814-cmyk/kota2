@@ -181,9 +181,20 @@ const merged: Festival[] = groups.map((g) => {
   // 개요는 '가장 긴 산문' — kfes가 있으면 kfes, 없으면 stdfest의 fstvlCo, 마지막에 mcst 조각
   const bySrc = (s: RawFestival['source']) => sorted.find((x) => x.source === s)
   const summary = bySrc('kfes')?.summary ?? bySrc('stdfest')?.summary ?? bySrc('manual')?.summary ?? longest(sorted.map((x) => x.summary))
-  // 기간은 가장 이른 시작 ~ 가장 늦은 끝(소스마다 하루 이틀 다르다)
-  const startDate = sorted.map((x) => x.startDate).sort()[0]!
-  const endDate = sorted.map((x) => x.endDate).sort().at(-1)!
+  // 기간: 공사 소스(tourapi·kfes)가 있으면 그 안에서만 고른다.
+  //
+  // 원래는 모든 소스에서 '가장 이른 시작 ~ 가장 늦은 끝'을 썼다. 소스마다 하루 이틀
+  // 다를 뿐이라고 봤기 때문인데, 표준데이터는 지자체가 손으로 입력해 월을 잘못 적는
+  // 일이 있다. 그러면 넓게 잡는 규칙이 그 오타를 그대로 채택해 축제가 몇 달로 늘어나고,
+  // 달력과 홈 화면을 한 축제가 점령한다(2026-09-04 확인):
+  //   춘천인형극제  공사 09-10~09-16  vs 표준데이터 07-31~12-26 → 142일 부풀음
+  //   보은대추축제  공사 10-16~10-25  vs 표준데이터 10-16~11-25 →  31일 부풀음
+  // 손으로 넣은 정정표의 홍성남당항·수원화성도 이 규칙이면 같은 값이 나온다.
+  // 공사 소스가 하나도 없을 때만 종전처럼 전체에서 넓게 잡는다.
+  const dateSource = sorted.filter((x) => x.source === 'tourapi' || x.source === 'kfes')
+  const span = dateSource.length ? dateSource : sorted
+  const startDate = span.map((x) => x.startDate).sort()[0]!
+  const endDate = span.map((x) => x.endDate).sort().at(-1)!
   const withCoords = sorted.find((x) => x.lat != null && x.lng != null)
   // 이름: 관광공사 공식 표기(kfes·tourapi)가 우선. 없으면 소스 순위가 아니라 '정보량'으로 고른다.
   // 표준데이터는 '맥주축제'처럼 지역명을 빼고 적는데, 소스 순위(stdfest > mcst)를 그대로 쓰면
