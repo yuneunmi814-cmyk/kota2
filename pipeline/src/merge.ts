@@ -373,6 +373,52 @@ try {
   }
 }
 
+// ── 지난 산출물 되살리기 ───────────────────────────────────
+//
+// 원천이 한 주 빠뜨렸다고 아직 열리지도 않은 축제를 지우면 안 된다.
+//
+// 종전에는 '이번 산출물에 없고 아직 안 끝난 축제'를 원천이 내린 것(취소·연기)으로 보고
+// 지웠다. 그런데 2026-09-04에 그 판단이 틀린 것을 확인했다 — TourAPI와 구석구석에서
+// 동시에 사라진 네 축제를 공식 자료로 대조했더니 넷 다 멀쩡히 열리고 있었다.
+//   서천 홍원항 자연산 전어 꽃게 축제 08-22~09-06 (충남문화포털, 진행 중)
+//   함평 모악산 꽃무릇축제 09-16~09-20 (함평축제관광재단, 제27회 개최 확정)
+// 지운 결과 이미 공유된 주소가 404가 됐고, 열리는 축제가 목록에서 사라졌다.
+//
+// 원천의 한때 누락과 진짜 취소는 구별할 방법이 없다. 그렇다면 무엇을 내릴지는
+// '원천에 지금 있느냐'가 아니라 '날짜가 지났느냐'로 정한다. 끝난 축제는 어차피
+// 다음 수집에서 자연히 빠진다(원본 적재 단계에서 endDate < 오늘을 거른다).
+//
+// 되살릴 때 같은 축제가 둘이 되지 않게, 이번 결과에 이미 있는지를 세 가지로 본다.
+// 대표 ID·출처 ID가 겹치거나, 이름이 같고 기간이 겹치면 이미 있는 것으로 본다.
+{
+  const prevUrl = new URL('../data/festivals.json', import.meta.url)
+  if (existsSync(prevUrl)) {
+    const prev = (JSON.parse(readFileSync(prevUrl, 'utf-8')) as { items?: Festival[] }).items ?? []
+    const ids = new Set(merged.flatMap((f) => [f.externalId, ...(f.sourceIds ?? [])]))
+    const byName = new Map<string, Festival[]>()
+    for (const f of merged) {
+      const n = normalizeName(f.name)
+      const list = byName.get(n)
+      if (list) list.push(f)
+      else byName.set(n, [f])
+    }
+
+    const revived = prev.filter((p) => {
+      if (!p.endDate || p.endDate < today) return false // 끝난 축제는 되살리지 않는다
+      if ([p.externalId, ...(p.sourceIds ?? [])].some((id) => ids.has(id))) return false
+      const same = byName.get(normalizeName(p.name)) ?? []
+      return !same.some((f) => periodsOverlap(f.startDate, f.endDate, p.startDate, p.endDate, 0))
+    })
+
+    if (revived.length) {
+      merged.push(...revived)
+      console.log(
+        `   원천에서 빠진 축제 ${revived.length}건 유지 — ${revived.slice(0, 4).map((f) => f.name).join(', ')}${revived.length > 4 ? ' 외' : ''}`,
+      )
+    }
+  }
+}
+
 // ── 저장 + 리포트 ─────────────────────────────────────────
 mkdirSync(new URL('../data/', import.meta.url), { recursive: true })
 writeFileSync(new URL('../data/festivals.json', import.meta.url), JSON.stringify({ exportedAt: new Date().toISOString(), items: merged }, null, 0))

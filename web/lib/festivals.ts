@@ -262,7 +262,6 @@ async function overlayLive(base: Festival[], rows: Array<{ tourapi_id: string | 
   const usedTour = new Set<string>()
   const usedStd = new Set<string>()
   const usedKfes = new Set<string>()
-  const dropped: number[] = []
 
   for (let i = 0; i < rows.length; i++) {
     const f = base[i]
@@ -292,9 +291,6 @@ async function overlayLive(base: Festival[], rows: Array<{ tourapi_id: string | 
         if (f.lat == null && k.lat != null) f.lat = k.lat
         if (f.lng == null && k.lng != null) f.lng = k.lng
         if (!f.sources?.includes('kfes')) f.sources = [...(f.sources ?? []), 'kfes']
-      } else if (kfes.length > 0 && (f.sources ?? []).every((x) => x === 'kfes') && f.endDate >= today) {
-        dropped.push(i)
-        continue
       }
     }
 
@@ -318,16 +314,18 @@ async function overlayLive(base: Festival[], rows: Array<{ tourapi_id: string | 
         if (!f.sources?.includes('tourapi')) f.sources = [...(f.sources ?? []), 'tourapi']
         continue
       }
-      // 원천에서 사라졌다.
+      // 실시간 응답에 없다고 해서 내리지 않는다.
       //
-      // TourAPI만이 출처이고, 아직 안 끝난 축제인데 실시간 응답에 없다면 원천에서 내렸다는
-      // 뜻이다(취소·연기·등록 철회). 그런 걸 계속 띄우면 헛걸음을 만든다.
-      // 끝난 축제는 애초에 응답에 안 오므로 여기 걸리지 않게 endDate로 거른다.
-      const onlyTour = (f.sources ?? []).every((x) => x === 'tourapi') && ext.startsWith('tourapi:')
-      if (live.length > 0 && onlyTour && f.endDate >= today) {
-        dropped.push(i)
-        continue
-      }
+      // 전에는 'TourAPI만이 출처인데 응답에 없으면 원천이 내린 것(취소·연기)'으로 보고
+      // 화면에서 뺐다. 2026-09-04에 그 전제가 틀린 것을 확인했다 — TourAPI와 구석구석에서
+      // 동시에 사라진 네 축제를 공식 자료로 대조했더니 넷 다 멀쩡히 열리고 있었다.
+      //   서천 홍원항 자연산 전어 꽃게 축제 08-22~09-06 (충남문화포털, 진행 중)
+      //   함평 모악산 꽃무릇축제 09-16~09-20 (함평축제관광재단, 제27회 개최 확정)
+      //
+      // 원천의 한때 누락과 진짜 취소는 구별할 수 없다. 그렇다면 열리는 축제를 지우는 쪽이
+      // 취소된 축제를 며칠 더 띄우는 쪽보다 나쁘다 — 앞은 갈 수 있었던 사람을 놓치게 하고,
+      // 뒤는 날짜가 지나면 저절로 사라진다. 무엇을 내릴지는 날짜가 정한다.
+      // (같은 이유로 pipeline/src/merge.ts도 빠진 축제를 지우지 않고 되살린다.)
     }
 
     // ── 표준데이터 쪽 ──
@@ -342,14 +340,12 @@ async function overlayLive(base: Festival[], rows: Array<{ tourapi_id: string | 
         if (!f.homepage && l.homepage) f.homepage = l.homepage
         if (f.lat == null && l.lat != null) f.lat = l.lat
         if (f.lng == null && l.lng != null) f.lng = l.lng
-      } else if (std.length > 0 && (f.sources ?? []).every((x) => x === 'stdfest') && f.endDate >= today) {
-        dropped.push(i)
       }
     }
   }
 
-  const drop = new Set(dropped)
-  const kept = base.filter((_, i) => !drop.has(i))
+  // 아무것도 내리지 않는다 — 무엇을 뺄지는 날짜가 정한다(위 주석 참고).
+  const kept = base
 
   // ── 원천에 새로 올라온 축제 ──
   const AREA: Record<string, string> = {
@@ -489,8 +485,8 @@ async function overlayLive(base: Festival[], rows: Array<{ tourapi_id: string | 
     } as Festival)
   }
 
-  if (fresh.length || drop.size) {
-    console.info(`[live] 원천 동기화 — 추가 ${fresh.length}건, 내려간 축제 ${drop.size}건 제외 (기준 ${today})`)
+  if (fresh.length) {
+    console.info(`[live] 원천 동기화 — 추가 ${fresh.length}건 (기준 ${today})`)
   }
   return [...kept, ...fresh].sort((a, b) => a.startDate.localeCompare(b.startDate))
 }
