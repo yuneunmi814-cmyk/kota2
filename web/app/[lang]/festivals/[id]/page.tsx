@@ -1,7 +1,8 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound, permanentRedirect } from 'next/navigation'
-import { listFestivalSummaries, distanceKm, feeKind, findByKey, isAlwaysOn, isLongRun, isPublicData, listFestivalSlugs, localized, regionRank, statusOf } from '@/lib/festivals'
+import { listFestivalSummaries, feeKind, findByKey, isAlwaysOn, isLongRun, isPublicData, listFestivalSlugs, localized, regionRank, statusOf } from '@/lib/festivals'
+import { detailSections, festivalJsonLd, heroMedia, metaDescription, nearbyFestivals, sourceHost, sourceUrl } from '@/lib/detail-view'
 import { toSlug } from '@/lib/slug'
 import { festivalRoutePath, resolveFestivalRoute } from '@/lib/festival-routes'
 import { lookupAliasTargets } from '@/lib/route-aliases'
@@ -49,7 +50,7 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
   if (!route) return {}
   const f = route.festival
   const L = localized(f, l)
-  const desc = [L.summary, `${f.startDate} ~ ${f.endDate}`, L.placeName].filter(Boolean).join(' · ').slice(0, 160)
+  const desc = metaDescription(L, f)
   return {
     title: `${L.name} · KOTA`,
     description: desc,
@@ -58,24 +59,6 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
       languages: Object.fromEntries(LANGS.map((x) => [x, `${SITE_URL}/${x}/festivals/${toSlug(f.externalId)}/`])),
     },
     openGraph: { title: L.name, description: desc, ...(f.imageUrl ? { images: [f.imageUrl] } : {}), type: 'website' },
-  }
-}
-
-// 출처 표기 — 문자열에서 주소를 뽑아 쓴다.
-//
-// imageSource에 주소만 들어오리라 믿고 new URL()에 그대로 넣었더니 빌드가 깨졌다
-// (2026-08-19, 국가유산 미디어아트). 손으로 모은 포스터의 출처는 "○○재단 공식 홈페이지
-// https://..." 처럼 설명이 붙은 문장으로 들어오기도 한다. 데이터도 정리하지만 화면 쪽도
-// 이상한 값에 안 죽게 둔다 — 출처 한 줄 때문에 1,891페이지 빌드가 멈추는 건 균형이 안 맞는다.
-const firstUrl = (raw: string) => raw.match(/https?:\/\/[^\s)]+/)?.[0] ?? null
-const sourceUrl = (raw: string) => firstUrl(raw) ?? undefined
-function sourceHost(raw: string): string {
-  const u = firstUrl(raw)
-  if (!u) return raw.slice(0, 24)
-  try {
-    return new URL(u).hostname.replace(/^www\./, '')
-  } catch {
-    return raw.slice(0, 24)
   }
 }
 
@@ -99,93 +82,36 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
 
   const hasCoords = f.lat != null && f.lng != null
 
-  const nearby = hasCoords
-    // 주변 축제도 카드만 그린다 — 요약 조회로 충분하다.
-    ? (await listFestivalSummaries())
-        // 같은 축제의 다른 회차도 뺀다.
-        //
-        // externalId만 보면 '거제맥주축제'(8/23)의 근처 목록에 '거제맥주축제'(9/11)가 들어왔다.
-        // 「다른 축제」라고 해놓고 같은 이름을 보여주니 쓰는 사람 눈에는 중복이다(2026-08-23 점검).
-        .filter(
-          (x) =>
-            x.externalId !== f.externalId &&
-            x.name.replace(/\s+/g, '') !== f.name.replace(/\s+/g, '') &&
-            x.lat != null && x.lng != null && statusOf(x) !== 'ended' && !isAlwaysOn(x),
-        )
-        .map((x) => ({ x, km: distanceKm({ lat: f.lat as number, lng: f.lng as number }, { lat: x.lat as number, lng: x.lng as number }) }))
-        .filter((o) => o.km <= 30)
-        .sort((a, b) => a.km - b.km)
-        .slice(0, 8)
-    : []
+  const nearby = nearbyFestivals(f, hasCoords ? await listFestivalSummaries() : [])
 
   const mapHref = hasCoords ? `https://map.kakao.com/link/to/${encodeURIComponent(f.name)},${f.lat},${f.lng}` : null
   const boothCount = f.booths?.length ?? 0
   const menuCount = f.booths?.reduce((n, b) => n + b.menu.length, 0) ?? 0
 
-  // 목차 — 그 섹션이 실제로 그려질 때만 넣는다
-  const anchors = [
-    L.summary ? { id: 'about', label: t(l, 'detail.about') } : null,
-    (f.photos?.length ?? 0) > 0 ? { id: 'photos', label: t(l, 'detail.photos') } : null,
-    f.lineup ? { id: 'lineup', label: t(l, 'detail.lineup') } : null,
-    f.program ? { id: 'program', label: t(l, 'detail.program') } : null,
-    hasCoords ? { id: 'location', label: t(l, 'detail.location') } : null,
-    { id: 'reviews', label: t(l, 'review.title') },
-    nearby.length > 0 ? { id: 'nearby', label: t(l, 'detail.nearby') } : null,
-  ].filter((x): x is { id: string; label: string } => x !== null)
+  // 목차 — 어떤 칸이 있는지는 detail-view가 정하고, 사람이 읽는 이름표만 여기서 붙인다
+  const SECTION_LABEL = {
+    about: 'detail.about',
+    photos: 'detail.photos',
+    lineup: 'detail.lineup',
+    program: 'detail.program',
+    location: 'detail.location',
+    reviews: 'review.title',
+    nearby: 'detail.nearby',
+  } as const
+  const anchors = detailSections(f, { hasSummary: Boolean(L.summary), nearbyCount: nearby.length }).map((id) => ({
+    id,
+    label: t(l, SECTION_LABEL[id]),
+  }))
 
-  const jsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'Festival',
-    name: L.name,
-    ...(L.summary ? { description: L.summary } : {}),
-    startDate: f.startDate,
-    endDate: f.endDate,
-    eventStatus: 'https://schema.org/EventScheduled',
-    eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
-    inLanguage: l,
-    location: {
-      '@type': 'Place',
-      name: L.placeName ?? f.address ?? 'Korea',
-      ...(f.address ? { address: f.address } : {}),
-      ...(hasCoords ? { geo: { '@type': 'GeoCoordinates', latitude: f.lat, longitude: f.lng } } : {}),
-    },
-    ...(f.imageUrl ? { image: [f.imageUrl] } : {}),
-    ...(f.organizer ? { organizer: { '@type': 'Organization', name: f.organizer } } : {}),
-    // 모르면 아예 말하지 않는다. 요금을 모르는 축제에 isAccessibleForFree: true 를 넣으면
-    // 검색엔진에도 "무료"라고 알리는 셈이고, 그건 화면의 거짓말이 검색결과까지 번지는 것이다.
-    ...(fee === 'unknown' ? {} : { isAccessibleForFree: fee === 'free' }),
+  const jsonLd = festivalJsonLd({
+    f,
+    L,
+    lang: l,
+    fee,
     url: `${SITE_URL}/${l}/festivals/${toSlug(f.externalId)}/`,
-  }
+  })
 
-  // 히어로에 쓸 사진. 대표 이미지가 없으면 갤러리 첫 장이라도 쓴다.
-  // 둘 다 없으면 heroSrc 는 null 이고, 그때는 히어로 자체를 그리지 않는다 —
-  // 420건 중 183건(43%)이 포스터가 없는데, 그 화면에서 폭 2/3짜리 회색 상자에
-  // 축제명 첫 글자만 크게 뜨는 건 정보가 아니라 빈자리다. 목록 카드에서는 같은
-  // 자리채움이 제 몫을 한다(수백 장이 같은 아이콘이면 만들다 만 화면으로 읽힌다).
-  // 상세는 한 장뿐이라 사정이 다르다. 접으면 소개와 지도가 그만큼 위로 올라온다.
-  const heroSrc = f.imageUrl ?? f.photos?.[0]?.url ?? null
-
-  // 사진 그리드에 뭘 채울지 — 포스터, 유튜브 썸네일, 지도. 없는 칸은 접는다
-  const ytId = f.youtube?.match(/(?:youtu\.be\/|v=|shorts\/|embed\/)([A-Za-z0-9_-]{11})/)?.[1] ?? null
-  // 옆 칸 우선순위: 실제 축제 사진 → 영상 → 지도. 사진이 있으면 그게 가장 정직한 대표 이미지다
-  const extraPhoto = f.photos?.[1] ?? null
-  // 곁타일 — 사진과 영상. 사진이 둘 이상이면 사진을 먼저 쓴다(축제는 눈으로 파는 것이라).
-  //
-  // 사진이 모자랄 때 지도로 칸을 메우고 있었는데 뺐다(2026-08-19).
-  //  · 아래 '위치'에 같은 지도가 이미 있어 한 페이지에 같은 지도가 두 번 그려졌다(BUG-19).
-  //  · 타일을 <a href="#location">으로 감쌌는데 KakaoMap 안에 카카오맵으로 나가는 <a>가 또
-  //    있어 앵커가 중첩됐다. 잘못된 HTML이라 하이드레이션이 통째로 깨졌고, 그 페이지의
-  //    클라이언트 기능이 전부 죽었다 — 리포트에 없던 건이다.
-  // 칸이 비면 그리드가 알아서 좁아진다. 지도를 두 번 그리는 것보다 낫다.
-  const photo2 = f.photos?.[2] ?? null
-  const sideTiles = [
-    extraPhoto ? { kind: 'photo' as const, src: extraPhoto.thumb } : ytId ? { kind: 'yt' as const, id: ytId } : null,
-    photo2
-      ? { kind: 'photo' as const, src: photo2.thumb }
-      : ytId && extraPhoto
-        ? { kind: 'yt' as const, id: ytId }
-        : null,
-  ].filter(Boolean)
+  const { heroSrc, ytId, sideTiles } = heroMedia(f)
 
   const sido = f.sido ? sidoLabel(f.sido, l) : null
 
@@ -312,14 +238,15 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
           </div>
           {sideTiles.length > 0 && (
             <div className={`hidden h-full gap-2 sm:grid ${sideTiles.length === 2 ? 'grid-rows-2' : 'grid-rows-1'}`}>
-              {sideTiles.map((tile) =>
+              {/* key는 타일마다 달라야 한다 — 사진이 둘이면 둘 다 key="photo"라 리액트가 경고했다(2026-09-04) */}
+              {sideTiles.map((tile, i) =>
                 tile!.kind === 'photo' ? (
-                  <a key="photo" href="#photos" className="group relative block overflow-hidden">
+                  <a key={`photo-${i}`} href="#photos" className="group relative block overflow-hidden">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={tile!.src} alt="" loading="lazy" className="h-full w-full object-cover transition group-hover:scale-[1.03]" />
                   </a>
                 ) : tile!.kind === 'yt' ? (
-                  <a key="yt" href="#video" className="group relative block overflow-hidden bg-ink">
+                  <a key={`yt-${i}`} href="#video" className="group relative block overflow-hidden bg-ink">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={`https://i.ytimg.com/vi/${tile!.id}/hqdefault.jpg`} alt="" className="h-full w-full object-cover opacity-90 transition group-hover:opacity-100" />
                     <span className="absolute left-1/2 top-1/2 flex h-11 w-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-r text-white shadow">
