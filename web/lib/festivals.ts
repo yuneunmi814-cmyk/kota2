@@ -5,6 +5,8 @@ import { classifyThemes } from './classify-themes'
 import { addDays, todayKst } from './date'
 import { externalIdsToSlugs } from './festival-routes'
 import { bareName, buildAbsorbedIndex, isAbsorbed } from './absorbed'
+import { applyCorrections, type FestivalCorrection } from '../../pipeline/src/lib/corrections'
+import correctionData from '../../pipeline/data/seed/corrections.json'
 
 // 축제 데이터 접근 — Supabase에서 읽는다.
 //
@@ -27,6 +29,8 @@ export interface Festival {
   /** 원본 소스의 id — 식별에는 쓰지 않는다(환경마다 달라진다). externalId를 쓸 것 */
   id: string | number
   externalId: string
+  /** Source IDs relevant to official corrections, resolved through festival_sources. */
+  sourceIds?: string[]
   name: string
   summary?: string | null
   startDate: string
@@ -241,10 +245,16 @@ async function overlayLive(
   rows: Array<{ tourapi_id: string | null }>,
   addFresh = true,
 ): Promise<Festival[]> {
+  // Legacy name-only corrections need the global list to detect ambiguity. Single-row
+  // details apply ID-scoped edits here, then reuse the global result in findByKey.
+  const correct = (items: Festival[]) => applyWebCorrections(items,
+    addFresh ? correctionData.corrections : correctionData.corrections.filter(c => c.externalId))
 
   // 두 원천을 동시에 부른다. 하나가 늦어도 다른 하나를 기다리게 하지 않는다.
-  const [live, std, kfes] = await Promise.all([fetchLive(), fetchLiveStdfest(), fetchLiveKfes()])
-  if (live.length === 0 && std.length === 0 && kfes.length === 0) return base // 셋 다 실패 — DB 그대로
+  const [live, std, kfes] = await Promise.all([
+    fetchLive().catch(() => []), fetchLiveStdfest().catch(() => []), fetchLiveKfes().catch(() => []),
+  ])
+  if (live.length === 0 && std.length === 0 && kfes.length === 0) return correct(base)
 
   const today = todayKst()
   const byId = new Map(live.map((l) => [l.contentId, l]))
@@ -423,7 +433,7 @@ async function overlayLive(
   const absorbed = buildAbsorbedIndex(kept)
 
   const fresh: Festival[] = []
-  if (!addFresh) return kept
+  if (!addFresh) return correct(kept)
 
   const push = (f: Festival, contentId?: string | null) => {
     if (contentId && knownIds.has(contentId)) return
@@ -480,7 +490,7 @@ async function overlayLive(
   if (fresh.length) {
     console.info(`[live] 원천 동기화 — 추가 ${fresh.length}건 (기준 ${today})`)
   }
-  return [...kept, ...fresh].sort((a, b) => a.startDate.localeCompare(b.startDate))
+  return (await correct([...kept, ...fresh])).sort((a, b) => a.startDate.localeCompare(b.startDate))
 }
 
 const SELECT = '*, festival_translations(*), festival_photos(*)'
@@ -506,6 +516,50 @@ let cached: { at: number; rows: Promise<Festival[]> } | null = null
 const SLUG_TTL = 3_600_000
 let slugCached: { at: number; rows: Promise<string[]> } | null = null
 let summaryCached: { at: number; rows: Promise<Festival[]> } | null = null
+let correctionSourcesCached: { at: number; rows: Promise<Map<string, string[]>> } | null = null
+
+/** Read only correction-related source links, not full festival rows or optional UID columns.
+ * The legacy schema can lack festival_sources; only an explicit missing-table error falls back.
+ * Other failures must not silently publish stale source dates over an official correction.
+ */
+function correctionSourceIds(): Promise<Map<string, string[]>> {
+  if (correctionSourcesCached && Date.now() - correctionSourcesCached.at < TTL) return correctionSourcesCached.rows
+  const rows = (async () => {
+    const targetIds = [...new Set(correctionData.corrections.map(c => c.externalId).filter((id): id is string => Boolean(id)))]
+    if (!targetIds.length) return new Map<string, string[]>()
+    type SourceRow = { external_id: string; festival_uid: string }
+    const readSources = async (column: 'external_id' | 'festival_uid', values: string[]): Promise<SourceRow[] | null> => {
+      const out: SourceRow[] = []
+      for (let from = 0; ; from += 1000) {
+        const { data, error } = await supabase.from('festival_sources').select('external_id, festival_uid')
+          .in(column, values).order('external_id').range(from, from + 999)
+        if (error) {
+          if (error.code === '42P01' || error.code === 'PGRST205') return null
+          throw new Error('공식 정정 출처 연결 조회 실패')
+        }
+        const page = (data ?? []) as SourceRow[]
+        out.push(...page)
+        if (page.length < 1000) return out
+      }
+    }
+    const targets = await readSources('external_id', targetIds)
+    const byUid = new Map<string, string[]>()
+    for (const source of targets ?? []) byUid.set(source.festival_uid, [...(byUid.get(source.festival_uid) ?? []), source.external_id])
+    if (!byUid.size) return new Map<string, string[]>()
+    const representatives = await readSources('festival_uid', [...byUid.keys()])
+    return new Map((representatives ?? []).map(source => [source.external_id, byUid.get(source.festival_uid) ?? []]))
+  })()
+  rows.catch(() => { if (correctionSourcesCached?.rows === rows) correctionSourcesCached = null })
+  correctionSourcesCached = { at: Date.now(), rows }
+  return rows
+}
+
+async function applyWebCorrections<T extends Pick<Festival, 'externalId' | 'name' | 'startDate' | 'endDate'>>(
+  items: T[], corrections: readonly FestivalCorrection[],
+): Promise<T[]> {
+  const sourceIds = await correctionSourceIds()
+  return applyCorrections(items.map(f => ({ ...f, sourceIds: sourceIds.get(f.externalId) ?? [] })), corrections)
+}
 
 export function listFestivalSlugs(): Promise<string[]> {
   if (slugCached && Date.now() - slugCached.at < SLUG_TTL) return slugCached.rows
@@ -659,28 +713,36 @@ export function allFestivals(): Promise<Festival[]> {
 // 축제 한 건을 그리려고 552건 전량(번역·사진 포함 1.3MB 이상)을 여덟 조각으로 끌어온다.
 // 여기서 갈랐다 — 캐시가 이미 차 있으면 그대로 쓰고(빌드), 비어 있으면 한 건만 묻는다(운영).
 // 전량 캐시를 새로 채우지는 않는다. 한 장 굽자고 전량을 당기지 않는 것이 이 분리의 목적이다.
-// 몇 번째 단건 조회인지 센다. 한 프로세스가 서로 다른 축제를 이만큼 물었다면 그건
-// 상세 한 장을 굽는 중이 아니라 빌드다. 그때는 전량을 한 번 당겨 놓는 편이 훨씬 싸다.
-// 값은 실측으로 정했다 — 단건만 쓰면 2,475쪽 빌드가 17초에서 4.8분이 됐다.
-let singleFetches = 0
-const BULK_AFTER = 8
+// 빌드 실행기에만 명시적으로 주는 플래그. 요청 횟수는 빌드 감지 근거가 아니다.
 
 export const findByKey = cache(async (externalId: string): Promise<Festival | undefined> => {
   const warm = cached && Date.now() - cached.at < TTL ? await cached.rows : null
-  if (warm) return warm.find((f) => f.externalId === externalId)
+  const hit = warm?.find((f) => f.externalId === externalId)
+  if (hit) return hit
 
-  if (++singleFetches > BULK_AFTER) {
-    // 여기서 전량 캐시가 차고, 이 프로세스의 다음 호출부터는 위 warm 갈래로 빠진다.
-    return (await allFestivals()).find((f) => f.externalId === externalId)
+  if (!warm && process.env.KOTA_BUILD_PRELOAD === '1') {
+    const preloaded = (await allFestivals()).find((f) => f.externalId === externalId)
+    if (preloaded) return preloaded
   }
 
   const { data, error } = await supabase.from('festivals').select(SELECT).eq('id', externalId).limit(1)
   if (error) throw new Error(`축제 한 건 조회 실패(${externalId}): ${String(error.message).slice(0, 120)}`)
   const row = (data as unknown as Row[])?.[0]
-  if (!row) return undefined
+  if (!row) {
+    // Summary overlay supplies the same deduplication policy as the visible cards, without
+    // fetching every festival's translations/photos. DB misses are still checked even when warm.
+    return (await listFestivalSummaries()).find((f) => f.externalId === externalId)
+  }
 
   // 한 건에도 같은 실시간 보정을 건다 — 상세와 목록이 다른 날짜를 말하면 안 된다.
   const [f] = await overlayLive([fromRow(row)], [row], false)
+  if (correctionData.corrections.some(c => !c.externalId && c.match && (row.name.includes(c.match) || row.name === c.name))) {
+    const summary = (await listFestivalSummaries()).find(x => x.externalId === externalId)
+    if (summary) {
+      const fields = ['name', 'startDate', 'endDate', 'sido', 'sigungu', 'address', 'lat', 'lng'] as const
+      for (const field of fields) if (summary[field] !== undefined) Object.assign(f, { [field]: summary[field] })
+    }
+  }
   return f
 })
 
@@ -695,7 +757,25 @@ export const findByKey = cache(async (externalId: string): Promise<Festival | un
  */
 export async function regionRank(f: Festival): Promise<{ rank: number; total: number } | null> {
   if (f.visitorLift == null || !f.sido) return null
-  const peers = (await allFestivals()).filter((x) => x.sido === f.sido && x.visitorLift != null)
+  type RankRow = Pick<Row, 'id' | 'name' | 'start_date' | 'end_date' | 'sido' | 'sigungu' | 'address' | 'lat' | 'lng' | 'visitor_lift'>
+  const rows: RankRow[] = []
+  for (let from = 0; ; from += 1000) {
+    // Identity/date/location fields are needed to apply official region corrections before
+    // filtering peers. No descriptions, photos or translations are fetched.
+    const { data, error } = await supabase.from('festivals').select('id, name, start_date, end_date, sido, sigungu, address, lat, lng, visitor_lift')
+      .order('id').range(from, from + 999)
+    if (error) return null // optional rank must not take down a detail
+    const page = data as RankRow[]
+    rows.push(...(page ?? []))
+    if (!page || page.length < 1000) break
+  }
+  // overlayLive retains every DB row and only adds unmeasured live-only rows. Thus the
+  // corrected DB measured cohort is equivalent without calling the three live sources.
+  const candidates = await applyWebCorrections(rows.map(r => ({
+    externalId: r.id, name: r.name, startDate: r.start_date, endDate: r.end_date,
+    sido: r.sido, sigungu: r.sigungu, address: r.address, lat: r.lat, lng: r.lng, visitorLift: r.visitor_lift,
+  })), correctionData.corrections)
+  const peers = candidates.filter(x => x.sido === f.sido && x.visitorLift != null)
   if (peers.length < 3) return null // 두셋 중 1위는 순위라 할 게 못 된다
   const sorted = [...peers].sort((a, b) => (b.visitorLift ?? 0) - (a.visitorLift ?? 0))
   const i = sorted.findIndex((x) => x.externalId === f.externalId)

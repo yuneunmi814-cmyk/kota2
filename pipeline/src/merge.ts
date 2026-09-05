@@ -3,6 +3,7 @@ import type { Festival, RawFestival } from './lib/types.js'
 import { canonSido, resolveSido, displayName, nameContains, normalizeName, periodsOverlap } from './lib/match.js'
 import { classifyThemes } from './lib/themes.js'
 import { todayKst } from './lib/http.js'
+import { applyCorrections, type FestivalCorrection } from './lib/corrections.js'
 
 // 5개 소스를 하나로 — data/raw/*.json → data/festivals.json
 //
@@ -347,31 +348,8 @@ try {
 //
 // 병합이 다 끝난 뒤 마지막에 덮어쓴다 — 소스 우선순위 다툼에 끼어들면 어느 값이 이겼는지
 // 알 수 없게 된다. 여기서는 '우리가 공식 페이지를 보고 고쳤다'가 분명하다.
-{
-  const cf = new URL('../data/seed/corrections.json', import.meta.url)
-  if (existsSync(cf)) {
-    const { corrections } = JSON.parse(readFileSync(cf, 'utf-8')) as {
-      corrections: { match: string; name?: string; startDate?: string; endDate?: string }[]
-    }
-    let hit = 0
-    const missed: string[] = []
-    for (const c of corrections) {
-      const target = merged.find((f) => f.name.includes(c.match))
-      if (!target) {
-        missed.push(c.match)
-        continue
-      }
-      if (c.name) target.name = c.name
-      if (c.startDate) target.startDate = c.startDate
-      if (c.endDate) target.endDate = c.endDate
-      hit += 1
-    }
-    if (hit) console.log(`   정정표 적용 ${hit}건`)
-    // 못 찾은 것은 조용히 넘기지 않는다 — 축제명이 또 바뀌었거나 데이터에서 빠진 것이라
-    // 어느 쪽이든 사람이 봐야 한다.
-    if (missed.length) console.log(`   ⚠️ 정정표에서 못 찾은 축제: ${missed.join(', ')}`)
-  }
-}
+const cf = new URL('../data/seed/corrections.json', import.meta.url)
+const corrections: FestivalCorrection[] = existsSync(cf) ? JSON.parse(readFileSync(cf, 'utf-8')).corrections : []
 
 // ── 지난 산출물 되살리기 ───────────────────────────────────
 //
@@ -393,7 +371,14 @@ try {
 {
   const prevUrl = new URL('../data/festivals.json', import.meta.url)
   if (existsSync(prevUrl)) {
-    const prev = (JSON.parse(readFileSync(prevUrl, 'utf-8')) as { items?: Festival[] }).items ?? []
+    const previous = (JSON.parse(readFileSync(prevUrl, 'utf-8')) as { items?: Festival[] }).items ?? []
+    // Apply against the whole candidate set: duplicate names cannot silently select one row.
+    // Exclude previous versions of current IDs, then correct before checking revival eligibility.
+    const currentIds = new Set(merged.flatMap(f => [f.externalId, ...(f.sourceIds ?? [])]))
+    const missing = previous.filter(p => ![p.externalId, ...(p.sourceIds ?? [])].some(id => currentIds.has(id)))
+    const corrected = applyCorrections([...merged, ...missing], corrections)
+    const prev = corrected.slice(merged.length)
+    merged.splice(0, merged.length, ...corrected.slice(0, merged.length))
     const ids = new Set(merged.flatMap((f) => [f.externalId, ...(f.sourceIds ?? [])]))
     const byName = new Map<string, Festival[]>()
     for (const f of merged) {
@@ -417,7 +402,10 @@ try {
       )
     }
   }
+  else merged.splice(0, merged.length, ...applyCorrections(merged, corrections))
 }
+
+merged.sort((a, b) => a.startDate.localeCompare(b.startDate) || a.name.localeCompare(b.name))
 
 // ── 저장 + 리포트 ─────────────────────────────────────────
 mkdirSync(new URL('../data/', import.meta.url), { recursive: true })
