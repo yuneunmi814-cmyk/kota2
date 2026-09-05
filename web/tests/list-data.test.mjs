@@ -83,3 +83,9 @@ test('거리순과 인기순은 원본 목록을 바꾸지 않는다', () => {
   assert.equal(sortListItems(rows, 'popularity', null)[0].f.k, 'festival:far-popular')
   assert.deepEqual(rows.map((row) => row.k), ['festival:far-popular', 'festival:near'])
 })
+
+test('인기순은 상시 고득점을 계절 축제 뒤로, 거리순은 가까운 상시를 먼저 둔다', () => {
+  const rows = [item({ k: 'always', al: true, pop: 1000 }), item({ k: 'seasonal', lat: 35, pop: 1 })]
+  assert.deepEqual(sortListItems(rows, 'popularity', null).map(({ f }) => f.k), ['seasonal', 'always'])
+  assert.equal(sortListItems(rows, 'distance', { lat: 37.5665, lng: 126.978 })[0].f.k, 'always')
+})

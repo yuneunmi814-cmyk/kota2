@@ -7,6 +7,7 @@ import type { Lang } from '@/lib/i18n'
 import Icon from '../Icon'
 import SocialLogin from '../SocialLogin'
 import Consent from './Consent'
+import { saveReview } from '@/lib/review-identity'
 
 // 축제 리뷰 — 읽기는 서버가 미리 그려 넘기고, 쓰기와 로그인만 여기서 한다.
 //
@@ -100,10 +101,7 @@ export default function Reviews({
       id: u.user.id,
       display_name: (u.user.email ?? '').split('@')[0] || '여행자',
     })
-    const { error } = await sb.from('reviews').upsert(
-      { festival_id: festivalId, user_id: u.user.id, rating, body: body.trim() },
-      { onConflict: 'festival_id,user_id' },
-    )
+    const { error } = await saveReview(sb, festivalId, u.user.id, rating, body)
     if (error) {
       setError(error.message)
       setState('idle')

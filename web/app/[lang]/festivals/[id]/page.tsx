@@ -1,15 +1,16 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound, permanentRedirect } from 'next/navigation'
-import { listFestivalSummaries, feeKind, findByKey, isAlwaysOn, isLongRun, isPublicData, listFestivalSlugs, localized, regionRank, statusOf } from '@/lib/festivals'
-import { detailSections, festivalJsonLd, heroMedia, metaDescription, nearbyFestivals, sourceHost, sourceUrl } from '@/lib/detail-view'
+import { feeKind, findByKey, isAlwaysOn, isLongRun, isPublicData, listFestivalSlugs, localized, statusOf } from '@/lib/festivals'
+import { detailSections, festivalJsonLd, heroMedia, sourceHost, sourceUrl } from '@/lib/detail-view'
+import { loadDetailExtras } from '@/lib/detail-loader'
+import { detailMetadata } from '@/lib/detail-metadata'
 import { toSlug } from '@/lib/slug'
 import { festivalRoutePath, resolveFestivalRoute } from '@/lib/festival-routes'
 import { lookupAliasTargets } from '@/lib/route-aliases'
 import { LANGS, SITE_URL, isLang, type Lang } from '@/lib/i18n'
 import { t } from '@/lib/ui'
 import { sidoLabel } from '@/lib/sido'
-import { ratingOf, reviewsOf } from '@/lib/reviews'
 import Reviews from '@/components/detail/Reviews'
 import TrackView from '@/components/TrackView'
 import AnchorTabs from '@/components/detail/AnchorTabs'
@@ -48,18 +49,7 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
   const l: Lang = isLang(lang) ? lang : 'ko'
   const route = await resolveFestivalRoute(decodeURIComponent(id), findByKey, lookupAliasTargets)
   if (!route) return {}
-  const f = route.festival
-  const L = localized(f, l)
-  const desc = metaDescription(L, f)
-  return {
-    title: `${L.name} · KOTA`,
-    description: desc,
-    alternates: {
-      canonical: `${SITE_URL}/${l}/festivals/${toSlug(f.externalId)}/`,
-      languages: Object.fromEntries(LANGS.map((x) => [x, `${SITE_URL}/${x}/festivals/${toSlug(f.externalId)}/`])),
-    },
-    openGraph: { title: L.name, description: desc, ...(f.imageUrl ? { images: [f.imageUrl] } : {}), type: 'website' },
-  }
+  return detailMetadata(route.festival, l)
 }
 
 const fmt = (d: string) => d.replace(/-/g, '.')
@@ -77,12 +67,7 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
   const st = statusOf(f)
   const fee = feeKind(f)
   const always = isAlwaysOn(f)
-  const rank = await regionRank(f)
-  const [rating, reviews] = await Promise.all([ratingOf(f.externalId), reviewsOf(f.externalId)])
-
-  const hasCoords = f.lat != null && f.lng != null
-
-  const nearby = nearbyFestivals(f, hasCoords ? await listFestivalSummaries() : [])
+  const { rank, rating, reviews, hasCoords, nearby } = await loadDetailExtras(f)
 
   const mapHref = hasCoords ? `https://map.kakao.com/link/to/${encodeURIComponent(f.name)},${f.lat},${f.lng}` : null
   const boothCount = f.booths?.length ?? 0

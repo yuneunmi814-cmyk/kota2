@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { measuredFetch } from './query-metrics'
 
 // Supabase 클라이언트 — 서버·브라우저 양쪽에서 쓰는 읽기 전용 기본 클라이언트.
 //
@@ -21,6 +22,9 @@ if (!url || !key) {
 }
 
 export const supabase = createClient(url, key, {
+  ...(process.env.KOTA_QUERY_METRICS === '1' && typeof window === 'undefined' ? {
+    global: { fetch: measuredFetch(fetch, metric => console.info('[kota-db-metric]' + JSON.stringify(metric))) },
+  } : {}),
   auth: {
     // 서버 렌더링에서는 세션을 저장할 곳이 없다. 로그인 흐름은 별도 클라이언트에서 다룬다.
     persistSession: false,

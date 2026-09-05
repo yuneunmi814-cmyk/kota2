@@ -1,0 +1,43 @@
+name: Verify web and pipeline
+on:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+        working-directory: web
+      - run: node --test web/tests/*.test.mjs pipeline/tests/*.test.mjs
+      - run: npx tsc --noEmit
+        working-directory: web
+      - run: npm run lint
+        working-directory: web
+      - name: Build with public read-only configuration
+        id: build
+        working-directory: web
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+        run: |
+          if [ -z "$NEXT_PUBLIC_SUPABASE_URL" ] || [ -z "$NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY" ]; then
+            echo '::error::Configure public Supabase repository variables to validate the production-data build.'
+            exit 1
+          fi
+          npm run build
+      - name: Retain build timing and DB request metrics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-metrics-${{ github.run_id }}
+          path: web/.next/build-metrics.json
+          if-no-files-found: warn

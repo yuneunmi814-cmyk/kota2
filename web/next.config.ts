@@ -1,4 +1,5 @@
 import type { NextConfig } from 'next'
+import path from 'node:path'
 
 // 동적 렌더링 — Vercel에 올린다. (2026-08-17 정적 내보내기에서 전환)
 //
@@ -11,6 +12,9 @@ import type { NextConfig } from 'next'
 // 갱신이라 한 시간도 사실 과하게 촘촘한 편이고, 트래픽이 백 배로 늘어도 DB 부하는 그대로다.
 // 리뷰처럼 즉시 보여야 하는 것만 따로 실시간으로 가져온다.
 const nextConfig: NextConfig = {
+  // Web and ingestion share the official correction policy/data outside web/.
+  turbopack: { root: path.join(__dirname, '..') },
+  outputFileTracingRoot: path.join(__dirname, '..'),
   // 축제 포스터는 지자체·주최측 서버의 외부 URL이라 도메인을 열어줘야 한다.
   // 정적 시절엔 unoptimized였지만 이제 Next 이미지 최적화 서버를 쓸 수 있다.
   images: {
