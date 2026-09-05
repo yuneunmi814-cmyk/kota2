@@ -18,4 +18,3 @@ node --test web/tests/*.test.mjs pipeline/tests/*.test.mjs
 ```
 
 실서비스 데이터/DB와 테스트 mock의 검증 범위는 다르다. SQL 초안 실행과 실제 DB 연동 빌드의 미검증 여부는 구현 결과 문서를 따른다.
-
