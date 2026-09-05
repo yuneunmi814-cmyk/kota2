@@ -12,6 +12,24 @@
   ],
   "corrections": [
     {
+      "externalId": "manual:manus3-서울-어텀-페스타-2026-09-19",
+      "year": 2026,
+      "match": "서울 어텀 페스타",
+      "startDate": "2026-09-18",
+      "endDate": "2026-11-29",
+      "source": "https://festival.seoul.go.kr/festival/main/festivalView.do?festacode=383",
+      "note": "2026-09-05 서울시 공식 행사 상세의 기간·포스터·73일간 안내를 직접 확인. 기존09.19~11.09를 전체 축제09.18~11.29로 보정. 서울 전역의 복수 행사장이라 특정 도로주소/좌표를 임의 지정하지 않음. 개별 연계 프로그램의 기간으로 전체 축제 기간을 대체하지 않음."
+    },
+    {
+      "externalId": "manual:금강자연미술비엔날레-2026",
+      "year": 2026,
+      "match": "금강자연미술비엔날레",
+      "startDate": "2026-09-12",
+      "endDate": "2026-11-08",
+      "source": "https://www.natureartbiennale.org/home/theme/kor/html/business/b_overview.php",
+      "note": "2026-09-05 공식 행사개요 본문 확인. 전시기간 09.12~11.08이며 기존 종료일11.15를 보정. 전시장은 (구)공주양조장·자연미술관Ko·반죽동당간지주공원·제민천으로 공주 원도심 일원 기존 표현 유지. 푸터의 주관단체 사무실 주소를 행사장으로 바꾸지 않음."
+    },
+    {
       "externalId": "stdfest:2026년제8회운정호수공원불꽃축제-2026-10-31",
       "year": 2026,
       "match": "제8회 운정호수공원 불꽃축제",

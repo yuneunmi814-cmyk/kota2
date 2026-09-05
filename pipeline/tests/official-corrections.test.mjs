@@ -8,6 +8,8 @@ const expected = [
   ['stdfest:포항흥해국가유산야행-2026-06-12', '2026-09-11', '2026-09-12'],
   ['stdfest:대한민국국향대전-2026-10-01', '2026-10-23', '2026-11-08'],
   ['stdfest:2026년제8회운정호수공원불꽃축제-2026-10-31', '2026-10-31', '2026-10-31'],
+  ['manual:금강자연미술비엔날레-2026', '2026-09-12', '2026-11-08'],
+  ['manual:manus3-서울-어텀-페스타-2026-09-19', '2026-09-18', '2026-11-29'],
 ]
 for (const path of ['../data/festivals.json', '../../web/data/festivals.json']) {
   test(`approved 2026 official corrections apply to actual ${path} without changing external IDs`, () => {

@@ -1,6 +1,5 @@
 import { cache } from 'react'
 import { supabase } from './supabase'
-import { reviewSourceIds } from './review-identity'
 
 // 리뷰 읽기 — 서버에서 도는 쪽. 쓰기는 브라우저에서 로그인한 채로 한다(components/detail/Reviews).
 //
@@ -40,11 +39,10 @@ interface ReviewRow {
 }
 
 export const reviewsOf = cache(async (festivalId: string): Promise<Review[]> => {
-  const ids = await reviewSourceIds(supabase, festivalId)
   const { data, error } = await supabase
     .from('reviews')
     .select('id, rating, body, visited_on, helpful, created_at, user_id, profiles!reviews_user_id_fkey(display_name, avatar_url)')
-    .in('festival_id', ids)
+    .eq('festival_id', festivalId)
     .eq('status', 'published')
     // 도움돼요가 많은 글을 위로. 같으면 최신순 — 아무도 안 누른 초기에는 사실상 최신순이다.
     .order('helpful', { ascending: false })
@@ -65,15 +63,11 @@ export const reviewsOf = cache(async (festivalId: string): Promise<Review[]> => 
 
 /** 평점 집계 — 상세 상단의 별점. 리뷰가 없으면 null이고, 화면은 그 자리를 비운다. */
 export const ratingOf = cache(async (festivalId: string): Promise<Rating | null> => {
-  let uid: string | undefined
-  if (process.env.NEXT_PUBLIC_STABLE_REVIEW_IDS === '1') {
-    const mapping = await supabase.from('festival_sources').select('festival_uid').eq('external_id', festivalId).limit(1)
-    if (mapping.error) throw new Error('축제 평점 연결 조회 실패')
-    uid = mapping.data?.[0]?.festival_uid
-  }
-  // The UID view aggregates raw ratings exactly. Never combine rounded per-source averages.
-  const { data, error } = await supabase.from(uid ? 'festival_rating_uid' : 'festival_rating')
-    .select('rating, review_count').eq(uid ? 'festival_uid' : 'festival_id', uid ?? festivalId).maybeSingle()
+  const { data, error } = await supabase
+    .from('festival_rating')
+    .select('rating, review_count')
+    .eq('festival_id', festivalId)
+    .maybeSingle()
   if (error || !data) return null
   return { average: Number(data.rating), count: Number(data.review_count) }
 })
