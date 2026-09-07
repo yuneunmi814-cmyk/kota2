@@ -7,13 +7,15 @@
     "noUncheckedIndexedAccess": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "outDir": "dist",
-    "rootDir": "src",
+    "resolveJsonModule": true,
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
     "types": [
       "node"
     ]
   },
   "include": [
-    "src"
+    "src",
+    "../web/lib/corrections.ts"
   ]
 }

@@ -106,7 +106,9 @@ export function sortListItems(
   if (sort === 'distance' && coords) {
     return located.sort((a, b) => (a.km ?? Infinity) - (b.km ?? Infinity))
   }
-  if (sort === 'popularity') return located.sort((a, b) => b.f.pop - a.f.pop)
+  // Visitor-lift proxy plus official listing bonuses; without measured lift, official-listing
+  // signals are the fallback. Neither review scores nor nationality preferences are inferred.
+  if (sort === 'popularity') return located.sort((a, b) => Number(a.f.al) - Number(b.f.al) || b.f.pop - a.f.pop)
 
   const order = new Map(defaultOrder(items).map((f, index) => [f.k, index]))
   return located.sort((a, b) => (order.get(a.f.k) ?? 0) - (order.get(b.f.k) ?? 0))
