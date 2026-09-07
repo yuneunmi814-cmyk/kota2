@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { readFileSync } from 'node:fs'
-import { applyCorrections } from '../src/lib/corrections.ts'
+import { applyCorrections } from '../../web/lib/corrections.ts'
 
-const { corrections } = JSON.parse(readFileSync(new URL('../data/seed/corrections.json', import.meta.url)))
+const { corrections } = JSON.parse(readFileSync(new URL('../../web/data/corrections.json', import.meta.url)))
 const expected = [
   ['stdfest:포항흥해국가유산야행-2026-06-12', '2026-09-11', '2026-09-12'],
   ['stdfest:대한민국국향대전-2026-10-01', '2026-10-23', '2026-11-08'],

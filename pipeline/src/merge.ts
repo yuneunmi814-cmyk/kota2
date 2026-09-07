@@ -3,7 +3,7 @@ import type { Festival, RawFestival } from './lib/types.js'
 import { canonSido, resolveSido, displayName, nameContains, normalizeName, periodsOverlap } from './lib/match.js'
 import { classifyThemes } from './lib/themes.js'
 import { todayKst } from './lib/http.js'
-import { applyCorrections, type FestivalCorrection } from './lib/corrections.js'
+import { applyCorrections, type FestivalCorrection } from '../../web/lib/corrections.ts'
 
 // 5개 소스를 하나로 — data/raw/*.json → data/festivals.json
 //
@@ -348,7 +348,7 @@ try {
 //
 // 병합이 다 끝난 뒤 마지막에 덮어쓴다 — 소스 우선순위 다툼에 끼어들면 어느 값이 이겼는지
 // 알 수 없게 된다. 여기서는 '우리가 공식 페이지를 보고 고쳤다'가 분명하다.
-const cf = new URL('../data/seed/corrections.json', import.meta.url)
+const cf = new URL('../../web/data/corrections.json', import.meta.url)
 const corrections: FestivalCorrection[] = existsSync(cf) ? JSON.parse(readFileSync(cf, 'utf-8')).corrections : []
 
 // ── 지난 산출물 되살리기 ───────────────────────────────────

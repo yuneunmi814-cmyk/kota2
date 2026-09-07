@@ -5,8 +5,8 @@ import { classifyThemes } from './classify-themes'
 import { addDays, todayKst } from './date'
 import { externalIdsToSlugs } from './festival-routes'
 import { bareName, buildAbsorbedIndex, isAbsorbed } from './absorbed'
-import { applyCorrections, type FestivalCorrection } from '../../pipeline/src/lib/corrections'
-import correctionData from '../../pipeline/data/seed/corrections.json'
+import { applyCorrections, type FestivalCorrection } from './corrections'
+import correctionData from '../data/corrections.json'
 
 // 축제 데이터 접근 — Supabase에서 읽는다.
 //

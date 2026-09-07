@@ -1,3 +1,12 @@
+// 공식 정정표를 적용하는 규칙 — 수집(pipeline)과 화면(web)이 같은 것을 쓴다.
+//
+// ⚠️ 이 파일과 짝인 web/data/corrections.json은 **web 폴더 안에 있어야 한다.**
+// Vercel은 web 폴더만 올려 빌드할 수 있다. 처음엔 둘 다 pipeline 아래에 두고
+// web에서 ../../pipeline/... 으로 불렀는데, pipeline이 없는 상태로 빌드하면
+// "Can't resolve '../../pipeline/src/lib/corrections'" 로 배포가 통째로 멈춘다
+// (2026-09-07 실측). 그래서 web으로 옮기고, 반대로 pipeline이 여기를 가져다 쓴다 —
+// 수집은 항상 저장소 전체를 내려받아 돌기 때문에 그 방향은 안전하다.
+//
 /** Official corrections are shared by ingestion and the final web live overlay. */
 export interface FestivalCorrection {
   match?: string

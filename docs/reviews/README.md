@@ -5,3 +5,5 @@
 - [장기 후보 확인 대장](2026-09-05_장기축제_검증대장.md): 미검증을 포함한 원본 후보 목록. 전수 완료 보고가 아님.
 
 사용자의 범위 축소 요청에 따라 구조 개선·DB 전환·새 CI 작업과 이전 중간 보고서는 PR에서 제외했다. 중간 자료는 COO 로컬 작업보관 폴더에 보존했다.
+
+> 2026-09-07 CTO 검토 중 정정표 위치가 바뀌었다. `pipeline/data/seed/corrections.json` → `web/data/corrections.json`, `pipeline/src/lib/corrections.ts` → `web/lib/corrections.ts`. 위 보고서의 경로 표기는 작성 시점 그대로 남긴다. 이유는 `web/lib/corrections.ts` 첫 주석 참고.

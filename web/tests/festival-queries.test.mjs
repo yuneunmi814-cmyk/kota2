@@ -4,9 +4,9 @@ import { readFileSync } from 'node:fs'
 import { stripTypeScriptTypes } from 'node:module'
 import { bareName, buildAbsorbedIndex, isAbsorbed } from '../lib/absorbed.ts'
 import { addDays } from '../lib/date.ts'
-import { applyCorrections } from '../../pipeline/src/lib/corrections.ts'
+import { applyCorrections } from '../lib/corrections.ts'
 
-const corrections = JSON.parse(readFileSync(new URL('../../pipeline/data/seed/corrections.json', import.meta.url))).corrections
+const corrections = JSON.parse(readFileSync(new URL('../data/corrections.json', import.meta.url))).corrections
 const source = stripTypeScriptTypes(readFileSync(new URL('../lib/festivals.ts', import.meta.url), 'utf8'))
   .replace(/^import .+\r?\n/gm, '')
   .replace(/^export \{[\s\S]*?\} from [^\n]+\n/gm, '')

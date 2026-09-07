@@ -49,7 +49,7 @@
 
 ### 2. 실시간 응답 행에 적용되는 정정 경로
 
-정정표(`pipeline/data/seed/corrections.json`)는 **병합 단계에서만** 적용된다.
+정정표(`web/data/corrections.json`)는 **병합 단계에서만** 적용된다.
 DB에 없고 실시간 응답에서 바로 들어오는 행은 못 고친다. 동대문페스티벌이 그 사례였고
 주간 수집으로 우연히 해소됐다. 같은 유형이 또 나오면 그때 경로를 만들 것.
 
@@ -76,7 +76,7 @@ DB에 없고 실시간 응답에서 바로 들어오는 행은 못 고친다. �
 
 | | 내용 | 파일 |
 |---|---|---|
-| 1 | 축제 날짜·장소가 공식 홈페이지와 맞는지 대조해 정정표에 등록 | `pipeline/data/seed/corrections.json` |
+| 1 | 축제 날짜·장소가 공식 홈페이지와 맞는지 대조해 정정표에 등록 | `web/data/corrections.json` |
 | 2 | 큐레이션 기준 — 인기순·상시행사 후순위·6칸 테마 분류 | `web/lib/list-rules.ts` |
 
 **PR로 받아 검토 후 머지하기로 했다.** 은미님이 직접 고치는 방식이 아니다.
@@ -131,6 +131,6 @@ DB에 없고 실시간 응답에서 바로 들어오는 행은 못 고친다. �
 - 목록 상태·규칙: `web/lib/list-state.ts` · `web/lib/list-rules.ts`
 - 과거 주소 별칭: `web/lib/route-aliases.ts` · `web/lib/festival-routes.ts`
 - 중복 판정: `web/lib/absorbed.ts`
-- 병합·정정표: `pipeline/src/merge.ts` · `pipeline/data/seed/corrections.json`
+- 병합·정정표: `pipeline/src/merge.ts` · `web/data/corrections.json` · `web/lib/corrections.ts`
 - 영속 ID SQL: `supabase/stable-festival-ids-{draft,verify,rollback}.sql`
 - 회의록: `docs/meeting-minutes-2026-09-02.md` (녹취 원본 `~/Downloads/2026-09-02_코타.txt`)

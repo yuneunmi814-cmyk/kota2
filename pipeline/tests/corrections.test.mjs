@@ -3,7 +3,7 @@ import test from 'node:test'
 import vm from 'node:vm'
 import { readFileSync } from 'node:fs'
 import { stripTypeScriptTypes } from 'node:module'
-import { applyCorrections } from '../src/lib/corrections.ts'
+import { applyCorrections } from '../../web/lib/corrections.ts'
 
 const source = readFileSync(new URL('../src/merge.ts', import.meta.url), 'utf8').replaceAll('\r\n', '\n')
 const fragment = source.slice(source.indexOf('// ── 정정표'), source.indexOf('// ── 저장 + 리포트'))
