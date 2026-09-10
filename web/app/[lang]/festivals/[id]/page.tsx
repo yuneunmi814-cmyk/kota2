@@ -1,3 +1,4 @@
+import { operatingDaysLabel } from '@/lib/operating-days'
 import { editorialField } from '@/lib/editorial'
 import type { Metadata } from 'next'
 import Link from 'next/link'
@@ -215,6 +216,7 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
 
         <div className="mb-5 flex flex-wrap items-center gap-x-5 gap-y-2 rounded-xl border border-line px-4 py-3 text-sm">
           <span className="font-semibold tabular-nums">{fmt(f.startDate)} – {fmt(f.endDate)}</span>
+          {f.operatingWeekdays?.length && <span className="font-semibold">{operatingDaysLabel(f.operatingWeekdays, l)}</span>}
           <span>{f.hours ? `${t(l, 'detail.hours')}: ${editorialField(f, l, 'hours')}` : `${t(l, 'detail.hours')}: ${t(l, 'detail.feeUnknown')}`}</span>
           <span>{fee === 'unknown' ? t(l, 'detail.feeUnknown') : (fee === 'free' ? t(l, 'detail.free') : f.fee)}</span>
           {f.homepage && <a href={f.homepage} target="_blank" rel="noopener noreferrer" className="ml-auto font-bold underline underline-offset-4">{t(l, 'official.visit')}</a>}
@@ -223,6 +225,8 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
         {/* 사진 그리드 — 큰 1 + 작은 2. 트립어드바이저 상세 상단. 옆 칸은 유튜브 썸네일·지도로 채운다 */}
         {/* 모바일은 히어로 한 장만(트립어드바이저와 같다). 390px에서 3열이면 옆 칸이 127px이라 아무것도 안 보인다.
             영상·지도는 아래 각자의 섹션에 그대로 있으므로 정보 손실이 없다. */}
+        {f.imageNotice === 'registration-closed' && <p className="mb-3 rounded-lg bg-brand-50 p-3 text-sm font-semibold text-brand">{t(l, 'poster.registrationClosed')}</p>}
+        {f.imageAttribution && <p className="mb-3 text-xs text-muted">{f.imageAttribution}</p>}
         {heroSrc && (
         <div
           className={`mb-8 grid gap-2 overflow-hidden rounded-[var(--radius-card)] grid-cols-1 ${sideTiles.length ? 'sm:grid-cols-3' : ''}`}

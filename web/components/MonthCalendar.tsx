@@ -7,6 +7,7 @@ import { toSlug } from '@/lib/slug'
 import Poster from './Poster'
 import Icon from './Icon'
 import { REGIONS } from '@/lib/sido'
+import { hasOperatingDay } from '@/lib/operating-days'
 import { validTravelDate } from '@/lib/list-rules'
 
 // 축제 달력 — 월간 그리드.
@@ -131,7 +132,7 @@ export default function MonthCalendar({
         day: dd,
         inMonth,
         starting: regionItems.filter((f) => f.s === s),
-        running: regionItems.filter((f) => f.s <= s && f.e >= s),
+        running: regionItems.filter((f) => hasOperatingDay({startDate:f.s,endDate:f.e,operatingWeekdays:f.wd}, s, s)),
       })
     }
 

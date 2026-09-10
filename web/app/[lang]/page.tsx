@@ -1,3 +1,4 @@
+import { hasOperatingDay } from '@/lib/operating-days'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import type { Festival } from '@/lib/festivals'
@@ -70,7 +71,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
   // 다음 토·일 — 오늘이 주말이면 이번 주말, 아니면 돌아오는 주말
   const [sat, sun] = weekendRange(today)
   const weekend = [...ongoing, ...upcomingSoon]
-    .filter((f) => f.startDate <= sun && f.endDate >= sat)
+    .filter((f) => hasOperatingDay(f, sat, sun))
     .sort(showcase)
 
   // 회전 배너 = 이번 주말. 여행자가 가장 먼저 묻는 것이므로 가장 눈에 띄는 자리에 둔다.
@@ -78,7 +79,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
   // 관리자가 고른 게 있으면 그것으로, 없으면 이번 주말 축제로 자동으로 채운다
   const curated = await curatedPromos()
   const byId = new Map(all.map((f) => [f.externalId, f]))
-  const picked = curated.map((c) => byId.get(c.festivalId)).filter((f): f is Festival => !!f && !!f.imageUrl && f.startDate <= sun && f.endDate >= sat)
+  const picked = curated.map((c) => byId.get(c.festivalId)).filter((f): f is Festival => !!f && !!f.imageUrl && hasOperatingDay(f, sat, sun))
   const promoSlides = (picked.length > 0 ? picked : weekend.filter((f) => f.imageUrl))
     .slice(0, 4)
     .map((f) => ({

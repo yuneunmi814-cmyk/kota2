@@ -12,6 +12,7 @@ import Icon from './Icon'
 import Poster from './Poster'
 import DayBadgeChip from './DayBadge'
 import { toSlug } from '@/lib/slug'
+import { operatingDaysLabel } from '@/lib/operating-days'
 import { weekendRange } from '@/lib/date'
 
 // 축제 목록 — 시기 × 지역 × 목적 3축 필터와 3정렬.
@@ -370,7 +371,8 @@ export default function FestivalList({
                     className="transition-transform duration-500 group-hover:scale-[1.04]"
                   />
                   <DayBadgeChip badge={f.db} lang={lang} />
-                  {f.ip && (
+                  {f.imageNotice === 'registration-closed' && <span className="absolute bottom-2 left-2 right-2 rounded bg-ink/85 px-2 py-1 text-[10px] font-bold text-white">{t(lang, 'poster.registrationClosed')}</span>}
+        {f.ip && (
                     <span className="absolute bottom-2 right-2 rounded-full bg-ink/70 px-2 py-0.5 text-[10px] font-bold text-white backdrop-blur-sm">
                       {t(lang, 'poster.past')}
                     </span>
@@ -394,7 +396,7 @@ export default function FestivalList({
                   <p className="text-[13px] tabular-nums text-hint">
                     {f.al ? t(lang, 'status.always') : `${fmt(f.s)} – ${fmt(f.e)}`}
                   </p>
-                  {!f.al && f.lr && <p className="mt-0.5 text-[12px] text-hint/80">{t(lang, 'status.selectDates')}</p>}
+                  {!f.al && (f.lr || f.wd?.length) && <p className="mt-0.5 text-[12px] text-hint/80">{operatingDaysLabel(f.wd, lang) ?? t(lang, 'status.selectDates')}</p>}
                 </div>
               </Link>
             ))}

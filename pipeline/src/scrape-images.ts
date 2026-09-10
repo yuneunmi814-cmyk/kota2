@@ -1,3 +1,4 @@
+import { localReviewedImage } from '../../web/lib/reviewed-images.ts'
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import type { Festival } from './lib/types.js'
 import { applyReviewed, imageDimensions, mediaPriority, reviewedFor, retryDue, runLimit, type ReviewedImages } from './lib/media.js'
@@ -9,13 +10,18 @@ import { sleep } from './lib/http.js'
 //   images: [{ url, from, w, h }] } }. No file means no newly approved external media.
 const DATA = new URL('../data/festivals.json', import.meta.url)
 const CACHE = new URL('../data/scraped-images.json', import.meta.url)
-const REVIEWED = new URL('../data/reviewed-images.json', import.meta.url)
+const REVIEWED = new URL('../../web/data/reviewed-images.json', import.meta.url)
 const entries: ReviewedImages = existsSync(REVIEWED) ? JSON.parse(readFileSync(REVIEWED, 'utf-8')) : {}
 const cache: Record<string, { checkedAt: string; approvedRevision?: string; valid?: boolean; images: unknown[] }> = existsSync(CACHE) ? JSON.parse(readFileSync(CACHE, 'utf-8')) : {}
 const data = JSON.parse(readFileSync(DATA, 'utf-8')) as { items: Festival[] }
 
 async function validImage(url: string): Promise<boolean> {
   try {
+    if (localReviewedImage(url)) {
+      const bytes = readFileSync(new URL(`../../web/public${url}`, import.meta.url))
+      const [w,h] = imageDimensions(bytes)
+      return w >= 200 && h >= 200
+    }
     const response = await fetch(url, { headers: { 'User-Agent': 'KOTA/1.0' }, redirect: 'error', signal: AbortSignal.timeout(15_000) })
     if (!response.ok || !response.body) { await response.body?.cancel(); return false }
     const reader = response.body.getReader()

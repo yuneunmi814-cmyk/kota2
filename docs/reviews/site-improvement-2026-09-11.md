@@ -1,5 +1,7 @@
 # KOTA 전체 개선 — 실행 결과와 다음 작업
 
+> 2차 최신 결과: [주말 누락27건 후속](2026-09-11-official-media/RESULT.md). 아래 수치는1차 시점 기록이다.
+
 기준: 2026-09-11 KST. 개선 브랜치 `codex/site-quality-20260911`.
 운영 사이트를 확인하고 코드에 반영한 1차 개선이다. 운영 DB 갱신·main 반영·배포는 하지 않았다.
 
@@ -79,7 +81,7 @@
 `web/scripts/quality-snapshot.ts`는 화면과 같은 공개 데이터 읽기 전용 집계다. `pipeline/src/audit-quality.ts`는 저장된 파일 기준 집계이므로 둘의 숫자를 섞지 않는다.
 
 - `pipeline`: `npm run discover:images` → `data/image-candidates.json` 검수 후보 생성(기본 10행사).
-- 검수 후 `pipeline/data/reviewed-images.json`에 외부 ID별 `startDate`, `endDate`, `reviewedAt`, `rightsBasis`, `images: [{url, from, w, h}]` 기록.
+- 검수 후 `web/data/reviewed-images.json`에 외부 ID별 `startDate`, `endDate`, `reviewedAt`, `rightsBasis`, `images: [{url, from, w, h}]` 기록.
 - `npm run scrape`는 로컬 축제 파일에 검증된 이미지를 적용한다. `npm run push`는 운영 쓰기이므로 별도 백업·검증 후 실행한다.
 - `npm run audit:quality`는 로컬 집계만 출력한다.
 

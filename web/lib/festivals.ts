@@ -1,6 +1,8 @@
 import { cache } from 'react'
 import { uniqueFestivals } from './duplicate-festivals'
 import { applyEditorial } from './editorial'
+import { applyReviewedImages } from './reviewed-images'
+import reviewedImages from '../data/reviewed-images.json'
 import { supabase } from './supabase'
 import { fetchLive, fetchLiveStdfest, fetchLiveKfes } from './tourapi-live'
 import { classifyThemes } from './classify-themes'
@@ -28,6 +30,7 @@ export interface Translation {
 }
 
 export interface Festival {
+  operatingWeekdays?: number[]
   duplicateIds?: string[]
   verifiedAt?: string
   verificationSource?: string
@@ -47,6 +50,8 @@ export interface Festival {
   imageUrl?: string | null
   imageFrom?: 'own' | 'past' | 'scraped' | null
   imageSource?: string | null
+  imageAttribution?: string
+  imageNotice?: string
   regionPhoto?: { url: string; title: string; photographer: string } | null
   /** 'MF' = 문체부 지정 문화관광축제 */
   category?: string | null
@@ -253,8 +258,8 @@ async function overlayLive(
 ): Promise<Festival[]> {
   // Legacy name-only corrections need the global list to detect ambiguity. Single-row
   // details apply ID-scoped edits here, then reuse the global result in findByKey.
-  const correct = async (items: Festival[]) => applyEditorial(await applyWebCorrections(items,
-    addFresh ? correctionData.corrections : correctionData.corrections.filter(c => c.externalId)))
+  const correct = async (items: Festival[]) => applyReviewedImages(applyEditorial(await applyWebCorrections(items,
+    addFresh ? correctionData.corrections : correctionData.corrections.filter(c => c.externalId))), reviewedImages)
 
   // 두 원천을 동시에 부른다. 하나가 늦어도 다른 하나를 기다리게 하지 않는다.
   const [live, std, kfes] = await Promise.all([
@@ -531,7 +536,7 @@ let correctionSourcesCached: { at: number; rows: Promise<Map<string, string[]>> 
 function correctionSourceIds(): Promise<Map<string, string[]>> {
   if (correctionSourcesCached && Date.now() - correctionSourcesCached.at < TTL) return correctionSourcesCached.rows
   const rows = (async () => {
-    const targetIds = [...new Set(correctionData.corrections.map(c => c.externalId).filter((id): id is string => Boolean(id)))]
+    const targetIds = [...new Set([...correctionData.corrections.map(c => c.externalId).filter((id): id is string => Boolean(id)), ...Object.keys(reviewedImages)])]
     if (!targetIds.length) return new Map<string, string[]>()
     type SourceRow = { external_id: string; festival_uid: string }
     const readSources = async (column: 'external_id' | 'festival_uid', values: string[]): Promise<SourceRow[] | null> => {

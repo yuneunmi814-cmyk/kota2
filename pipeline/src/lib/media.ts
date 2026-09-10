@@ -1,3 +1,5 @@
+import { reviewedFor, type ReviewedImages } from '../../../web/lib/reviewed-images.ts'
+export { publicImageUrl as httpUrl, reviewedFor, type ReviewedImages, type ReviewedImageSet } from '../../../web/lib/reviewed-images.ts'
 import type { Festival } from './types.js'
 const DAY = 86_400_000
 /** Missing legacy timestamps expire immediately. Upcoming failures retry in 3 days. */
@@ -16,15 +18,6 @@ export function mediaPriority<T extends Pick<Festival, 'startDate' | 'endDate'>>
 export function runLimit(value: string | undefined, fallback = 40) {
   const n = Number(value)
   return value && Number.isInteger(n) && n >= 0 ? Math.min(n, 200) : fallback
-}
-export function httpUrl(raw: string): string | null {
-  try {
-    const u = new URL(raw)
-    const host = u.hostname.toLowerCase()
-    // Reviewed public URLs only; literal/local destinations and unusual ports are not media sources.
-    if (host === 'localhost' || host.endsWith('.localhost') || host.endsWith('.local') || !host.includes('.') || /^[\d.]+$/.test(host) || host.includes(':') || (u.port && !['80', '443'].includes(u.port))) return null
-    return ['http:', 'https:'].includes(u.protocol) && !u.username && !u.password ? u.href : null
-  } catch { return null }
 }
 /** Bounded, signature-based parser: works for extensionless URLs, rejects truncated headers. */
 export function imageDimensions(b: Uint8Array): [number, number] {
@@ -54,15 +47,6 @@ export function imageDimensions(b: Uint8Array): [number, number] {
     }
   }
   return [0, 0]
-}
-export interface ReviewedImageSet {
-  startDate: string; endDate: string; reviewedAt: string; rightsBasis: string
-  images: { url: string; from: string; w: number; h: number }[]
-}
-export type ReviewedImages = Record<string, ReviewedImageSet>
-export function reviewedFor(f: Festival, entries: ReviewedImages): ReviewedImageSet | undefined {
-  const matches = [...new Set([f.externalId, ...(f.sourceIds ?? [])])].map(id => entries[id]).filter((x): x is ReviewedImageSet => !!x && x.startDate === f.startDate && x.endDate === f.endDate && !!x.rightsBasis?.trim() && Number.isFinite(Date.parse(x.reviewedAt)) && !!x.images?.length && x.images.every(im => !!httpUrl(im.url) && !!httpUrl(im.from)))
-  return matches.length === 1 ? matches[0] : undefined
 }
 export function applyReviewed(f: Festival, entries: ReviewedImages) {
   const c = reviewedFor(f, entries)

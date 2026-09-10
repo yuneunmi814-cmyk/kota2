@@ -1,0 +1,54 @@
+{
+  "manual:nonsan-hanok-wedding-2026": {
+    "startDate": "2026-09-12",
+    "endDate": "2026-09-12",
+    "reviewedAt": "2026-09-11",
+    "rightsBasis": "논산시청 공식 게시물 하단 공공누리 제1유형(출처표시) 확인. 행사 날짜와 이미지 내용을 직접 확인.",
+    "attribution": "논산시청 / 논산문화관광재단 · 공공누리 제1유형",
+    "notice": "registration-closed",
+    "images": [
+      {
+        "url": "https://www.nonsan.go.kr/kor/html/sub03/030101.html?mode=D&no=52a9ad09e8a05a9eb0c100d50481ffdf&file_id=220743&dlgt=N",
+        "from": "https://www.nonsan.go.kr/kor/html/sub03/030101.html?mode=V&no=52a9ad09e8a05a9eb0c100d50481ffdf",
+        "w": 1191,
+        "h": 1684
+      }
+    ]
+  },
+  "manual:manus3-2026-서울국제정원박람회-2026-05-01": {
+    "startDate": "2026-05-01",
+    "endDate": "2026-10-27",
+    "reviewedAt": "2026-09-11",
+    "rightsBasis": "서울시 공식 포스터 배포 페이지에서 RGB 웹용 포스터를 제공. 해당 행사 안내에 원본과 출처를 연결하는 용도로 사용하며, 일반 상업 재사용·변형 허가를 확보했다는 의미는 아님.",
+    "attribution": "서울특별시 / 서울국제정원박람회 조직위원회 · 공식 웹용 포스터",
+    "images": [
+      {
+        "url": "https://gov.seoul.go.kr/festa/garden/files/2026/06/6a34fe043b0118.78066248-scaled.jpg",
+        "from": "https://gov.seoul.go.kr/festa/garden/y2026/introduce/expo-tips?article=45681",
+        "w": 1829,
+        "h": 2560
+      }
+    ]
+  },
+  "stdfest:팔공산왕건축제-2026-09-11": {
+    "startDate": "2026-09-11",
+    "endDate": "2026-09-12",
+    "reviewedAt": "2026-09-11",
+    "rightsBasis": "대구 동구청 2026-09-09 보도자료의 공공누리 제1유형(출처표시). 첨부 HWPX 내부 안내지 이미지를 내용·크기 변경 없이 웹 표시용 JPEG로 인코딩. 2026 회차와 일정 시각 확인.",
+    "attribution": "대구광역시 동구 / 공산동 주민자치위원회 · 공공누리 제1유형",
+    "images": [
+      {
+        "url": "/festival-media/wanggeon-2026-front.jpg",
+        "from": "https://www.dong.daegu.kr/portal/saeol/news/view.do?mid=0201070000&newsEpctNo=10835",
+        "w": 1755,
+        "h": 1241
+      },
+      {
+        "url": "/festival-media/wanggeon-2026-program.jpg",
+        "from": "https://www.dong.daegu.kr/portal/saeol/news/view.do?mid=0201070000&newsEpctNo=10835",
+        "w": 1755,
+        "h": 1241
+      }
+    ]
+  }
+}

@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { applyReviewedImages } from '../lib/reviewed-images.ts'
 import { applyEditorial } from '../lib/editorial.ts'
 import { uniqueFestivals } from '../lib/duplicate-festivals.ts'
 import test from 'node:test'
@@ -35,7 +36,7 @@ export function fixtureModule({ rows = [], live = [], correctionRows = correctio
     }; return query
   } }
   const dependencies = {
-    cache: f => f, supabase, uniqueFestivals, applyEditorial,
+    cache: f => f, supabase, uniqueFestivals, applyEditorial, applyReviewedImages, reviewedImages: {},
     fetchLive: async () => { if (failLive) throw Error('injected unavailable source'); return live },
     fetchLiveStdfest: async () => [], fetchLiveKfes: async () => [],
     classifyThemes: () => [], addDays, todayKst: () => '2026-09-05', externalIdsToSlugs: ids => ids,

@@ -39,6 +39,137 @@ const writersSource = 'https://www.siwf.or.kr/ko/program/latest.do?type=isProgra
 /** Only these fields were checked, not every field on the festival. Recheck if dates
  * change: never carry operating hours or programmes into another season/edition. */
 const details: readonly EditorialEntry[] = [
+{
+  "ids": [
+    "stdfest:팔공산왕건축제-2026-09-11"
+  ],
+  "name": "팔공산 왕건축제",
+  "startDate": "2026-09-11",
+  "endDate": "2026-09-12",
+  "fields": {
+    "homepage": "https://www.dong.daegu.kr/portal/saeol/news/view.do?mid=0201070000&newsEpctNo=10835",
+    "hours": "9/11 17:30~21:00 · 9/12 12:00~21:00",
+    "verifiedAt": "2026-09-11",
+    "verificationSource": "https://www.dong.daegu.kr/portal/saeol/news/view.do?mid=0201070000&newsEpctNo=10835"
+  }
+},
+{
+  "ids": [
+    "manual:gongju-library-book-fest-2026"
+  ],
+  "name": "공주시 도서관 책축제 : 전지적 독서시점",
+  "startDate": "2026-09-12",
+  "endDate": "2026-09-12",
+  "fields": {
+    "homepage": "https://www.gongjulib.go.kr/_prog/_board/?mode=V&no=9544&code=sub_080203&site_dvs_cd=kr&menu_dvs_cd=080203",
+    "verifiedAt": "2026-09-11",
+    "verificationSource": "https://www.gongjulib.go.kr/_prog/_board/?mode=V&no=9544&code=sub_080203&site_dvs_cd=kr&menu_dvs_cd=080203",
+    "hours": "13:00~18:00",
+    "program": "아트센터 고마 야외무대. 우천 시 백제체육관으로 장소가 변경됩니다."
+  }
+},
+{
+  "ids": [
+    "manual:nonsan-hanok-wedding-2026"
+  ],
+  "name": "논산한옥마을 합동전통혼례",
+  "startDate": "2026-09-12",
+  "endDate": "2026-09-12",
+  "fields": {
+    "homepage": "https://www.nonsan.go.kr/kor/html/sub03/030101.html?mode=V&no=52a9ad09e8a05a9eb0c100d50481ffdf",
+    "verifiedAt": "2026-09-11",
+    "verificationSource": "https://www.nonsan.go.kr/kor/html/sub03/030101.html?mode=V&no=52a9ad09e8a05a9eb0c100d50481ffdf",
+    "hours": "11:00 / 13:00",
+    "program": "첨부 포스터의 접수기간은 2026년 6월 30일까지였습니다. 현재 참여 가능 여부는 공식 안내에서 확인하세요."
+  }
+},
+{
+  "ids": [
+    "stdfest:동부창고페스타-2026-09-12"
+  ],
+  "name": "동부창고페스타",
+  "startDate": "2026-09-12",
+  "endDate": "2026-09-13",
+  "fields": {
+    "homepage": "https://dbchangko.org/sub.php?code=78&mode=view&no=336",
+    "verifiedAt": "2026-09-11",
+    "verificationSource": "https://dbchangko.org/sub.php?code=78&mode=view&no=336",
+    "hours": "15:00~21:00"
+  }
+},
+{
+  "ids": [
+    "stdfest:제3회허준인트로축제-2026-09-12"
+  ],
+  "name": "제3회 허준인트로 축제",
+  "startDate": "2026-09-12",
+  "endDate": "2026-09-12",
+  "fields": {
+    "homepage": "https://festival.seoul.go.kr/festival/main/festivalView.do?festacode=487",
+    "verifiedAt": "2026-09-11",
+    "verificationSource": "https://festival.seoul.go.kr/festival/main/festivalView.do?festacode=487",
+    "hours": "12:00~18:00"
+  }
+},
+{
+  "ids": [
+    "stdfest:당진삽교호드론라이트쇼-2026-04-04"
+  ],
+  "name": "당진 삽교호 드론 라이트 쇼 (하반기)",
+  "startDate": "2026-09-12",
+  "endDate": "2026-10-17",
+  "fields": {
+    "homepage": "https://www.dangjin.go.kr/prog/fstvlSchedule/tour/selectList.do",
+    "verifiedAt": "2026-09-11",
+    "verificationSource": "https://www.dangjin.go.kr/prog/fstvlSchedule/tour/selectList.do",
+    "program": "하반기 행사는 9월 12일부터 10월 17일까지 매주 토요일에 열립니다. 기상 상황과 개별 회차 변경은 공식 안내를 확인하세요."
+  }
+},
+{
+  "ids": [
+    "stdfest:계절이들리는원도심(2026버스킹있는날in제주시)-2026-04-01"
+  ],
+  "name": "계절이 들리는 원도심 (2026 버스킹 있는 날 in 제주시)",
+  "startDate": "2026-04-01",
+  "endDate": "2026-12-09",
+  "fields": {
+    "homepage": "https://visitjeju.net/kr/festival/view?contentsid=CNTS_300000000014266",
+    "verifiedAt": "2026-09-11",
+    "verificationSource": "https://visitjeju.net/kr/festival/view?contentsid=CNTS_300000000014266",
+    "hours": "11:30 / 12:30",
+    "program": "매주 수요일에 진행합니다. 주말에는 열리지 않습니다."
+  }
+},
+{
+  "ids": [
+    "stdfest:2026새연교주말문화공연금토새연쇼-2026-04-25"
+  ],
+  "name": "새연교 주말 문화공연 금토 새연쇼",
+  "startDate": "2026-04-25",
+  "endDate": "2026-10-31",
+  "fields": {
+    "homepage": "https://www.visitjeju.net/kr/festival/view?contentsid=CNTS_300000000014207",
+    "verifiedAt": "2026-09-11",
+    "verificationSource": "https://www.visitjeju.net/kr/festival/view?contentsid=CNTS_300000000014207",
+    "hours": "19:00~20:40",
+    "program": "금요일과 토요일 공연입니다. 기상 악화 시 취소될 수 있습니다."
+  }
+},
+{
+  "ids": [
+    "stdfest:2026제주목관아야간개장-2026-05-01"
+  ],
+  "name": "제주목 관아 야간개장",
+  "startDate": "2026-05-01",
+  "endDate": "2026-10-31",
+  "fields": {
+    "homepage": "https://m.visitjeju.net/kr/festival/view?contentsid=CNTS_300000000014416&menuId=DOM_000001718007000000",
+    "verifiedAt": "2026-09-11",
+    "verificationSource": "https://m.visitjeju.net/kr/festival/view?contentsid=CNTS_300000000014416&menuId=DOM_000001718007000000",
+    "hours": "18:00~21:00",
+    "program": "야간산책은 수요일부터 일요일까지 운영합니다. 버스킹·특별공연·교대의식은 별도 지정일에 열립니다."
+  }
+},
   {
     ids: ['stdfest:포항흥해국가유산야행-2026-06-12'], name: '포항 흥해 국가유산야행',
     startDate: '2026-09-11', endDate: '2026-09-12',
@@ -80,6 +211,74 @@ type EditorialTranslation = Translation & { program?: string; hours?: string }
 
 // KOTA translations of the same verified facts above; not official translated copy.
 const translatedDetails: Record<string, Record<EditorialLanguage, { program: string; hours?: string }>> = {
+
+  "https://www.gongjulib.go.kr/_prog/_board/?mode=V&no=9544&code=sub_080203&site_dvs_cd=kr&menu_dvs_cd=080203": {
+    "en": {
+      "program": "At the outdoor stage of Art Center Goma. In case of rain, the venue moves to Baekje Gymnasium."
+    },
+    "ja": {
+      "program": "アートセンター・コマの屋外ステージで開催。雨天時は百済体育館に会場を変更します。"
+    },
+    "th": {
+      "program": "จัดที่เวทีกลางแจ้งของ Art Center Goma หากฝนตกจะย้ายไปจัดที่โรงยิมแพ็กเจ"
+    }
+  },
+  "https://www.nonsan.go.kr/kor/html/sub03/030101.html?mode=V&no=52a9ad09e8a05a9eb0c100d50481ffdf": {
+    "en": {
+      "program": "The application period shown on this poster ended on June 30, 2026. Check the official notice for current participation availability."
+    },
+    "ja": {
+      "program": "このポスターに記載された受付期間は2026年6月30日まででした。現在の参加可否は公式案内をご確認ください。"
+    },
+    "th": {
+      "program": "ระยะเวลารับสมัครที่ระบุในโปสเตอร์นี้สิ้นสุดวันที่ 30 มิถุนายน 2026 โปรดตรวจสอบประกาศทางการว่ายังสามารถเข้าร่วมได้หรือไม่"
+    }
+  },
+  "https://www.dangjin.go.kr/prog/fstvlSchedule/tour/selectList.do": {
+    "en": {
+      "program": "The autumn season runs every Saturday from September 12 to October 17. Check the official notices for weather-related updates and changes to individual shows."
+    },
+    "ja": {
+      "program": "秋の開催期間は9月12日から10月17日までの毎週土曜日です。天候や各回の変更については公式案内をご確認ください。"
+    },
+    "th": {
+      "program": "กิจกรรมช่วงครึ่งปีหลังจัดทุกวันเสาร์ ตั้งแต่วันที่ 12 กันยายนถึง 17 ตุลาคม โปรดตรวจสอบประกาศทางการเกี่ยวกับสภาพอากาศและการเปลี่ยนแปลงการแสดงแต่ละรอบ"
+    }
+  },
+  "https://visitjeju.net/kr/festival/view?contentsid=CNTS_300000000014266": {
+    "en": {
+      "program": "Held every Wednesday. There are no weekend performances."
+    },
+    "ja": {
+      "program": "毎週水曜日に開催します。週末の開催はありません。"
+    },
+    "th": {
+      "program": "จัดทุกวันพุธ ไม่จัดในวันเสาร์และวันอาทิตย์"
+    }
+  },
+  "https://www.visitjeju.net/kr/festival/view?contentsid=CNTS_300000000014207": {
+    "en": {
+      "program": "Performances take place on Fridays and Saturdays. They may be cancelled in bad weather."
+    },
+    "ja": {
+      "program": "金曜日と土曜日の公演です。悪天候時は中止になる場合があります。"
+    },
+    "th": {
+      "program": "มีการแสดงในวันศุกร์และวันเสาร์ อาจยกเลิกหากสภาพอากาศไม่เอื้ออำนวย"
+    }
+  },
+  "https://m.visitjeju.net/kr/festival/view?contentsid=CNTS_300000000014416&menuId=DOM_000001718007000000": {
+    "en": {
+      "program": "Evening walks are available Wednesday through Sunday. Busking, special performances and the changing-of-the-guard ceremony take place on separately scheduled dates."
+    },
+    "ja": {
+      "program": "夜の散策は水曜日から日曜日まで楽しめます。バスキング、特別公演、交代儀式は、それぞれ指定された日に開催します。"
+    },
+    "th": {
+      "program": "เปิดให้เดินชมยามค่ำคืนตั้งแต่วันพุธถึงวันอาทิตย์ การแสดงเปิดหมวก การแสดงพิเศษ และพิธีเปลี่ยนเวรยามจัดตามวันที่กำหนดแยกต่างหาก"
+    }
+  }
+,
   [pohangSource]: {
     en: { program: 'Historic walks in Heunghae, projected media art, rock-carving exhibitions, paper rubbing activities, concerts and a local market. See the official guide for the schedule.' },
     ja: { program: '興海の歴史散策、建物への映像投影、岩刻画の展示、韓紙の拓本体験、音楽会、地元の市場。詳しい日程は公式案内をご確認ください。' },

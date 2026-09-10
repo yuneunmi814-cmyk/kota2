@@ -1,3 +1,5 @@
+import { todayKst } from './date.ts'
+import { hasOperatingDay } from './operating-days.ts'
 import type { DayBadge } from './festivals.ts'
 import { REGIONS } from './sido.ts'
 
@@ -17,8 +19,10 @@ export interface ListItem {
   th: string[]
   img: string | null
   ip: boolean
+  imageNotice?: string
   lat: number | null
   lng: number | null
+  wd?: number[]
   pop: number
 }
 
@@ -33,6 +37,7 @@ export interface ListFilters {
   graded: boolean
   query: string
   weekend: [string, string]
+  today?: string
   from?: string
   to?: string
 }
@@ -73,12 +78,12 @@ export function filterListItems(items: ListItem[], filters: ListFilters): ListIt
   let out = items.filter((f) => f.st !== 'ended')
 
   const dates = travelRange(filters.from, filters.to)
-  if (dates) out = out.filter((f) => f.s <= dates[1] && f.e >= dates[0] && !f.al)
-  else if (filters.period === 'ongoing') out = out.filter((f) => f.st === 'ongoing' && !f.al)
+  if (dates) out = out.filter((f) => hasOperatingDay({startDate:f.s,endDate:f.e,operatingWeekdays:f.wd}, dates[0], dates[1]) && !f.al)
+  else if (filters.period === 'ongoing') out = out.filter((f) => f.st === 'ongoing' && !f.al && (!f.wd || hasOperatingDay({startDate:f.s,endDate:f.e,operatingWeekdays:f.wd}, filters.today ?? todayKst(), filters.today ?? todayKst())))
   else if (filters.period === 'upcoming') out = out.filter((f) => f.st === 'upcoming')
   else if (filters.period === 'weekend') {
     const [sat, sun] = filters.weekend
-    out = out.filter((f) => f.s <= sun && f.e >= sat && !f.al)
+    out = out.filter((f) => hasOperatingDay({startDate:f.s,endDate:f.e,operatingWeekdays:f.wd}, sat, sun) && !f.al)
   } else if (typeof filters.period === 'number') {
     const month = filters.period
     out = out.filter((f) => f.m.includes(month) && !f.al)

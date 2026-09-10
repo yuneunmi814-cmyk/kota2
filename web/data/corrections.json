@@ -99,6 +99,58 @@
       "name": "2026 행복달서 대축제",
       "source": "https://www.dsfac.or.kr",
       "note": "달서문화재단이 축제명을 '행복달서'로 바꿨는데 표준데이터는 옛 이름 그대로다. 기간(10-17~18)은 같다. 2026-08-19 확인."
+    },
+    {
+      "externalId": "manual:gongju-library-book-fest-2026",
+      "year": 2026,
+      "startDate": "2026-09-12",
+      "endDate": "2026-09-12",
+      "source": "https://www.gongjulib.go.kr/_prog/_board/?mode=V&no=9544&code=sub_080203&site_dvs_cd=kr&menu_dvs_cd=080203",
+      "note": "2026-09-11 도서관 공식 본문과 포스터에서 9/12 하루 13~18시 확인. 별도 공주북페어 일정으로 확장하지 않음."
+    },
+    {
+      "externalId": "stdfest:당진삽교호드론라이트쇼-2026-04-04",
+      "year": 2026,
+      "name": "당진 삽교호 드론 라이트 쇼 (하반기)",
+      "startDate": "2026-09-12",
+      "endDate": "2026-10-17",
+      "operatingWeekdays": [
+        6
+      ],
+      "source": "https://www.dangjin.go.kr/prog/fstvlSchedule/tour/selectList.do",
+      "note": "2026-09-11 공식 관광 일정 본문에서 하반기9/12~10/17 매주 토요일 확인. 현재 방문 가능한 하반기 회차로 명시. 상반기5/2~6/6 포스터/일정을 합치지 않으며 기존 ID 유지."
+    },
+    {
+      "externalId": "stdfest:계절이들리는원도심(2026버스킹있는날in제주시)-2026-04-01",
+      "year": 2026,
+      "operatingWeekdays": [
+        3
+      ],
+      "source": "https://visitjeju.net/kr/festival/view?contentsid=CNTS_300000000014266",
+      "note": "2026-09-11 공식 상세 본문과 포스터: 매주 수요일11:30·12:30. 상단 요약의13:00은 불일치하여 사용하지 않음."
+    },
+    {
+      "externalId": "stdfest:2026새연교주말문화공연금토새연쇼-2026-04-25",
+      "year": 2026,
+      "operatingWeekdays": [
+        5,
+        6
+      ],
+      "source": "https://www.visitjeju.net/kr/festival/view?contentsid=CNTS_300000000014207",
+      "note": "2026-09-11 공식2026포스터/본문: 금·토19:00, 기상 악화 시 취소 가능. 일요일 추천에서 제외."
+    },
+    {
+      "externalId": "stdfest:2026제주목관아야간개장-2026-05-01",
+      "year": 2026,
+      "operatingWeekdays": [
+        0,
+        3,
+        4,
+        5,
+        6
+      ],
+      "source": "https://m.visitjeju.net/kr/festival/view?contentsid=CNTS_300000000014416&menuId=DOM_000001718007000000",
+      "note": "2026-09-11 공식 야간산책 수~일18~21시 확인. 지정일 공연/교대의식은 별도이며 야간개장 전체와 혼동하지 않음."
     }
   ]
 }
