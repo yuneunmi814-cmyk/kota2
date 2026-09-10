@@ -56,8 +56,8 @@ export default function FestivalList({
   // 그 셋은 '무엇을 보여줄지'와 무관한데도 이 파일에 섞여 있어, 카드 한 줄을 고치려 해도
   // 스크롤 복원과 위치 권한 코드를 지나가야 했다.
   const {
-    period, region, sido, theme, sort, q, graded, page,
-    setPeriod, setRegion, setSido, setTheme, setSort, setQ, setPage,
+    period, from, to, setFrom, setTo, region, sido, theme, sort, q, graded, page,
+    setPeriod, setRegion, setSido, setTheme, setSort, setQ, setPage, setGraded,
     ready,
   } = useListParams({ period: initialPeriod, region: initialRegion, theme: initialTheme, sort: initialSort, q: initialQuery, graded: initialGraded })
   const { rememberScroll, farDown } = useScrollMemory(ready)
@@ -67,9 +67,9 @@ export default function FestivalList({
   const shown = page * PAGE
 
   const list = useMemo(() => {
-    const filtered = filterListItems(items, { period, region, sido, theme, graded, query: q, weekend })
+    const filtered = filterListItems(items, { period, from, to, region, sido, theme, graded, query: q, weekend })
     return sortListItems(filtered, sort, coords)
-  }, [items, period, region, sido, theme, graded, q, sort, coords, weekend])
+  }, [items, period, from, to, region, sido, theme, graded, q, sort, coords, weekend])
 
   // 검색어 — 타이핑이 멎고 800ms 뒤에 한 번만 남긴다. 글자마다 남기면 '강','강릉','강릉불'이
   // 전부 쌓여 무엇을 찾았는지 알 수 없게 된다. 결과 수도 함께 남겨서 '찾았는데 없더라'를 본다.
@@ -90,7 +90,7 @@ export default function FestivalList({
   // 사용자는 숫자를 못 믿는다
   const countBySido = useMemo(() => {
     const base = filterListItems(items, {
-      period,
+      period, from, to,
       region: null,
       sido: null,
       theme: null,
@@ -107,12 +107,12 @@ export default function FestivalList({
     const m = new Map<string, number>()
     for (const f of base) if (f.sd) m.set(f.sd, (m.get(f.sd) ?? 0) + 1)
     return [...m.entries()].map(([sido, count]) => ({ sido, count })).sort((a, b) => b.count - a.count)
-  }, [items, period, q, weekend])
+  }, [items, period, from, to, q, weekend])
 
   // 테마 칩의 근거가 되는 목록 — 테마만 빼고 지금 걸린 조건을 전부 적용한 것.
   const baseForTheme = useMemo(() => {
     return filterListItems(items, {
-      period,
+      period, from, to,
       region,
       sido,
       theme: null,
@@ -120,7 +120,7 @@ export default function FestivalList({
       query: q,
       weekend,
     })
-  }, [items, period, region, sido, graded, q, weekend])
+  }, [items, period, from, to, region, sido, graded, q, weekend])
 
   const subSidos = useMemo(() => {
     const rs = REGIONS.find((r) => r.key === region)?.sidos
@@ -150,7 +150,17 @@ export default function FestivalList({
   }, [ready, period, region, sido, theme])
 
   // 걸어둔 필터가 하나라도 있는가 — 0건 안내 문구를 고르는 데 쓴다
-  const hasFilters = period !== 'all' || !!region || !!sido || !!theme || graded
+  const hasFilters = period !== 'all' || !!from || !!to || !!region || !!sido || !!theme || graded
+
+  const labels = {
+    ko: { dates: '여행 날짜', from: '시작일', to: '종료일', clear: '조건 초기화', note: '선택한 기간에 하루라도 열리는 축제입니다. 장기 행사는 실제 운영일을 확인하세요.' },
+    en: { dates: 'Travel dates', from: 'Start date', to: 'End date', clear: 'Reset filters', note: 'Festivals overlapping your dates. Check operating days for long-running events.' },
+    ja: { dates: '旅行の日程', from: '開始日', to: '終了日', clear: '条件をリセット', note: '選択期間と重なる祭りです。長期開催のイベントは実際の営業日をご確認ください。' },
+    th: { dates: 'วันเดินทาง', from: 'วันเริ่มต้น', to: 'วันสิ้นสุด', clear: 'ล้างตัวกรอง', note: 'เทศกาลที่จัดในช่วงวันที่เลือก โปรดตรวจสอบวันเปิดจริงของงานระยะยาว' },
+  }[lang]
+  const resetFilters = () => {
+    setPeriod('all'); setRegion(null); setSido(null); setTheme(null); setGraded(false); setQ(''); setSort('date')
+  }
 
   const chip = (on: boolean) =>
     `shrink-0 rounded-full border px-4 py-2 text-[13px] font-bold transition ${
@@ -169,6 +179,7 @@ export default function FestivalList({
       <div className="mb-5 flex items-center gap-2 rounded-full border border-line bg-surface px-5 py-1 focus-within:border-brand">
         <Icon name="search" size={18} className="text-hint" />
         <input
+          aria-label={t(lang, 'search.placeholder')}
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder={t(lang, 'search.placeholder')}
@@ -176,13 +187,26 @@ export default function FestivalList({
         />
       </div>
 
+      <fieldset className="mb-5 rounded-xl border border-line p-4">
+        <legend className="px-1 text-[13px] font-bold text-muted">{labels.dates}</legend>
+        <div className="flex flex-wrap items-end gap-3">
+          <label className="min-w-0 flex-1 text-[12px] text-muted">{labels.from}
+            <input type="date" value={from} onInput={(e) => setFrom(e.currentTarget.value)} className="mt-1 block w-full min-w-0 rounded-lg border border-line bg-surface px-3 py-2 text-[14px] text-ink" />
+          </label>
+          <label className="min-w-0 flex-1 text-[12px] text-muted">{labels.to}
+            <input type="date" value={to} onInput={(e) => setTo(e.currentTarget.value)} className="mt-1 block w-full min-w-0 rounded-lg border border-line bg-surface px-3 py-2 text-[14px] text-ink" />
+          </label>
+        </div>
+        {(from || to) && <p className="mt-2 text-[12px] text-muted">{labels.note}</p>}
+      </fieldset>
+
       {/* 1축 — 시기. 축제는 '언제'가 먼저다.
           넓은 화면에서는 줄을 감싼다. 칩이 16개(전체·진행중·주말 + 12달)라 한 줄에 안 들어가는데,
           no-scrollbar가 붙어 있어 마우스로는 밀 수단이 없었다 — 마지막 달을 아예 누를 수 없었다.
           영어 'Dec'는 59px 중 58px이 가려졌고 태국어는 약칭으로 줄인 뒤에도 12월이 안 잡혔다
           (2026-08-25 실측). 좁은 화면은 원래 가로로 넘기는 UI라 그대로 둔다. */}
       <div data-chip-row className="-mx-5 mb-3 chip-row flex gap-2 overflow-x-auto px-5 pb-1 no-scrollbar sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0">
-        <button data-chip-on={period === 'all' ? '1' : undefined} className={chip(period === 'all')} onClick={() => setPeriod('all')}>
+        <button data-chip-on={period === 'all' && !from && !to ? '1' : undefined} className={chip(period === 'all' && !from && !to)} onClick={() => setPeriod('all')}>
           {lang === 'ko' ? '전체' : lang === 'ja' ? 'すべて' : lang === 'th' ? 'ทั้งหมด' : 'All'}
         </button>
         <button data-chip-on={period === 'ongoing' ? '1' : undefined} className={chip(period === 'ongoing')} onClick={() => setPeriod('ongoing')}>
@@ -216,7 +240,7 @@ export default function FestivalList({
         </button>
         {REGIONS.map((r) => {
           const n = countBySido.filter((x) => r.sidos.includes(x.sido)).reduce((s, x) => s + x.count, 0)
-          if (n === 0) return null
+          if (n === 0 && region !== r.key) return null
           return (
             <button
               key={r.key}
@@ -279,6 +303,10 @@ export default function FestivalList({
             <span className="mt-1 block text-hint">{t(lang, 'nearby.blockedHow')}</span>
           )}
         </div>
+      )}
+
+      {(hasFilters || q.trim() || sort !== 'date') && (
+        <button type="button" onClick={resetFilters} className="mb-4 text-[13px] font-bold text-brand underline underline-offset-4">{labels.clear}</button>
       )}
 
       {/* 결과 수 + 정렬 */}

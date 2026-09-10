@@ -1,4 +1,6 @@
 import { cache } from 'react'
+import { uniqueFestivals } from './duplicate-festivals'
+import { applyEditorial } from './editorial'
 import { supabase } from './supabase'
 import { fetchLive, fetchLiveStdfest, fetchLiveKfes } from './tourapi-live'
 import { classifyThemes } from './classify-themes'
@@ -26,6 +28,10 @@ export interface Translation {
 }
 
 export interface Festival {
+  duplicateIds?: string[]
+  verifiedAt?: string
+  verificationSource?: string
+
   /** 원본 소스의 id — 식별에는 쓰지 않는다(환경마다 달라진다). externalId를 쓸 것 */
   id: string | number
   externalId: string
@@ -247,8 +253,8 @@ async function overlayLive(
 ): Promise<Festival[]> {
   // Legacy name-only corrections need the global list to detect ambiguity. Single-row
   // details apply ID-scoped edits here, then reuse the global result in findByKey.
-  const correct = (items: Festival[]) => applyWebCorrections(items,
-    addFresh ? correctionData.corrections : correctionData.corrections.filter(c => c.externalId))
+  const correct = async (items: Festival[]) => applyEditorial(await applyWebCorrections(items,
+    addFresh ? correctionData.corrections : correctionData.corrections.filter(c => c.externalId)))
 
   // 두 원천을 동시에 부른다. 하나가 늦어도 다른 하나를 기다리게 하지 않는다.
   const [live, std, kfes] = await Promise.all([
@@ -645,7 +651,7 @@ export function listFestivalSummaries(): Promise<Festival[]> {
       if (page.length < CHUNK) break
     }
 
-    return overlayLive(out.map(fromSummaryRow), out)
+    return uniqueFestivals(await overlayLive(out.map(fromSummaryRow), out))
   })()
 
   rows.catch(() => { if (summaryCached?.rows === rows) summaryCached = null })
@@ -731,7 +737,9 @@ export const findByKey = cache(async (externalId: string): Promise<Festival | un
   if (!row) {
     // Summary overlay supplies the same deduplication policy as the visible cards, without
     // fetching every festival's translations/photos. DB misses are still checked even when warm.
-    return (await listFestivalSummaries()).find((f) => f.externalId === externalId)
+    const summary = (await listFestivalSummaries()).find(f => f.externalId === externalId || f.duplicateIds?.includes(externalId))
+    // Keep the requested externalId for existing review/share routes.
+    return summary ? { ...summary, externalId, id: externalId } : undefined
   }
 
   // 한 건에도 같은 실시간 보정을 건다 — 상세와 목록이 다른 날짜를 말하면 안 된다.

@@ -407,6 +407,25 @@ const corrections: FestivalCorrection[] = existsSync(cf) ? JSON.parse(readFileSy
 
 merged.sort((a, b) => a.startDate.localeCompare(b.startDate) || a.name.localeCompare(b.name))
 
+// Retain previously published media after source merges and date corrections.
+// Newly reviewed media is applied by scrape-images.ts only after response validation.
+// Existing external media is retained for the exact edition, never transferred by fuzzy name.
+{
+  const prevFile = new URL('../data/festivals.json', import.meta.url)
+  const previous: Festival[] = existsSync(prevFile) ? JSON.parse(readFileSync(prevFile, 'utf-8')).items : []
+  for (const f of merged) {
+    const ids = new Set([f.externalId, ...(f.sourceIds ?? [])])
+    const matches = previous.filter(p => p.startDate === f.startDate && p.endDate === f.endDate && [p.externalId, ...(p.sourceIds ?? [])].some(id => ids.has(id)))
+    if (matches.length === 1) {
+      const p = matches[0]!
+      if ((!f.imageUrl || f.imageFrom === 'past') && p.imageFrom === 'scraped' && p.imageUrl && p.imageSource) {
+        f.imageUrl = p.imageUrl; f.imageFrom = p.imageFrom; f.imageSource = p.imageSource
+      }
+      if (p.photos?.length) f.photos = p.photos
+    }
+  }
+}
+
 // ── 저장 + 리포트 ─────────────────────────────────────────
 mkdirSync(new URL('../data/', import.meta.url), { recursive: true })
 writeFileSync(new URL('../data/festivals.json', import.meta.url), JSON.stringify({ exportedAt: new Date().toISOString(), items: merged }, null, 0))

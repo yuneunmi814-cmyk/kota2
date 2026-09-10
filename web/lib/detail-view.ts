@@ -40,7 +40,8 @@ export function nearbyFestivals(
         x.lat != null &&
         x.lng != null &&
         statusOf(x, today) !== 'ended' &&
-        !isAlwaysOn(x),
+        !isAlwaysOn(x) &&
+        x.startDate <= f.endDate && x.endDate >= f.startDate,
     )
     .map((x) => ({ x, km: distanceKm(origin, { lat: x.lat as number, lng: x.lng as number }) }))
     .filter((o) => o.km <= radiusKm)

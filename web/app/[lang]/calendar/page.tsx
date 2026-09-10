@@ -25,7 +25,7 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
   const l: Lang = isLang(lang) ? lang : 'ko'
   const title = l === 'ko' ? '축제 달력' : l === 'ja' ? '祭りカレンダー' : l === 'th' ? 'ปฏิทินเทศกาล' : 'Festival calendar'
   return {
-    title: `${title} · KOTA`,
+    title,
     alternates: {
       canonical: `${SITE_URL}/${l}/calendar/`,
       languages: Object.fromEntries(LANGS.map((x) => [x, `${SITE_URL}/${x}/calendar/`])),

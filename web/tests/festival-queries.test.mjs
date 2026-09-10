@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict'
+import { applyEditorial } from '../lib/editorial.ts'
+import { uniqueFestivals } from '../lib/duplicate-festivals.ts'
 import test from 'node:test'
 import { readFileSync } from 'node:fs'
 import { stripTypeScriptTypes } from 'node:module'
@@ -33,7 +35,7 @@ export function fixtureModule({ rows = [], live = [], correctionRows = correctio
     }; return query
   } }
   const dependencies = {
-    cache: f => f, supabase,
+    cache: f => f, supabase, uniqueFestivals, applyEditorial,
     fetchLive: async () => { if (failLive) throw Error('injected unavailable source'); return live },
     fetchLiveStdfest: async () => [], fetchLiveKfes: async () => [],
     classifyThemes: () => [], addDays, todayKst: () => '2026-09-05', externalIdsToSlugs: ids => ids,

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import type { Festival } from '@/lib/festivals'
-import { listFestivalSummaries, isAlwaysOn, isLongRun, localized, statusOf } from '@/lib/festivals'
+import { listFestivalSummaries, isAlwaysOn, localized, statusOf } from '@/lib/festivals'
 import { LANGS, SITE_URL, isLang, type Lang } from '@/lib/i18n'
 import { t } from '@/lib/ui'
 import Header from '@/components/Header'
@@ -30,7 +31,7 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
   // 숫자가 어긋나면 데이터 신뢰도로 바로 이어진다(2026-08-23 점검).
   const n = (await listFestivalSummaries()).filter((f) => statusOf(f) !== 'ended').length
   return {
-    title: `KOTA — ${t(l, 'brand.tagline')}`,
+    title: { absolute: `KOTA — ${t(l, 'brand.tagline')}` },
     description: t(l, 'home.sub', { n }),
     alternates: {
       canonical: `${SITE_URL}/${l}/`,
@@ -57,7 +58,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
   const showcase = (a: Festival, b: Festival) =>
     (b.imageUrl ? 1 : 0) - (a.imageUrl ? 1 : 0) || (b.popularity ?? 0) - (a.popularity ?? 0)
 
-  const popular = [...ongoing, ...upcomingSoon].sort(showcase)
+  const popular = [...ongoing, ...upcomingSoon].filter(f => (f.visitorLift ?? 0) >= 1.5).sort((a, b) => (b.visitorLift ?? 0) - (a.visitorLift ?? 0) || showcase(a, b))
 
 
 
@@ -77,7 +78,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
   // 관리자가 고른 게 있으면 그것으로, 없으면 이번 주말 축제로 자동으로 채운다
   const curated = await curatedPromos()
   const byId = new Map(all.map((f) => [f.externalId, f]))
-  const picked = curated.map((c) => byId.get(c.festivalId)).filter((f): f is Festival => !!f && !!f.imageUrl)
+  const picked = curated.map((c) => byId.get(c.festivalId)).filter((f): f is Festival => !!f && !!f.imageUrl && f.startDate <= sun && f.endDate >= sat)
   const promoSlides = (picked.length > 0 ? picked : weekend.filter((f) => f.imageUrl))
     .slice(0, 4)
     .map((f) => ({
@@ -90,7 +91,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
 
   // 행끼리 겹치면 4개 행이 사실상 한 행이 된다 — 상위 축제는 모든 축에서 1등이라 그렇다(실측:
   // 통영한산대첩·둔내고랭지토마토가 네 행에 전부 등장). 먼저 나온 행이 가져가고 뒤는 다음 것을 쓴다.
-  const used = new Set<string>()
+  const used = new Set<string>(promoSlides.map(s => s.id))
   const take = (list: Festival[], n = 4) => {
     const out: Festival[] = []
     for (const f of list) {
@@ -102,31 +103,27 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
     return out
   }
 
-  // 계획축 — 다음 달에 시작하는 축제. 여행은 몇 주 전에 정한다.
-  // '문화관광축제(문체부 지정)' 행을 여기 뒀다가 뺐다 — 지정은 진짜 신호지만(방문객 배율 중앙값
-  // 1.32배 vs 비지정 1.03배) 지금 열리는 MF가 1건뿐이라 두 달 뒤 축제로 행을 채우게 됐고,
-  // '문화관광축제'는 여행자가 아니라 주최자의 언어다. 신호는 카드·상세의 뱃지가 이미 전한다.
-  const nextMonthEnd = addDays(today, 45)
-  const nextMonth = all
-    .filter((f) => statusOf(f, today) === 'upcoming' && !isAlwaysOn(f) && !isLongRun(f) && f.startDate <= nextMonthEnd)
-    .sort(showcase)
-
   return (
     <>
       <Header lang={l} />
 
       <main className="pb-24">
         {/* 히어로 — 질문으로 연다. 목록을 먼저 보여주면 '또 하나의 축제 포털'이 된다 */}
-        <section className="mx-auto max-w-6xl px-5 pb-12 pt-16 text-center sm:pt-24">
+        <section className="mx-auto max-w-6xl px-5 pb-8 pt-10 text-center sm:pt-16">
           <h1 className="h-display mx-auto max-w-3xl text-[40px] text-ink sm:text-[58px]">
             {t(l, 'home.headline')}
           </h1>
           <p className="mx-auto mt-5 max-w-xl text-[16px] text-muted sm:text-[17px]">
             {t(l, 'home.sub', { n: all.filter((f) => statusOf(f) !== 'ended').length })}
           </p>
-          <div className="mt-9">
+          <div className="mt-7">
             <SearchBar lang={l} />
           </div>
+          <nav className="mt-4 flex flex-wrap justify-center gap-2 text-sm font-semibold" aria-label={t(l, 'nav.festivals')}>
+            <Link className="rounded-full border border-line px-4 py-2 hover:border-brand" href={`/${l}/festivals/?period=weekend`}>{t(l, 'row.weekend')}</Link>
+            <Link className="rounded-full border border-line px-4 py-2 hover:border-brand" href={`/${l}/calendar/`}>{{ ko: '축제 달력', en: 'Calendar', ja: '祭りカレンダー', th: 'ปฏิทิน' }[l]}</Link>
+            <a className="rounded-full border border-line px-4 py-2 hover:border-brand" href="#nearby">{t(l, 'nearby.title')}</a>
+          </nav>
         </section>
 
         {/* 회전 배너 — 트립어드바이저 히어로 바로 아래의 형광 초록 자리 */}
@@ -136,7 +133,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
             최하단에 있었다. 위치를 켜 주면 가장 쓸모 있는 자리인데, 거기까지 내려온 사람만
             봤다(8/18 회의). 히어로 위로 올리자는 안은 첫 화면이 지저분해져 기각됐고,
             KOTA's Pick 바로 아래로 정해졌다. */}
-        <div className="pb-4">
+        <div id="nearby" className="scroll-mt-24 pb-4">
           <NearbyBlock all={all} lang={l} />
         </div>
 

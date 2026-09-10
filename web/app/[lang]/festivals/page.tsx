@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
   const n = (await listItems(l)).filter((f) => f.st !== 'ended').length
   const title = l === 'ko' ? '전국 축제 목록' : l === 'ja' ? '韓国の祭り一覧' : l === 'th' ? 'รายชื่อเทศกาลทั่วเกาหลี' : 'All festivals in Korea'
   return {
-    title: `${title} · KOTA`,
+    title,
     description: t(l, 'list.total', { n }),
     alternates: {
       canonical: `${SITE_URL}/${l}/festivals/`,
