@@ -152,6 +152,9 @@ PR 원본은 `web/lib/festivals.ts`가 `../../pipeline/...`을 불렀다. **`pip
 
 2026-09-12 컨설팅 대조 완료: `docs/reviews/consulting-compatibility-2026-09-12.md`.
 중복 대표 ID의 이미지 의존 제거·운영 요일 보존·관리자 추천 별칭 연결·잠수교 일요일 정보와 출처 연결 수정. 실제 화면에서 찾은 목록→상세 포스터 누락도 같은 기간의 최소 정보 조회로 보완. 웹87개 검사 통과(7개 추가), 타입·린트 오류 없음. 최종 webpack 빌드 성공. 실제 화면에서 잠수교 토요일 검색/달력 제외·일요일 포함, 상세 포스터 로드 확인.
+2026-09-12 08:17 이후 Vercel 미리보기 검증 완료(검증 커밋 `cbcfa5d`, Vercel SUCCESS). 잠수교 9/12 검색0건·9/13 1건, 상세 일요일 안내·포스터940px 로드 확인. 공식 이미지 팔공산1755px·논산1191px·서울정원1829px 정상 로드, 논산 접수기간 종료 안내 확인. 운영 배포 아님.
+미리보기: https://kota2-git-codex-site-quality-20260911-emmas-projects-9f639d05.vercel.app/ko/
+
 2026-09-12 사용자 명시적 후속 승인 후 GitHub 개선 브랜치 업로드·초안 PR #2 생성 완료: https://github.com/yuneunmi814-cmyk/kota2/pull/2 . main 병합·운영 배포는 승인 범위 밖이며 실행하지 않음.
 
 `codex/site-quality-20260911`에서 2차 콘텐츠 후속 완료. 운영 DB 쓰기·main 배포 없음.
