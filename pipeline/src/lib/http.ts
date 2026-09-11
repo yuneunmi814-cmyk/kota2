@@ -6,7 +6,7 @@
 export class QuotaError extends Error {}
 
 export async function getJson<T>(url: string, opts: { headers?: Record<string, string> } = {}): Promise<T> {
-  const res = await fetch(url, { headers: opts.headers })
+  const res = await fetch(url, { headers: opts.headers, signal: AbortSignal.timeout(20_000) })
   const text = await res.text()
   if (text.trimStart().startsWith('<')) {
     // XML 오류 봉투 — 서비스키 오류·쿼터 소진

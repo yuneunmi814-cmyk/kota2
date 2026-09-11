@@ -1,3 +1,5 @@
+import { operatingDaysLabel } from '@/lib/operating-days'
+import { editorialField } from '@/lib/editorial'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound, permanentRedirect } from 'next/navigation'
@@ -52,7 +54,7 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
   const L = localized(f, l)
   const desc = metaDescription(L, f)
   return {
-    title: `${L.name} · KOTA`,
+    title: L.name,
     description: desc,
     alternates: {
       canonical: `${SITE_URL}/${l}/festivals/${toSlug(f.externalId)}/`,
@@ -212,9 +214,19 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
           </div>
         )}
 
+        <div className="mb-5 flex flex-wrap items-center gap-x-5 gap-y-2 rounded-xl border border-line px-4 py-3 text-sm">
+          <span className="font-semibold tabular-nums">{fmt(f.startDate)} – {fmt(f.endDate)}</span>
+          {f.operatingWeekdays?.length && <span className="font-semibold">{operatingDaysLabel(f.operatingWeekdays, l)}</span>}
+          <span>{f.hours ? `${t(l, 'detail.hours')}: ${editorialField(f, l, 'hours')}` : `${t(l, 'detail.hours')}: ${t(l, 'detail.feeUnknown')}`}</span>
+          <span>{fee === 'unknown' ? t(l, 'detail.feeUnknown') : (fee === 'free' ? t(l, 'detail.free') : f.fee)}</span>
+          {f.homepage && <a href={f.homepage} target="_blank" rel="noopener noreferrer" className="ml-auto font-bold underline underline-offset-4">{t(l, 'official.visit')}</a>}
+        </div>
+
         {/* 사진 그리드 — 큰 1 + 작은 2. 트립어드바이저 상세 상단. 옆 칸은 유튜브 썸네일·지도로 채운다 */}
         {/* 모바일은 히어로 한 장만(트립어드바이저와 같다). 390px에서 3열이면 옆 칸이 127px이라 아무것도 안 보인다.
             영상·지도는 아래 각자의 섹션에 그대로 있으므로 정보 손실이 없다. */}
+        {f.imageNotice === 'registration-closed' && <p className="mb-3 rounded-lg bg-brand-50 p-3 text-sm font-semibold text-brand">{t(l, 'poster.registrationClosed')}</p>}
+        {f.imageAttribution && <p className="mb-3 text-xs text-muted">{f.imageAttribution}</p>}
         {heroSrc && (
         <div
           className={`mb-8 grid gap-2 overflow-hidden rounded-[var(--radius-card)] grid-cols-1 ${sideTiles.length ? 'sm:grid-cols-3' : ''}`}
@@ -222,6 +234,9 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
         >
           <div className={`relative h-full overflow-hidden ${sideTiles.length ? 'sm:col-span-2' : ''}`}>
             <Poster src={heroSrc} name={L.name} letterClass="text-[5em]" whole eager />
+            <a href={heroSrc.startsWith('http://') ? `/img/?u=${encodeURIComponent(heroSrc)}` : heroSrc} target="_blank" rel="noopener noreferrer" className="absolute right-3 top-3 rounded-full bg-white px-4 py-2 text-xs font-bold text-ink shadow-sm">
+              {{ko:'이미지 크게 보기',en:'View full image',ja:'画像を拡大',th:'ดูภาพขนาดเต็ม'}[l]}
+            </a>
             {f.imageFrom === 'past' && (
               <span className="absolute bottom-3 left-3 rounded-full bg-ink/70 px-2.5 py-1 text-[11px] font-bold text-white backdrop-blur-sm">{t(l, 'poster.past')}</span>
             )}
@@ -353,7 +368,7 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
             {f.program && (
               <section id="program" className="mb-10 scroll-mt-24">
                 <h2 className="mb-3 text-[20px] font-black text-ink">{t(l, 'detail.program')}</h2>
-                <p className="whitespace-pre-line rounded-[var(--radius-card)] bg-surface p-5 text-[15px] leading-relaxed text-ink/85">{f.program}</p>
+                <p className="whitespace-pre-line rounded-[var(--radius-card)] bg-surface p-5 text-[15px] leading-relaxed text-ink/85">{editorialField(f, l, 'program')}</p>
               </section>
             )}
 
@@ -425,18 +440,19 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
 
             <p className="text-[12px] leading-relaxed text-hint">
             {t(l, isPublicData(f) ? 'detail.source' : 'detail.source.manual')}
+            {f.verifiedAt && f.verificationSource && <span className="mt-2 block"><a href={f.verificationSource} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">{{ko:'운영 안내·공식 링크 확인',en:'Programme and official link checked',ja:'運営案内・公式リンク確認',th:'ตรวจสอบกำหนดการและลิงก์ทางการ'}[l]} · {f.verifiedAt}</a></span>}
           </p>
           </div>
 
           {/* 오른쪽 — sticky 정보 카드. 트립어드바이저의 '시간' 카드 자리 */}
-          <aside className="lg:sticky lg:top-24 lg:self-start">
+          <aside className="order-first lg:order-last lg:sticky lg:top-24 lg:self-start">
             <div className="rounded-[var(--radius-card)] border border-line bg-surface p-5 shadow-[0_8px_28px_-16px_rgba(79,50,22,.25)]">
               <h2 className="mb-4 text-[15px] font-black text-ink">{t(l, 'detail.info')}</h2>
               <dl className="space-y-3.5 text-[14px]">
                 <Row icon="calendar" label={t(l, 'detail.period')}>
                   <span className="tabular-nums font-semibold">{fmt(f.startDate)} – {fmt(f.endDate)}</span>
                 </Row>
-                {f.hours && <Row icon="clock" label={t(l, 'detail.hours')}>{f.hours}</Row>}
+                {f.hours && <Row icon="clock" label={t(l, 'detail.hours')}>{editorialField(f, l, 'hours')}</Row>}
                 {/* 요금은 셋이다 — 무료 / 유료 / 모름. 모르는 것을 「무료」라고 하지 않는다.
                     공공 API가 요금을 안 준 축제가 425건 중 300건이고, 그건 공짜라는 뜻이
                     아니다. 유료 축제를 싣기 시작하면 이 단정이 실제 피해가 된다. */}

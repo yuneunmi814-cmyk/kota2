@@ -89,3 +89,33 @@ test('인기순은 상시 고득점을 계절 축제 뒤로, 거리순은 가까
   assert.deepEqual(sortListItems(rows, 'popularity', null).map(({ f }) => f.k), ['seasonal', 'always'])
   assert.equal(sortListItems(rows, 'distance', { lat: 37.5665, lng: 126.978 })[0].f.k, 'always')
 })
+
+const { travelRange, validTravelDate } = await import('../lib/list-rules.ts')
+
+test('여행 날짜는 실제 날짜만 받고 역순·단일 날짜를 정규화한다', () => {
+  assert.equal(validTravelDate('2026-02-30'), '')
+  assert.equal(validTravelDate('2026-13-01'), '')
+  assert.equal(validTravelDate('2028-02-29'), '2028-02-29')
+  assert.deepEqual(travelRange('2026-09-15', '2026-09-11'), ['2026-09-11', '2026-09-15'])
+  assert.deepEqual(travelRange('', '2026-09-11'), ['2026-09-11', '2026-09-11'])
+  assert.equal(travelRange('bad', '2026-02-30'), null)
+})
+
+test('여행 기간은 시작·종료일을 포함해 겹치는 축제를 찾고 시기 칩보다 우선한다', () => {
+  const rows = [
+    item({ k: 'starts-on-last', s: '2026-09-15', e: '2026-09-16' }),
+    item({ k: 'ends-on-first', s: '2026-09-01', e: '2026-09-11', st: 'ongoing' }),
+    item({ k: 'after', s: '2026-09-16', e: '2026-09-18' }),
+    item({ k: 'before', s: '2026-09-01', e: '2026-09-10' }),
+    item({ k: 'always', al: true, s: '2026-01-01', e: '2026-12-31' }),
+  ]
+  assert.deepEqual(filterListItems(rows, { ...baseFilters, period: 'weekend', from: '2026-09-11', to: '2026-09-15' }).map((f) => f.k), ['starts-on-last', 'ends-on-first'])
+  assert.deepEqual(filterListItems(rows, { ...baseFilters, from: '2026-09-15', to: '2026-09-11' }).map((f) => f.k), ['starts-on-last', 'ends-on-first'])
+  assert.deepEqual(filterListItems(rows, { ...baseFilters, from: '2026-09-11' }).map((f) => f.k), ['ends-on-first'])
+})
+
+test('주말과 여행 날짜 필터가 확인된 운영 요일을 함께 적용한다', () => {
+  const rows = [item({k:'wed',s:'2026-09-01',e:'2026-09-30',wd:[3]}),item({k:'sun',s:'2026-09-01',e:'2026-09-30',wd:[0]})]
+  assert.deepEqual(filterListItems(rows,{...baseFilters,period:'weekend',weekend:['2026-09-12','2026-09-13']}).map(f=>f.k),['sun'])
+  assert.deepEqual(filterListItems(rows,{...baseFilters,from:'2026-09-16',to:'2026-09-16'}).map(f=>f.k),['wed'])
+})

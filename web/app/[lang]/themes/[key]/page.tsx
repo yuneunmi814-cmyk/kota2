@@ -25,7 +25,7 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
   if (!isTheme(key)) return {}
   const n = (await listItems(l)).filter((f) => f.th.includes(key) && f.st !== 'ended').length
   return {
-    title: `${themeLabel(key, l)} · KOTA`,
+    title: themeLabel(key, l),
     description: `${themeDesc(key, l)} — ${n}`,
     alternates: {
       canonical: `${SITE_URL}/${l}/themes/${key}/`,

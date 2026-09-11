@@ -1,4 +1,8 @@
 import { cache } from 'react'
+import { uniqueFestivals, sameEdition } from './duplicate-festivals'
+import { applyEditorial, editorialSourceIds } from './editorial'
+import { applyReviewedImages } from './reviewed-images'
+import reviewedImages from '../data/reviewed-images.json'
 import { supabase } from './supabase'
 import { fetchLive, fetchLiveStdfest, fetchLiveKfes } from './tourapi-live'
 import { classifyThemes } from './classify-themes'
@@ -26,6 +30,11 @@ export interface Translation {
 }
 
 export interface Festival {
+  operatingWeekdays?: number[]
+  duplicateIds?: string[]
+  verifiedAt?: string
+  verificationSource?: string
+
   /** 원본 소스의 id — 식별에는 쓰지 않는다(환경마다 달라진다). externalId를 쓸 것 */
   id: string | number
   externalId: string
@@ -41,6 +50,8 @@ export interface Festival {
   imageUrl?: string | null
   imageFrom?: 'own' | 'past' | 'scraped' | null
   imageSource?: string | null
+  imageAttribution?: string
+  imageNotice?: string
   regionPhoto?: { url: string; title: string; photographer: string } | null
   /** 'MF' = 문체부 지정 문화관광축제 */
   category?: string | null
@@ -247,8 +258,8 @@ async function overlayLive(
 ): Promise<Festival[]> {
   // Legacy name-only corrections need the global list to detect ambiguity. Single-row
   // details apply ID-scoped edits here, then reuse the global result in findByKey.
-  const correct = (items: Festival[]) => applyWebCorrections(items,
-    addFresh ? correctionData.corrections : correctionData.corrections.filter(c => c.externalId))
+  const correct = async (items: Festival[]) => applyReviewedImages(applyEditorial(await applyWebCorrections(items,
+    addFresh ? correctionData.corrections : correctionData.corrections.filter(c => c.externalId))), reviewedImages)
 
   // 두 원천을 동시에 부른다. 하나가 늦어도 다른 하나를 기다리게 하지 않는다.
   const [live, std, kfes] = await Promise.all([
@@ -525,7 +536,7 @@ let correctionSourcesCached: { at: number; rows: Promise<Map<string, string[]>> 
 function correctionSourceIds(): Promise<Map<string, string[]>> {
   if (correctionSourcesCached && Date.now() - correctionSourcesCached.at < TTL) return correctionSourcesCached.rows
   const rows = (async () => {
-    const targetIds = [...new Set(correctionData.corrections.map(c => c.externalId).filter((id): id is string => Boolean(id)))]
+    const targetIds = [...new Set([...correctionData.corrections.map(c => c.externalId).filter((id): id is string => Boolean(id)), ...Object.keys(reviewedImages), ...editorialSourceIds])]
     if (!targetIds.length) return new Map<string, string[]>()
     type SourceRow = { external_id: string; festival_uid: string }
     const readSources = async (column: 'external_id' | 'festival_uid', values: string[]): Promise<SourceRow[] | null> => {
@@ -645,7 +656,7 @@ export function listFestivalSummaries(): Promise<Festival[]> {
       if (page.length < CHUNK) break
     }
 
-    return overlayLive(out.map(fromSummaryRow), out)
+    return uniqueFestivals(await overlayLive(out.map(fromSummaryRow), out), new Set(out.map(row => row.id)))
   })()
 
   rows.catch(() => { if (summaryCached?.rows === rows) summaryCached = null })
@@ -715,14 +726,47 @@ export function allFestivals(): Promise<Festival[]> {
 // 전량 캐시를 새로 채우지는 않는다. 한 장 굽자고 전량을 당기지 않는 것이 이 분리의 목적이다.
 // 빌드 실행기에만 명시적으로 주는 플래그. 요청 횟수는 빌드 감지 근거가 아니다.
 
+// A grouped card may borrow a poster from another record of the same edition.
+// Keep that image on detail pages too, without changing the requested route/reviews
+// or loading every festival's descriptions/photos. Cache a minimal date-bound query.
+const mediaPeers = new Map<string, {at: number; rows: Promise<Festival[]>}>()
+async function supplementMissingMedia(f: Festival): Promise<Festival> {
+  if (f.imageUrl && f.imageFrom !== 'past') return f
+  const merge = (peers: Festival[]) => uniqueFestivals([f, ...peers.filter(p => p !== f && sameEdition(f, p))], new Set([f.externalId]))
+    .find(p => p.externalId === f.externalId) ?? f
+  if (cached && Date.now() - cached.at < TTL) return merge(await cached.rows)
+  if (summaryCached && Date.now() - summaryCached.at < TTL) return merge(await summaryCached.rows)
+  const key = `${f.startDate}/${f.endDate}`
+  let entry = mediaPeers.get(key)
+  if (!entry || Date.now() - entry.at >= TTL) {
+    const rows = (async () => {
+      const found: SummaryRow[] = []
+      for (let from = 0; ; from += 200) {
+        const {data, error} = await supabase.from('festivals').select(SUMMARY_SELECT)
+          .eq('start_date', f.startDate).eq('end_date', f.endDate).order('id').range(from, from + 199)
+        if (error) return [] // Optional media must not break an otherwise valid detail.
+        const page = (data ?? []) as unknown as SummaryRow[]
+        found.push(...page)
+        if (page.length < 200) break
+      }
+      return overlayLive(found.map(fromSummaryRow), found, false)
+    })()
+    for (const [key, value] of mediaPeers) if (Date.now() - value.at >= TTL) mediaPeers.delete(key)
+    entry = {at: Date.now(), rows}
+    mediaPeers.set(key, entry)
+    rows.catch(() => { mediaPeers.delete(key) })
+  }
+  return merge(await entry.rows)
+}
+
 export const findByKey = cache(async (externalId: string): Promise<Festival | undefined> => {
   const warm = cached && Date.now() - cached.at < TTL ? await cached.rows : null
   const hit = warm?.find((f) => f.externalId === externalId)
-  if (hit) return hit
+  if (hit) return supplementMissingMedia(hit)
 
   if (!warm && process.env.KOTA_BUILD_PRELOAD === '1') {
     const preloaded = (await allFestivals()).find((f) => f.externalId === externalId)
-    if (preloaded) return preloaded
+    if (preloaded) return supplementMissingMedia(preloaded)
   }
 
   const { data, error } = await supabase.from('festivals').select(SELECT).eq('id', externalId).limit(1)
@@ -731,7 +775,9 @@ export const findByKey = cache(async (externalId: string): Promise<Festival | un
   if (!row) {
     // Summary overlay supplies the same deduplication policy as the visible cards, without
     // fetching every festival's translations/photos. DB misses are still checked even when warm.
-    return (await listFestivalSummaries()).find((f) => f.externalId === externalId)
+    const summary = (await listFestivalSummaries()).find(f => f.externalId === externalId || f.duplicateIds?.includes(externalId))
+    // Keep the requested externalId for existing review/share routes.
+    return summary ? { ...summary, externalId, id: externalId } : undefined
   }
 
   // 한 건에도 같은 실시간 보정을 건다 — 상세와 목록이 다른 날짜를 말하면 안 된다.
@@ -743,7 +789,7 @@ export const findByKey = cache(async (externalId: string): Promise<Festival | un
       for (const field of fields) if (summary[field] !== undefined) Object.assign(f, { [field]: summary[field] })
     }
   }
-  return f
+  return supplementMissingMedia(f)
 })
 
 /**

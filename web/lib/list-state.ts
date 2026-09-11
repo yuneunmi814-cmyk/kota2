@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import { requestPosition } from './geo'
 import type { ListPeriod, ListSort } from './listData'
 import type { Theme } from './themes'
+import { travelRange, validTravelDate } from './list-rules'
 
 // 목록 화면이 들고 다니는 상태 — 주소·스크롤·위치.
 //
@@ -14,6 +15,8 @@ import type { Theme } from './themes'
 
 export interface ListParams {
   period: ListPeriod
+  from: string
+  to: string
   region: string | null
   sido: string | null
   theme: Theme | null
@@ -25,6 +28,8 @@ export interface ListParams {
 
 export interface ListParamsApi extends ListParams {
   setPeriod: (v: ListPeriod) => void
+  setFrom: (v: string) => void
+  setTo: (v: string) => void
   setRegion: (v: string | null) => void
   setSido: (v: string | null) => void
   setTheme: (v: Theme | null) => void
@@ -62,7 +67,20 @@ export function useListParams(initial: {
   q: string
   graded: boolean
 }): ListParamsApi {
-  const [period, setPeriod] = useState<ListPeriod>(initial.period)
+  const [period, updatePeriod] = useState<ListPeriod>(initial.period)
+  const [from, updateFrom] = useState('')
+  const [to, updateTo] = useState('')
+  const setPeriod = (v: ListPeriod) => { updatePeriod(v); updateFrom(''); updateTo('') }
+  const setFrom = (v: string) => {
+    const date = validTravelDate(v)
+    updateFrom(date)
+    if (date) { updatePeriod('all'); if (!to || to < date) updateTo(date) }
+  }
+  const setTo = (v: string) => {
+    const date = validTravelDate(v)
+    updateTo(date)
+    if (date) { updatePeriod('all'); if (!from || from > date) updateFrom(date) }
+  }
   const [region, setRegion] = useState<string | null>(initial.region)
   const [graded, setGraded] = useState(initial.graded)
   const [sido, setSido] = useState<string | null>(null)
@@ -103,6 +121,8 @@ export function useListParams(initial: {
     if (u.get('sort')) setSort(u.get('sort') as ListSort)
     if (u.get('graded') === '1') setGraded(true)
     if (u.get('q')) setQ(u.get('q')!)
+    const dates = travelRange(u.get('from'), u.get('to'))
+    if (dates) { updateFrom(dates[0]); updateTo(dates[1]); updatePeriod('all') }
     const pg = Number(u.get('page'))
     if (Number.isInteger(pg) && pg > 1) setPage(pg)
     setReady(true)
@@ -113,6 +133,8 @@ export function useListParams(initial: {
     if (!ready) return
     const p = new URLSearchParams()
     if (period !== 'all') p.set('period', String(period))
+    if (from) p.set('from', from)
+    if (to) p.set('to', to)
     if (region) p.set('region', region)
     if (sido) p.set('sido', sido)
     if (theme) p.set('theme', theme)
@@ -123,13 +145,13 @@ export function useListParams(initial: {
     const qs = p.toString()
     const next = qs ? `${window.location.pathname}?${qs}` : window.location.pathname
     if (next !== `${window.location.pathname}${window.location.search}`) window.history.replaceState(null, '', next)
-  }, [ready, period, region, sido, theme, graded, sort, q, page])
+  }, [ready, period, from, to, region, sido, theme, graded, sort, q, page])
 
   // 필터를 바꾸면 첫 장으로. 5페이지를 보다 다른 지역을 고르면 결과가 24건뿐일 수도 있다.
   //
   // 첫 렌더는 건너뛴다 — 주소에 page=4가 실려 들어온 경우(상세에서 뒤로 온 경우)를
   // 초기화해 버리면 고치려던 버그를 그대로 다시 만드는 셈이다.
-  const filterSig = JSON.stringify([period, region, sido, theme, graded, q.trim(), sort])
+  const filterSig = JSON.stringify([period, from, to, region, sido, theme, graded, q.trim(), sort])
   const lastSig = useRef<string | null>(null)
   useEffect(() => {
     // 주소에서 읽어 넣는 동안에는 초기화하지 않는다 — ?page=4&region=seoul로 들어왔을 때
@@ -144,7 +166,7 @@ export function useListParams(initial: {
     setPage(1)
   }, [ready, filterSig])
 
-  return { period, region, sido, theme, sort, q, graded, page, setPeriod, setRegion, setSido, setTheme, setSort, setQ, setGraded, setPage, ready }
+  return { period, from, to, setFrom, setTo, region, sido, theme, sort, q, graded, page, setPeriod, setRegion, setSido, setTheme, setSort, setQ, setGraded, setPage, ready }
 }
 
 const SCROLL_KEY = 'kota_list_scroll'

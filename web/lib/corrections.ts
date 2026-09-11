@@ -12,6 +12,7 @@ export interface FestivalCorrection {
   match?: string
   externalId?: string
   year?: number
+  operatingWeekdays?: number[]
   name?: string
   startDate?: string
   endDate?: string
@@ -35,7 +36,7 @@ interface CorrectableFestival {
   lng?: number | null
 }
 
-const fields = ['name', 'startDate', 'endDate', 'address', 'sido', 'sigungu', 'lat', 'lng'] as const
+const fields = ['operatingWeekdays', 'name', 'startDate', 'endDate', 'address', 'sido', 'sigungu', 'lat', 'lng'] as const
 const validDate = (s: string) => /^\d{4}-\d{2}-\d{2}$/.test(s) && Number.isFinite(Date.parse(s)) && new Date(s).toISOString().slice(0, 10) === s
 const regionToken = (s: string) => s.replace(/특별자치도|특별자치시|특별시|광역시|도$/g, '').replace('충청남', '충남').replace('충청북', '충북').replace('전라남', '전남').replace('전라북', '전북').replace('경상남', '경남').replace('경상북', '경북')
 
@@ -73,6 +74,7 @@ export function applyCorrections<T extends CorrectableFestival>(
       Object.assign(patch, { [field]: c[field] })
     }
     const next = { ...f, ...patch }
+    const badWeekdays = patch.operatingWeekdays !== undefined && (!Array.isArray(patch.operatingWeekdays) || !patch.operatingWeekdays.length || patch.operatingWeekdays.some(d => !Number.isInteger(d) || d < 0 || d > 6))
     const coordsChanged = patch.lat !== undefined || patch.lng !== undefined
     const badCoords = coordsChanged && !(
       (patch.lat === null && patch.lng === null) ||
@@ -82,7 +84,7 @@ export function applyCorrections<T extends CorrectableFestival>(
     const badAddress = locationChanged && (!next.address?.trim() || !next.sido ||
       !regionToken(next.address).startsWith(regionToken(next.sido)) ||
       (next.sigungu && !next.address.includes(next.sigungu)))
-    if (!validDate(next.startDate) || !validDate(next.endDate) || next.startDate > next.endDate || badCoords || badAddress) {
+    if (!validDate(next.startDate) || !validDate(next.endDate) || next.startDate > next.endDate || badCoords || badAddress || badWeekdays) {
       warn(`[corrections] invalid fields: ${f.externalId}`)
       return f
     }

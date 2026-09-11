@@ -1,0 +1,25 @@
+{
+  "checkedAt": "2026-09-11",
+  "event": "팔공산 왕건축제",
+  "sourcePage": "https://www.dong.daegu.kr/portal/saeol/news/view.do?mid=0201070000&newsEpctNo=10835",
+  "attachmentUrl": "https://eminwon.dong.daegu.kr/emwp/jsp/ofr/FileDown.jsp?user_file_nm=%E2%98%85%E2%98%852%EB%B2%88%20%EB%B3%B4%EB%8F%84%EC%9E%90%EB%A3%8C%202026%20%ED%8C%94%EA%B3%B5%EC%82%B0%20%EC%99%95%EA%B1%B4%EC%B6%95%EC%A0%9C%20%EA%B0%9C%EC%B5%9C%20%282026.9.9.%29.hwpx&sys_file_nm=%E2%98%85%E2%98%852%EB%B2%88%20%EB%B3%B4%EB%8F%84%EC%9E%90%EB%A3%8C%202026%20%ED%8C%94%EA%B3%B5%EC%82%B0%20%EC%99%95%EA%B1%B4%EC%B6%95%EC%A0%9C%20%EA%B0%9C%EC%B5%9C%20%282026.9.9.%29_ofr_ofr_ekxSVmMKg5J3BgD2_20260909093009158_1.hwpx&file_path=%2Fntishome%2Ffile%2Fupload%2Fofr%2Fofr%2F20260909",
+  "attachmentSha256": "884fcfae46b59bcea51db65ac462adf4f4b2899ead72bf43e50581aa4be2f44e",
+  "method": "공식 페이지 goDownload 함수가 제공하는 HTTPS URL에서 공개 첨부를 읽음. 인증이나 보안 경고를 우회하지 않음. HWPX BinData/image2.bmp·image3.bmp를 직접 확인하고 동일 크기1755×1241 JPEG로 저장.",
+  "license": "공식 개별 게시물 공공누리 제1유형",
+  "images": [
+    {
+      "path": "web/public/festival-media/wanggeon-2026-front.jpg",
+      "sourceMember": "BinData/image2.bmp",
+      "sha256": "4a3bf055008a134cf8e92c1a62dd1befd776c04839ec28744cc95311de60305a",
+      "width": 1755,
+      "height": 1241
+    },
+    {
+      "path": "web/public/festival-media/wanggeon-2026-program.jpg",
+      "sourceMember": "BinData/image3.bmp",
+      "sha256": "e084343316252be8a8d404578d91579dfd0140daff9bd4940e5f2fa467582a33",
+      "width": 1755,
+      "height": 1241
+    }
+  ]
+}
