@@ -18,6 +18,7 @@ function nameKey(name: string) {
   return aliases[n] ?? n
 }
 export function sameEdition(a: Festival, b: Festival): boolean {
+  if (a.operatingWeekdays && b.operatingWeekdays && [...a.operatingWeekdays].sort().join(',') !== [...b.operatingWeekdays].sort().join(',')) return false
   if (a.startDate !== b.startDate || a.endDate !== b.endDate || nameKey(a.name) !== nameKey(b.name)) return false
   if (a.sido && b.sido && a.sido !== b.sido) return false
   if (a.sigungu && b.sigungu && a.sigungu !== b.sigungu) return false
@@ -29,17 +30,39 @@ export function sameEdition(a: Festival, b: Festival): boolean {
   }
   return false // Missing place is not evidence of a shared event.
 }
-const score = (f: Festival) => (f.imageUrl ? f.imageFrom === 'past' ? 2 : 8 : 0) + (f.homepage ? 1 : 0) + (f.summary ? 1 : 0)
-export function uniqueFestivals(items: Festival[]): Festival[] {
+// Identity comes from persisted records, never image/content quality. The stable ID
+// tie-breaker makes a group's representative independent of API response order.
+// This is presentation grouping only; persistent source/route mappings remain in DB.
+const imageScore = (f: Festival) => f.imageUrl ? f.imageFrom === 'past' ? 1 : 2 : 0
+export function uniqueFestivals(items: Festival[], persistedIds: ReadonlySet<string> = new Set()): Festival[] {
+  const ordered = [...items].sort((a,b) => Number(persistedIds.has(b.externalId)) - Number(persistedIds.has(a.externalId)) || a.externalId.localeCompare(b.externalId))
   const groups: Festival[][] = []
-  for (const f of items) {
+  for (const f of ordered) {
     const group = groups.find(g => g.every(x => sameEdition(x, f)))
     if (group) group.push(f)
     else groups.push([f])
   }
   return groups.map(group => {
-    const sorted = [...group].sort((a,b) => score(b)-score(a) || a.externalId.localeCompare(b.externalId))
-    const primary = sorted[0]
-    return { ...primary, duplicateIds: group.flatMap(x => [x.externalId, ...(x.duplicateIds ?? [])]).filter(id => id !== primary.externalId) }
+    const primary = group[0]
+    const media = [...group].sort((a,b) => imageScore(b)-imageScore(a))[0]
+    const operating = group.find(f => f.operatingWeekdays)
+    return {
+      ...primary,
+      // Copy the image and its provenance together, without replacing identity,
+      // official text, coordinates, translations or other unrelated fields.
+      ...(media.imageUrl ? {
+        imageUrl: media.imageUrl, imageFrom: media.imageFrom, imageSource: media.imageSource,
+        imageAttribution: media.imageAttribution, imageNotice: media.imageNotice,
+      } : {}),
+      ...(operating ? {operatingWeekdays: [...operating.operatingWeekdays!]} : {}),
+      duplicateIds: [...new Set(group.flatMap(x => [x.externalId, ...(x.duplicateIds ?? [])]))].filter(id => id !== primary.externalId),
+    }
   })
+}
+
+/** Curated IDs may refer to a hidden member; real IDs always take precedence. */
+export function festivalIndex(items: Festival[]): Map<string, Festival> {
+  const index = new Map(items.map(f => [f.externalId, f]))
+  for (const f of items) for (const id of f.duplicateIds ?? []) if (!index.has(id)) index.set(id, f)
+  return index
 }

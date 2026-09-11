@@ -1,3 +1,4 @@
+import { festivalIndex } from '@/lib/duplicate-festivals'
 import { hasOperatingDay } from '@/lib/operating-days'
 import type { Metadata } from 'next'
 import Link from 'next/link'
@@ -78,8 +79,8 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
   // 사진이 없으면 배너에 못 올린다(빈 상자가 도는 것보다 넉 장이 낫다).
   // 관리자가 고른 게 있으면 그것으로, 없으면 이번 주말 축제로 자동으로 채운다
   const curated = await curatedPromos()
-  const byId = new Map(all.map((f) => [f.externalId, f]))
-  const picked = curated.map((c) => byId.get(c.festivalId)).filter((f): f is Festival => !!f && !!f.imageUrl && hasOperatingDay(f, sat, sun))
+  const byId = festivalIndex(all)
+  const picked = [...new Set(curated.map((c) => byId.get(c.festivalId)))].filter((f): f is Festival => !!f && !!f.imageUrl && hasOperatingDay(f, sat, sun))
   const promoSlides = (picked.length > 0 ? picked : weekend.filter((f) => f.imageUrl))
     .slice(0, 4)
     .map((f) => ({

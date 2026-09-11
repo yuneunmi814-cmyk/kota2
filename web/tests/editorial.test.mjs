@@ -14,6 +14,7 @@ test('autumn Jamsugyo carries its Sunday-only schedule and reviewed names withou
   const snapshot = structuredClone(input)
   const [out] = applyEditorial([input])
   assert.match(out.hours, /매주 일요일 14:00~22:00/)
+  assert.deepEqual(out.operatingWeekdays, [0])
   assert.equal(out.translations.find(t => t.langCode === 'en').name, 'Car-free Jamsugyo Walking Festival')
   assert.equal(out.translations[0].summary, 'Retain existing description.')
   assert.equal(out.translations[0].placeName, 'Seoul')

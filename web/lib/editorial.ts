@@ -20,7 +20,7 @@ const names: Record<string, [string, string, string, string]> = {
   'tourapi:2392105': ['달성 대구현대미술제  Movement: Flow-Ringer-Flux', 'Dalseong Daegu Contemporary Art Festival — Movement: Flow-Ringer-Flux', '達城・大邱現代美術祭 Movement: Flow-Ringer-Flux', 'เทศกาลศิลปะร่วมสมัยทัลซอง แทกู Movement: Flow-Ringer-Flux'],
 }
 
-type VerifiedFields = Pick<Festival, 'homepage' | 'hours' | 'program'> & {
+type VerifiedFields = Pick<Festival, 'homepage' | 'hours' | 'program' | 'operatingWeekdays'> & {
   verifiedAt: string
   verificationSource: string
 }
@@ -183,7 +183,7 @@ const details: readonly EditorialEntry[] = [
     ids: ['tourapi:3113583', 'manual:manus3-차없는-잠수교-뚜벅뚜벅축제-하반기-2026-09-06'],
     name: '차 없는 잠수교 뚜벅뚜벅축제', startDate: '2026-09-06', endDate: '2026-10-25',
     fields: {
-      homepage: jamsugyoSource, hours: '매주 일요일 14:00~22:00 (평일·토요일 미운영)',
+      operatingWeekdays: [0], homepage: jamsugyoSource, hours: '매주 일요일 14:00~22:00 (평일·토요일 미운영)',
       program: '9/13 동아리 공연·체험, 9/20 가을 운동회, 9/27 세계 전통 공연, 10/4 미식로드, 10/11 미디어아트, 10/18 요가·명상. 일부 프로그램은 사전 신청 필요. 10/25 프로그램은 확인일 기준 미공개.',
       verifiedAt: '2026-09-11', verificationSource: jamsugyoSource,
     },
@@ -331,6 +331,9 @@ function updateNames(translations: Translation[] | undefined, values: [string, s
   }
   return result
 }
+
+/** IDs whose verified information must survive a change of source representative. */
+export const editorialSourceIds = [...new Set([...Object.keys(names), ...details.flatMap(e => e.ids)])]
 
 /** Apply after date corrections and live overlays. Does not mutate cached input or DB. */
 export function applyEditorial<T extends Festival>(items: T[]): T[] {
