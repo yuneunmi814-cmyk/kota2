@@ -1,3 +1,5 @@
+import type { Metadata } from 'next'
+
 // 언어 — URL의 첫 조각으로 쓴다(/ko/festivals/..., /ja/festivals/...).
 //
 // 이전 구현의 가장 큰 결함이 여기였다: 언어를 localStorage에만 두어 URL 하나가
@@ -46,5 +48,31 @@ export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ko-ta.co.kr
 /** 언어별 절대 URL — hreflang·canonical·OG에 쓴다 */
 export function absUrl(lang: Lang, path = ''): string {
   const clean = path.replace(/^\/+|\/+$/g, '')
-  return `${SITE_URL}/${lang}${clean ? `/${clean}` : ''}/`.replace(/([^:]);\/+/g, '$1/')
+  return `${SITE_URL}/${lang}${clean ? `/${clean}` : ''}/`.replace(/([^:])\/+/g, '$1/')
+}
+
+/** Route metadata is a unit: Next replaces nested OG/Twitter objects, not their individual fields. */
+export function pageMetadata({ lang, path, title, description, image, absoluteTitle = false }: {
+  lang: Lang
+  path: string
+  title: string
+  description: string
+  image?: string | null
+  absoluteTitle?: boolean
+}): Metadata {
+  const url = absUrl(lang, path)
+  const shareImage = image || '/og.png'
+  return {
+    title: absoluteTitle ? { absolute: title } : title,
+    description,
+    alternates: {
+      canonical: url,
+      languages: Object.fromEntries(LANGS.map((l) => [l, absUrl(l, path)])),
+    },
+    openGraph: {
+      type: 'website', siteName: 'KOTA', locale: HTML_LANG[lang].replace('-', '_'),
+      title, description, url, images: [shareImage],
+    },
+    twitter: { card: 'summary_large_image', title, description, images: [shareImage] },
+  }
 }

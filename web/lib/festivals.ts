@@ -391,23 +391,34 @@ async function overlayLive(
   // 사실상 같은 별개 행사(파주포크페스티벌 전야제 9/4 · 본공연 9/5)가 한 건으로 합쳐진다.
   // 기간이 겹치는지를 보면 둘 다 제자리를 지킨다 — 같은 축제는 날짜가 어긋나도 겹치고,
   // 다른 회차·다른 행사는 애초에 안 겹친다.
-  const knownRanges = new Map<string, { s: string; e: string }[]>()
+  let sourceIds = new Map<string, string[]>()
+  const knownRanges = new Map<string, {
+    s: string; e: string; sido?: string | null; sigungu?: string | null; externalId: string
+  }[]>()
 
   const overlaps = (a: { s: string; e: string }, b: { s: string; e: string }) => !(a.e < b.s || b.e < a.s)
 
-  const seenBefore = (f: Pick<Festival, 'name' | 'startDate' | 'endDate'>): boolean => {
+  const seenBefore = (f: Pick<Festival, 'externalId' | 'name' | 'startDate' | 'endDate' | 'sido' | 'sigungu'>): boolean => {
     const n = bareName(f.name)
     if (!n) return false
-    const range = { s: f.startDate, e: f.endDate }
-    return (knownRanges.get(n) ?? []).some((r) => overlaps(r, range))
+    const source = f.externalId.split(':')[0]
+    const range = { s: f.startDate, e: f.endDate, sido: f.sido, sigungu: f.sigungu }
+    return (knownRanges.get(n) ?? []).some((r) =>
+      // A linked source's other ID is not proof of the same event, even with identical text.
+      !(r.externalId.split(':')[0] !== source &&
+        (sourceIds.get(r.externalId) ?? []).some(id => id.startsWith(`${source}:`))) &&
+      overlaps(r, range) &&
+      (!r.sido || !range.sido || r.sido === range.sido) &&
+      (!r.sigungu || !range.sigungu || r.sigungu === range.sigungu))
   }
 
-  const remember = (f: Pick<Festival, 'name' | 'startDate' | 'endDate'>) => {
+  const remember = (f: Pick<Festival, 'externalId' | 'name' | 'startDate' | 'endDate' | 'sido' | 'sigungu'>) => {
     const n = bareName(f.name)
     if (!n) return
     const list = knownRanges.get(n)
-    if (list) list.push({ s: f.startDate, e: f.endDate })
-    else knownRanges.set(n, [{ s: f.startDate, e: f.endDate }])
+    const range = { s: f.startDate, e: f.endDate, sido: f.sido, sigungu: f.sigungu, externalId: f.externalId }
+    if (list) list.push(range)
+    else knownRanges.set(n, [range])
   }
 
   for (const f of kept) {
@@ -426,14 +437,22 @@ async function overlayLive(
   //   한국유교문화축전 — DB는 09-12~09-20(sources: tourapi·kfes·stdfest) 한 건인데
   //   라이브 목록에는 09-12~09-13(stdfest)과 09-18~09-20(tourapi)이 따로 떴다(2026-09-04 실측).
   //
-  // DB 행의 sources는 '이 축제가 어느 원천을 흡수했는지'를 이미 알고 있다. 대표가 그 원천이
-  // 아닌데 sources에 들어 있으면, 같은 이름·같은 지역의 그 원천 행은 흡수된 그 행으로 본다.
+  // festival_sources의 영속 원천 ID를 우선한다. 이름이 다르게 표기되어도 정확히 연결된
+  // 원천만 제외한다. 연결 정보가 없는 옛 DB에서는 기존 이름·지역·기간 규칙을 쓴다.
   // 대표가 그 원천이면 이 규칙을 쓰지 않는다 — 그때는 usedTour/usedKfes/usedStd로 정확히
   // 짚을 수 있고, 한 해에 두 번 여는 같은 원천의 축제를 잘못 지우면 안 되기 때문이다.
-  const absorbed = buildAbsorbedIndex(kept)
-
   const fresh: Festival[] = []
   if (!addFresh) return correct(kept)
+  try {
+    sourceIds = await absorbedSourceIds(kept.map(f => f.externalId))
+  } catch {
+    // 영속 ID 연결을 못 읽어도, 별개인 새 행까지 전부 숨기지는 않는다.
+    // 아래 이름·지역·기간 규칙은 기존 DB 행을 지키는 제한적인 임시 대조다.
+    console.warn('[live] 원천 ID 연결 조회 실패 — 이름·지역·기간으로 대조합니다')
+  }
+  const absorbed = buildAbsorbedIndex(kept.map(f => ({
+    ...f, sourceIds: sourceIds.get(f.externalId) ?? f.sourceIds,
+  })))
 
   const push = (f: Festival, contentId?: string | null) => {
     if (contentId && knownIds.has(contentId)) return
@@ -517,6 +536,44 @@ const SLUG_TTL = 3_600_000
 let slugCached: { at: number; rows: Promise<string[]> } | null = null
 let summaryCached: { at: number; rows: Promise<Festival[]> } | null = null
 let correctionSourcesCached: { at: number; rows: Promise<Map<string, string[]>> } | null = null
+let absorbedSourcesCached: { at: number; rows: Promise<{ external_id: string; festival_uid: string }[]> } | null = null
+
+/** The source-link table is small and read-only; paginate it once per TTL for both list paths.
+ * Missing legacy tables or read failures fall back to the bounded name/region/date rule.
+ * Exact suppression is unavailable until the link table recovers.
+ */
+async function absorbedSourceIds(representatives: string[]): Promise<Map<string, string[]>> {
+  if (!representatives.length) return new Map()
+  if (!absorbedSourcesCached || Date.now() - absorbedSourcesCached.at >= TTL) {
+    const rows = (async () => {
+      const out: { external_id: string; festival_uid: string }[] = []
+      for (let from = 0; ; from += 1000) {
+        const { data, error } = await supabase.from('festival_sources')
+          .select('external_id, festival_uid').order('external_id').range(from, from + 999)
+        if (error) {
+          if (error.code === '42P01' || error.code === 'PGRST205') return []
+          throw new Error('원천 ID 연결 조회 실패')
+        }
+        const page = (data ?? []) as { external_id: string; festival_uid: string }[]
+        out.push(...page)
+        if (page.length < 1000) return out
+      }
+    })()
+    rows.catch(() => { if (absorbedSourcesCached?.rows === rows) absorbedSourcesCached = null })
+    absorbedSourcesCached = { at: Date.now(), rows }
+  }
+  const links = await absorbedSourcesCached.rows
+  const representativeIds = new Set(representatives)
+  const uidByRepresentative = new Map(links.filter(link => representativeIds.has(link.external_id))
+    .map(link => [link.external_id, link.festival_uid]))
+  const byUid = new Map<string, string[]>()
+  for (const link of links) {
+    const ids = byUid.get(link.festival_uid) ?? []
+    ids.push(link.external_id)
+    byUid.set(link.festival_uid, ids)
+  }
+  return new Map([...uidByRepresentative].map(([id, uid]) => [id, byUid.get(uid) ?? []]))
+}
 
 /** Read only correction-related source links, not full festival rows or optional UID columns.
  * The legacy schema can lack festival_sources; only an explicit missing-table error falls back.

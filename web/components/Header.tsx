@@ -1,6 +1,8 @@
 import Link from 'next/link'
+import { Suspense } from 'react'
 import { LANGS, LANG_NAME, type Lang } from '@/lib/i18n'
 import Icon from './Icon'
+import LanguageSwitcher from './LanguageSwitcher'
 
 // 헤더 — 언어 전환이 <a>로 되어 있는 것이 핵심이다.
 //
@@ -73,7 +75,7 @@ export default function Header({ lang, path = '' }: { lang: Lang; path?: string 
               {LANG_NAME[lang]}
             </button>
             <ul className="invisible absolute right-0 top-full w-36 rounded-2xl border border-line bg-surface py-1.5 opacity-0 shadow-lg transition group-focus-within:visible group-focus-within:opacity-100 group-hover:visible group-hover:opacity-100">
-              {LANGS.map((l) => (
+              <Suspense fallback={LANGS.map((l) => (
                 <li key={l}>
                   <Link
                     href={`/${l}/${clean ? `${clean}/` : ''}`}
@@ -85,7 +87,9 @@ export default function Header({ lang, path = '' }: { lang: Lang; path?: string 
                     {LANG_NAME[l]}
                   </Link>
                 </li>
-              ))}
+              ))}>
+                <LanguageSwitcher lang={lang} />
+              </Suspense>
             </ul>
           </div>
         </nav>

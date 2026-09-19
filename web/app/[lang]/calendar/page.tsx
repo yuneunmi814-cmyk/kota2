@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { LANGS, SITE_URL, isLang, type Lang } from '@/lib/i18n'
+import { LANGS, isLang, pageMetadata, type Lang } from '@/lib/i18n'
 import { listItems } from '@/lib/listData'
 import { t } from '@/lib/ui'
 import Header from '@/components/Header'
@@ -24,13 +24,7 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
   const { lang } = await params
   const l: Lang = isLang(lang) ? lang : 'ko'
   const title = l === 'ko' ? '축제 달력' : l === 'ja' ? '祭りカレンダー' : l === 'th' ? 'ปฏิทินเทศกาล' : 'Festival calendar'
-  return {
-    title: `${title} · KOTA`,
-    alternates: {
-      canonical: `${SITE_URL}/${l}/calendar/`,
-      languages: Object.fromEntries(LANGS.map((x) => [x, `${SITE_URL}/${x}/calendar/`])),
-    },
-  }
+  return pageMetadata({ lang: l, path: 'calendar', title, description: `${title} · KOTA` })
 }
 
 export default async function CalendarPage({ params }: { params: Promise<{ lang: string }> }) {
