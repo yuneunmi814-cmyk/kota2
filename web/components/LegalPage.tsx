@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { LANGS, SITE_URL, type Lang } from '@/lib/i18n'
+import { pageMetadata, type Lang } from '@/lib/i18n'
 import { legalDoc, LEGAL_KINDS, type LegalKind } from '@/lib/legal'
 import { t } from '@/lib/ui'
 import Header from '@/components/Header'
@@ -12,13 +12,7 @@ import Footer from '@/components/Footer'
 
 export function legalMetadata(l: Lang, kind: LegalKind) {
   const doc = legalDoc(l, kind)
-  return {
-    title: `${doc.title} · KOTA`,
-    alternates: {
-      canonical: `${SITE_URL}/${l}/${kind}/`,
-      languages: Object.fromEntries(LANGS.map((x) => [x, `${SITE_URL}/${x}/${kind}/`])),
-    },
-  }
+  return pageMetadata({ lang: l, path: kind, title: doc.title, description: doc.intro })
 }
 
 export default function LegalPage({ lang, kind }: { lang: Lang; kind: LegalKind }) {

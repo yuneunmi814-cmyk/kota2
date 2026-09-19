@@ -1,7 +1,16 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { festivalStatus, todayKst, weekendRange } from '../lib/date.ts'
-import { isAlwaysOn, isLongRun } from '../lib/festival-fields.ts'
+import { dayBadge, isAlwaysOn, isLongRun } from '../lib/festival-fields.ts'
+
+test('장기 행사는 오늘 공연을 보장하지 않는 운영 기간 배지를 쓴다', () => {
+  const long = { startDate: '2026-05-01', endDate: '2026-10-31' }
+  assert.deepEqual(dayBadge(long, '2026-09-19'), { kind: 'inPeriod' })
+  assert.deepEqual(dayBadge(long, '2026-10-31'), { kind: 'inPeriod' })
+  assert.equal(dayBadge(long, '2026-11-01'), null)
+  assert.deepEqual(dayBadge({ startDate: '2026-09-18', endDate: '2026-09-20' }, '2026-09-19'), { kind: 'ongoing' })
+  assert.deepEqual(dayBadge({ startDate: '2026-09-18', endDate: '2026-09-20' }, '2026-09-20'), { kind: 'endsToday' })
+})
 
 test('상시 기준은 날짜 차이 299/300일, 장기는 양끝 포함 60/61일이다', () => {
   assert.equal(isAlwaysOn({ startDate: '2026-01-01', endDate: '2026-10-27' }), false)

@@ -61,3 +61,39 @@ test('출처를 모르면 걸러내지 않는다', () => {
   const index = buildAbsorbedIndex([유교])
   assert.equal(isAbsorbed(index, { name: '한국유교문화축전', sigungu: '논산시' }, ''), false)
 })
+
+test('흡수된 원천 ID가 같으면 지역 접두사가 붙은 다른 이름도 제외한다', () => {
+  const index = buildAbsorbedIndex([{
+    name: '영주 풍기인삼축제', externalId: 'tourapi:506766', sigungu: '영주시',
+    startDate: '2026-10-03', endDate: '2026-10-11', sources: ['tourapi', 'stdfest'],
+    sourceIds: ['tourapi:506766', 'stdfest:경북영주풍기인삼축제-2026-10-03'],
+  }])
+  assert.equal(isAbsorbed(index, {
+    externalId: 'stdfest:경북영주풍기인삼축제-2026-10-03', name: '경북영주 풍기인삼축제',
+    sigungu: '영주시', startDate: '2026-10-03', endDate: '2026-10-11',
+  }, 'stdfest'), true)
+})
+
+test('흡수 ID가 다른 같은 이름의 다음 회차는 제외하지 않는다', () => {
+  const index = buildAbsorbedIndex([{
+    name: '영주 풍기인삼축제', externalId: 'tourapi:506766', sigungu: '영주시',
+    startDate: '2026-10-03', endDate: '2026-10-11', sources: ['tourapi', 'stdfest'],
+    sourceIds: ['stdfest:영주풍기인삼축제-2026-10-03'],
+  }])
+  assert.equal(isAbsorbed(index, {
+    externalId: 'stdfest:영주풍기인삼축제-2026-11-03', name: '영주 풍기인삼축제',
+    sigungu: '영주시', startDate: '2026-11-03', endDate: '2026-11-11',
+  }, 'stdfest'), false)
+})
+
+test('저장된 원천 ID가 있으면 겹치는 기간의 다른 원천 ID를 이름만으로 제외하지 않는다', () => {
+  const index = buildAbsorbedIndex([{
+    name: '주말 음악 공연', externalId: 'tourapi:series', sigungu: '서귀포시',
+    startDate: '2026-04-25', endDate: '2026-10-31', sources: ['tourapi', 'stdfest'],
+    sourceIds: ['stdfest:주말음악공연-2026-04-25'],
+  }])
+  assert.equal(isAbsorbed(index, {
+    externalId: 'stdfest:주말음악공연별도회차-2026-05-02', name: '주말 음악 공연',
+    sigungu: '서귀포시', startDate: '2026-05-02', endDate: '2026-10-31',
+  }, 'stdfest'), false)
+})

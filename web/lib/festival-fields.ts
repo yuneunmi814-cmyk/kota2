@@ -46,16 +46,42 @@ export function isPublicData(f: Pick<Festival, 'sources'>): boolean {
   return (f.sources ?? []).some((s) => PUBLIC_SOURCES.includes(s))
 }
 
-/** 그 언어로 보이는 이름·요약·지명. 번역이 없으면 한국어 원문으로 떨어진다 */
+// 알려진 요금 형식만 옮긴다. 조건이 더 있으면 생략하거나 추측하지 않고 원문을 보존한다.
+const FEE_WORDS: Record<Lang, { free: string; paid: string; advance: string; won: string }> = {
+  ko: { free: '무료', paid: '유료', advance: '사전신청', won: '원' },
+  en: { free: 'Free', paid: 'Paid admission', advance: 'Advance registration', won: ' KRW' },
+  ja: { free: '無料', paid: '有料', advance: '事前申込', won: 'ウォン' },
+  th: { free: 'ฟรี', paid: 'มีค่าเข้าชม', advance: 'ลงทะเบียนล่วงหน้า', won: ' วอน' },
+}
+
+function feeText(raw: string | null | undefined, lang: Lang) {
+  const text = raw?.trim() || null
+  if (lang === 'ko' || !text) return { fee: text, feeIsOriginal: false }
+  const words = FEE_WORDS[lang]
+  if (/^(무료|입장료 무료|무료입장)$/.test(text)) return { fee: words.free, feeIsOriginal: false }
+  const paid = /^유료\s+([\d,]+)원(?:\s*\(사전신청\s+([\d,]+)원\))?$/.exec(text)
+  if (paid) {
+    return {
+      fee: `${words.paid} ${paid[1]}${words.won}${paid[2] ? ` (${words.advance} ${paid[2]}${words.won})` : ''}`,
+      feeIsOriginal: false,
+    }
+  }
+  return { fee: text, feeIsOriginal: /[가-힣]/.test(text) }
+}
+
+/** 번역이 없으면 원문을 보존하고, 화면에서 원문임을 안내할 수 있게 표시한다. */
 export function localized(f: Festival, lang: Lang) {
   if (lang === DEFAULT_LANG) {
-    return { name: f.name, summary: f.summary ?? null, placeName: placeFallback(f) }
+    return { name: f.name, summary: f.summary ?? null, placeName: placeFallback(f), summaryIsOriginal: false, ...feeText(f.fee, lang) }
   }
   const t = f.translations?.find((x) => x.langCode === lang)
+  const translatedSummary = t?.summary?.trim()
   return {
     name: t?.name || f.name,
-    summary: t?.summary || f.summary || null,
+    summary: translatedSummary || f.summary || null,
     placeName: t?.placeName || placeFallback(f),
+    summaryIsOriginal: !translatedSummary && Boolean(f.summary),
+    ...feeText(f.fee, lang),
   }
 }
 
@@ -121,11 +147,12 @@ export function distanceKm(a: { lat: number; lng: number }, b: { lat: number; ln
  * 우선순위는 다급한 순이다: 오늘 끝남 > 곧 시작(D-N) > 진행중.
  * D-N은 2주 안쪽만 붙인다 — 'D-113'은 정보가 아니라 소음이다.
  */
-export type DayBadge = { kind: 'endsToday' | 'countdown' | 'ongoing'; days?: number } | null
+export type DayBadge = { kind: 'endsToday' | 'countdown' | 'ongoing' | 'inPeriod'; days?: number } | null
 
 export function dayBadge(f: Festival, today = todayKst()): DayBadge {
   if (isAlwaysOn(f)) return null
   if (today > f.endDate) return null
+  if (today >= f.startDate && isLongRun(f)) return { kind: 'inPeriod' }
   if (today >= f.startDate) return f.endDate === today ? { kind: 'endsToday' } : { kind: 'ongoing' }
   const days = daysBetween(today, f.startDate)
   return days <= 14 ? { kind: 'countdown', days } : null

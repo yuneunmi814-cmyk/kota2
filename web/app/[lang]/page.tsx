@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import type { Festival } from '@/lib/festivals'
 import { listFestivalSummaries, isAlwaysOn, isLongRun, localized, statusOf } from '@/lib/festivals'
-import { LANGS, SITE_URL, isLang, type Lang } from '@/lib/i18n'
+import { LANGS, isLang, pageMetadata, type Lang } from '@/lib/i18n'
 import { t } from '@/lib/ui'
 import Header from '@/components/Header'
 import FestivalRow from '@/components/FestivalRow'
@@ -29,15 +29,10 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
   // 전체 길이를 쓰면 끝난 축제까지 세어 홈은 519곳을 약속하는데 목록에는 495곳뿐이었다.
   // 숫자가 어긋나면 데이터 신뢰도로 바로 이어진다(2026-08-23 점검).
   const n = (await listFestivalSummaries()).filter((f) => statusOf(f) !== 'ended').length
-  return {
-    title: `KOTA — ${t(l, 'brand.tagline')}`,
-    description: t(l, 'home.sub', { n }),
-    alternates: {
-      canonical: `${SITE_URL}/${l}/`,
-      // 4개 언어판이 서로 번역본임을 알린다 — 이게 있어야 각 언어권 검색에 맞는 판이 뜬다
-      languages: Object.fromEntries(LANGS.map((x) => [x, `${SITE_URL}/${x}/`])),
-    },
-  }
+  return pageMetadata({
+    lang: l, path: '', title: `KOTA — ${t(l, 'brand.tagline')}`,
+    description: t(l, 'home.sub', { n }), absoluteTitle: true,
+  })
 }
 
 export default async function HomePage({ params }: { params: Promise<{ lang: string }> }) {
@@ -161,6 +156,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
         <div className="pb-16">
           <FestivalRow
             title={t(l, 'popular.title')}
+            subtitle={t(l, 'popular.note')}
             items={take(popular)}
             lang={l}
             href={`/${l}/festivals/?sort=popularity`}

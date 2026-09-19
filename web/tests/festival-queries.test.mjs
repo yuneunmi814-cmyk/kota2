@@ -12,7 +12,7 @@ const source = stripTypeScriptTypes(readFileSync(new URL('../lib/festivals.ts', 
   .replace(/^export \{[\s\S]*?\} from [^\n]+\n/gm, '')
   .replace(/\bexport /g, '')
 
-export function fixtureModule({ rows = [], live = [], correctionRows = corrections, failLive = false, build = false, sourceRows = [], sourceError = null } = {}) {
+export function fixtureModule({ rows = [], live = [], std = [], correctionRows = corrections, failLive = false, build = false, sourceRows = [], sourceError = null } = {}) {
   let now = 0
   const calls = []
   const supabase = { from(table) {
@@ -35,7 +35,7 @@ export function fixtureModule({ rows = [], live = [], correctionRows = correctio
   const dependencies = {
     cache: f => f, supabase,
     fetchLive: async () => { if (failLive) throw Error('injected unavailable source'); return live },
-    fetchLiveStdfest: async () => [], fetchLiveKfes: async () => [],
+    fetchLiveStdfest: async () => std, fetchLiveKfes: async () => [],
     classifyThemes: () => [], addDays, todayKst: () => '2026-09-05', externalIdsToSlugs: ids => ids,
     bareName, buildAbsorbedIndex, isAbsorbed, applyCorrections,
     correctionData: { corrections: correctionRows },
@@ -46,6 +46,87 @@ export function fixtureModule({ rows = [], live = [], correctionRows = correctio
 }
 
 const fresh = { contentId: 'fixture-new', name: '검증용 새 축제', startDate: '2026-09-05', endDate: '2026-09-10', areaCode: '1', lat: 37, lng: 127 }
+test('FINAL-02 persisted source ID suppresses a differently named absorbed stdfest in cards and full list', async () => {
+  const rows = [{
+    id: 'tourapi:506766', name: '영주 풍기인삼축제', start_date: '2026-10-03', end_date: '2026-10-11',
+    sido: '경상북도', sigungu: '영주시', sources: ['tourapi', 'stdfest'], tourapi_id: '506766',
+  }]
+  const std = [{
+    key: '경북영주풍기인삼축제-2026-10-03', name: '경북영주 풍기인삼축제',
+    startDate: '2026-10-03', endDate: '2026-10-11', sido: '경상북도', sigungu: '영주시',
+  }]
+  const sourceRows = [
+    { external_id: 'tourapi:506766', festival_uid: 'punggi-uid' },
+    ...Array.from({ length: 1000 }, (_, i) => ({ external_id: `manual:other-${i}`, festival_uid: `other-${i}` })),
+    { external_id: 'stdfest:경북영주풍기인삼축제-2026-10-03', festival_uid: 'punggi-uid' },
+  ]
+  const m = fixtureModule({ rows, std, sourceRows, correctionRows: [] })
+  assert.deepEqual((await m.listFestivalSummaries()).map(f => f.externalId), ['tourapi:506766'])
+  assert.deepEqual((await m.allFestivals()).map(f => f.externalId), ['tourapi:506766'])
+  assert.equal(m.calls.filter(c => c.table === 'festival_sources').length, 2,
+    'source links beyond the first page are read once and shared across both list paths')
+})
+
+test('FINAL-02 same name and date in another region remains a separate card', async () => {
+  const rows = [{
+    id: 'tourapi:local', name: '봄꽃 축제', start_date: '2026-10-03', end_date: '2026-10-11',
+    sido: '경상북도', sigungu: '영주시', sources: ['tourapi', 'stdfest'], tourapi_id: 'local',
+  }]
+  const std = [{
+    key: '봄꽃축제-2026-10-03', name: '봄꽃 축제', startDate: '2026-10-03', endDate: '2026-10-11',
+    sido: '제주특별자치도', sigungu: '제주시',
+  }]
+  const m = fixtureModule({ rows, std, correctionRows: [] })
+  assert.deepEqual((await m.listFestivalSummaries()).map(f => f.externalId).sort(),
+    ['stdfest:봄꽃축제-2026-10-03', 'tourapi:local'])
+})
+
+test('FINAL-02 a different linked-source ID is not hidden by name alone when dates overlap', async () => {
+  const rows = [{
+    id: 'tourapi:series', name: '주말 음악 공연', start_date: '2026-04-25', end_date: '2026-10-31',
+    sido: '제주특별자치도', sigungu: '서귀포시', sources: ['tourapi', 'stdfest'], tourapi_id: 'series',
+  }]
+  const std = [{
+    key: '주말음악공연별도회차-2026-05-02', name: '주말 음악 공연',
+    startDate: '2026-05-02', endDate: '2026-10-31', sido: '제주특별자치도', sigungu: '서귀포시',
+  }]
+  const sourceRows = [
+    { external_id: 'tourapi:series', festival_uid: 'series-uid' },
+    { external_id: 'stdfest:주말음악공연-2026-04-25', festival_uid: 'series-uid' },
+  ]
+  const m = fixtureModule({ rows, std, sourceRows, correctionRows: [] })
+  assert.deepEqual((await m.listFestivalSummaries()).map(f => f.externalId).sort(),
+    ['stdfest:주말음악공연별도회차-2026-05-02', 'tourapi:series'])
+})
+
+test('FINAL-02 representative own-source link does not disable existing same-source deduplication', async () => {
+  const rows = [{
+    id: 'tourapi:original', name: '중복 행사', start_date: '2026-10-03', end_date: '2026-10-11',
+    sido: '경상북도', sigungu: '영주시', sources: ['tourapi'], tourapi_id: 'original',
+  }]
+  const live = [{
+    contentId: 'other', name: '중복 행사', startDate: '2026-10-03', endDate: '2026-10-11',
+    areaCode: '35',
+  }]
+  const sourceRows = [{ external_id: 'tourapi:original', festival_uid: 'original-uid' }]
+  const m = fixtureModule({ rows, live, sourceRows, correctionRows: [] })
+  assert.deepEqual((await m.listFestivalSummaries()).map(f => f.externalId), ['tourapi:original'])
+})
+
+test('FINAL-02 source-link outage falls back to bounded dedup while retaining distinct live festivals', async () => {
+  const rows = [{
+    id: 'tourapi:known', name: '기존 축제', start_date: '2026-09-05', end_date: '2026-09-10',
+    sido: '서울특별시', sigungu: '중구', sources: ['tourapi'], tourapi_id: 'known',
+  }]
+  const live = [
+    { ...fresh, contentId: 'distinct' },
+    { ...fresh, contentId: 'duplicate', name: '기존 축제' },
+  ]
+  const m = fixtureModule({ rows, live, correctionRows: [], sourceError: { code: '08006', message: 'connection failed' } })
+  assert.deepEqual((await m.listFestivalSummaries()).map(f => f.externalId).sort(),
+    ['tourapi:distinct', 'tourapi:known'])
+})
+
 test('CR-01 cold/warm live-only detail agrees with listing and missing ID remains absent', async () => {
   const m = fixtureModule({ live: [fresh] })
   assert.equal((await m.listFestivalSummaries())[0].externalId, 'tourapi:fixture-new')
@@ -74,7 +155,10 @@ test('old source correction follows representative changes in cold card/detail, 
   assert.equal(card.startDate, '2026-09-15')
   assert.equal(detail.sido, '부산광역시')
   assert.deepEqual(await m.regionRank({ externalId: 'manual:peer', sido: '부산광역시', visitorLift: 3 }), { rank: 2, total: 3 })
-  assert.equal(m.calls.filter(c => c.table === 'festival_sources').length, 2, 'card/detail/rank share the source-link cache')
+  assert.equal(m.calls.filter(c => c.table === 'festival_sources' && c.filters.length).length, 2,
+    'card/detail/rank share the correction source-link cache')
+  assert.equal(m.calls.filter(c => c.table === 'festival_sources' && !c.filters.length).length, 1,
+    'the list paths read the absorbed source IDs once')
   const build = fixtureModule({ ...options, build: true })
   assert.equal((await build.findByKey('manual:representative')).startDate, '2026-09-15')
   assert.equal((await build.findByKey('manual:representative')).sido, '부산광역시')

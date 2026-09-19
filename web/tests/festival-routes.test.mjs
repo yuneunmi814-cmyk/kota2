@@ -1,6 +1,19 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { externalIdsToSlugs, festivalRoutePath, resolveFestivalRoute } from '../lib/festival-routes.ts'
+import * as routes from '../lib/festival-routes.ts'
+const { externalIdsToSlugs, festivalRoutePath, resolveFestivalRoute, staticFestivalSlugs } = routes
+
+test('Windows prerendering skips slugs with invalid filename characters but keeps ordinary and Unicode slugs', () => {
+  const slugs = [
+    'tourapi-506600',
+    'stdfest-풍기인삼축제-2026-10-03',
+    'stdfest-원도심골목길축제<여름:성안이즈백>-2026-08-29',
+    'stdfest-2025년인천도시역사관어린이특별전<가자갯벌도시>-2025-12-09',
+  ]
+  assert.deepEqual(staticFestivalSlugs(slugs, 'win32'), slugs.slice(0, 2))
+  assert.deepEqual(staticFestivalSlugs(slugs, 'linux'), slugs)
+  assert.equal(festivalRoutePath('ko', slugs[2]), '/ko/festivals/stdfest-%EC%9B%90%EB%8F%84%EC%8B%AC%EA%B3%A8%EB%AA%A9%EA%B8%B8%EC%B6%95%EC%A0%9C%3C%EC%97%AC%EB%A6%84%3A%EC%84%B1%EC%95%88%EC%9D%B4%EC%A6%88%EB%B0%B1%3E-2026-08-29/')
+})
 
 const festivals = new Map([
   ['stdfest:제22회제천국제음악영화제-2026-09-03', { externalId: 'stdfest:제22회제천국제음악영화제-2026-09-03', name: '제22회 제천국제음악영화제' }],

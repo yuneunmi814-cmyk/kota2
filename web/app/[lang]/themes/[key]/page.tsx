@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { LANGS, SITE_URL, isLang, type Lang } from '@/lib/i18n'
+import { LANGS, isLang, pageMetadata, type Lang } from '@/lib/i18n'
 import { listItems } from '@/lib/listData'
 import { THEMES, isTheme, themeDesc, themeLabel } from '@/lib/themes'
 import Header from '@/components/Header'
@@ -24,14 +24,7 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
   const l: Lang = isLang(lang) ? lang : 'ko'
   if (!isTheme(key)) return {}
   const n = (await listItems(l)).filter((f) => f.th.includes(key) && f.st !== 'ended').length
-  return {
-    title: `${themeLabel(key, l)} · KOTA`,
-    description: `${themeDesc(key, l)} — ${n}`,
-    alternates: {
-      canonical: `${SITE_URL}/${l}/themes/${key}/`,
-      languages: Object.fromEntries(LANGS.map((x) => [x, `${SITE_URL}/${x}/themes/${key}/`])),
-    },
-  }
+  return pageMetadata({ lang: l, path: `themes/${key}`, title: themeLabel(key, l), description: `${themeDesc(key, l)} — ${n}` })
 }
 
 export default async function ThemePage({ params }: { params: Promise<{ lang: string; key: string }> }) {

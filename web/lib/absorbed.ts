@@ -32,25 +32,35 @@ export function bareName(s: string): string {
   return SAME[n] ?? n
 }
 
-/** 정규화한 이름 → 그 축제가 흡수한 `원천|시군구` 집합 */
-export type AbsorbedIndex = Map<string, Set<string>>
+/** 영속 원천 ID를 우선하고, 연결이 없는 옛 데이터에만 이름·지역·기간을 사용한다. */
+export interface AbsorbedIndex {
+  sourceIds: Set<string>
+  byName: Map<string, { source: string; sigungu: string; startDate?: string; endDate?: string }[]>
+}
 
 interface Absorbable {
   name: string
   externalId: string
   sigungu?: string | null
+  startDate?: string
+  endDate?: string
   sources?: string[] | null
+  sourceIds?: string[] | null
 }
 
 export function buildAbsorbedIndex(kept: Absorbable[]): AbsorbedIndex {
-  const index: AbsorbedIndex = new Map()
+  const index: AbsorbedIndex = { sourceIds: new Set(), byName: new Map() }
   for (const f of kept) {
+    for (const id of f.sourceIds ?? []) if (id !== f.externalId) index.sourceIds.add(id)
     const n = bareName(f.name)
     if (!n) continue
     const own = f.externalId.split(':')[0]
-    const set = index.get(n) ?? new Set<string>()
-    for (const s of f.sources ?? []) if (s !== own) set.add(`${s}|${f.sigungu ?? ''}`)
-    index.set(n, set)
+    const entries = index.byName.get(n) ?? []
+    for (const source of f.sources ?? []) if (source !== own &&
+      !(f.sourceIds ?? []).some(id => id.startsWith(`${source}:`))) {
+      entries.push({ source, sigungu: f.sigungu ?? '', startDate: f.startDate, endDate: f.endDate })
+    }
+    index.byName.set(n, entries)
   }
   return index
 }
@@ -61,14 +71,17 @@ export function buildAbsorbedIndex(kept: Absorbable[]): AbsorbedIndex {
  */
 export function isAbsorbed(
   index: AbsorbedIndex,
-  f: { name: string; sigungu?: string | null },
+  f: { externalId?: string; name: string; sigungu?: string | null; startDate?: string; endDate?: string },
   source: string,
 ): boolean {
   if (!source) return false
+  if (f.externalId && index.sourceIds.has(f.externalId)) return true
   const n = bareName(f.name)
   if (!n) return false
-  const set = index.get(n)
-  if (!set) return false
-  if (!f.sigungu) return [...set].some((x) => x.startsWith(`${source}|`))
-  return set.has(`${source}|${f.sigungu}`) || set.has(`${source}|`)
+  return (index.byName.get(n) ?? []).some((entry) =>
+    entry.source === source &&
+    (!f.sigungu || !entry.sigungu || f.sigungu === entry.sigungu) &&
+    (!f.startDate || !f.endDate || !entry.startDate || !entry.endDate ||
+      !(f.endDate < entry.startDate || entry.endDate < f.startDate)),
+  )
 }

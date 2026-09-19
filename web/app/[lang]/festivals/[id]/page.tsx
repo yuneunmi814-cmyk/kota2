@@ -4,9 +4,9 @@ import { notFound, permanentRedirect } from 'next/navigation'
 import { listFestivalSummaries, feeKind, findByKey, isAlwaysOn, isLongRun, isPublicData, listFestivalSlugs, localized, regionRank, statusOf } from '@/lib/festivals'
 import { detailSections, festivalJsonLd, heroMedia, metaDescription, nearbyFestivals, sourceHost, sourceUrl } from '@/lib/detail-view'
 import { toSlug } from '@/lib/slug'
-import { festivalRoutePath, resolveFestivalRoute } from '@/lib/festival-routes'
+import { festivalRoutePath, resolveFestivalRoute, staticFestivalSlugs } from '@/lib/festival-routes'
 import { lookupAliasTargets } from '@/lib/route-aliases'
-import { LANGS, SITE_URL, isLang, type Lang } from '@/lib/i18n'
+import { LANGS, SITE_URL, isLang, pageMetadata, type Lang } from '@/lib/i18n'
 import { t } from '@/lib/ui'
 import { sidoLabel } from '@/lib/sido'
 import { ratingOf, reviewsOf } from '@/lib/reviews'
@@ -39,7 +39,10 @@ export const revalidate = 3600
 //   평점 자리에 공공 데이터로 만든 근거가 들어간다.
 
 export async function generateStaticParams() {
-  const ids = await listFestivalSlugs()
+  // Next writes raw params into prerender filenames; Windows rejects < > : etc.
+  // Unlisted IDs remain eligible for on-demand rendering (dynamicParams defaults to true).
+  // Linux/Vercel keeps the full static set; Windows runtime cache writes need separate verification.
+  const ids = staticFestivalSlugs(await listFestivalSlugs())
   return LANGS.flatMap((lang) => ids.map((id) => ({ lang, id })))
 }
 
@@ -51,15 +54,10 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
   const f = route.festival
   const L = localized(f, l)
   const desc = metaDescription(L, f)
-  return {
-    title: `${L.name} · KOTA`,
-    description: desc,
-    alternates: {
-      canonical: `${SITE_URL}/${l}/festivals/${toSlug(f.externalId)}/`,
-      languages: Object.fromEntries(LANGS.map((x) => [x, `${SITE_URL}/${x}/festivals/${toSlug(f.externalId)}/`])),
-    },
-    openGraph: { title: L.name, description: desc, ...(f.imageUrl ? { images: [f.imageUrl] } : {}), type: 'website' },
-  }
+  return pageMetadata({
+    lang: l, path: `festivals/${encodeURIComponent(route.canonicalSlug)}`,
+    title: L.name, description: desc, image: f.imageUrl,
+  })
 }
 
 const fmt = (d: string) => d.replace(/-/g, '.')
@@ -150,6 +148,7 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
             {l !== 'ko' && L.name !== f.name && <p className="mt-1 text-[14px] text-hint">{f.name}</p>}
           </div>
           <ShareButton
+            lang={l}
             title={L.name}
             label={t(l, 'detail.share')}
             copied={t(l, 'detail.copied')}
@@ -173,7 +172,7 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
             </span>
           )}
           {st === 'ongoing' && !always && (
-            <span className="rounded-full bg-brand px-3 py-1 text-[12px] font-bold text-white">{t(l, 'status.ongoing')}</span>
+            <span className="rounded-full bg-brand px-3 py-1 text-[12px] font-bold text-white">{t(l, isLongRun(f) ? 'status.inPeriod' : 'status.ongoing')}</span>
           )}
           {always && <span className="rounded-full bg-surface px-3 py-1 text-[12px] font-bold text-muted">{t(l, 'status.always')}</span>}
           {/* 기간이 두 달을 넘으면 매일 열리는 게 아니다 — 여기서 못 짚어주면 헛걸음이 된다 */}
@@ -269,6 +268,7 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
             {(L.summary || f.summary) && (
               <section id="about" className="mb-10 scroll-mt-24">
                 <h2 className="mb-3 text-[20px] font-black text-ink">{t(l, 'detail.about')}</h2>
+                {L.summaryIsOriginal && <OriginalNote lang={l} />}
                 <ReadMore text={L.summary ?? f.summary ?? ''} more={t(l, 'detail.more')} less={t(l, 'detail.less')} />
               </section>
             )}
@@ -314,6 +314,7 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
                 {f.boothsFromPastEdition && (
                   <p className="mb-3 rounded-lg bg-brand-50 px-3 py-2 text-[13px] text-brand-600">{t(l, 'detail.booth.past')}</p>
                 )}
+                <OriginalNote lang={l} text={f.booths?.map((b) => `${b.name} ${b.menu.map((m) => m.name).join(' ')}`).join(' ')} />
                 <div className="divide-y divide-line rounded-[var(--radius-card)] border border-line bg-surface">
                   {f.booths!.slice(0, 12).map((b) => (
                     <details key={b.name} className="group px-4 py-3" open={boothCount <= 3}>
@@ -344,6 +345,7 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
             {f.lineup && (
               <section id="lineup" className="mb-10 scroll-mt-24">
                 <h2 className="mb-3 text-[20px] font-black text-ink">{t(l, 'detail.lineup')}</h2>
+                <OriginalNote lang={l} text={f.lineup} />
                 <p className="whitespace-pre-line rounded-[var(--radius-card)] border border-line p-5 text-[15px] leading-relaxed text-ink/85">
                   {f.lineup}
                 </p>
@@ -353,6 +355,7 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
             {f.program && (
               <section id="program" className="mb-10 scroll-mt-24">
                 <h2 className="mb-3 text-[20px] font-black text-ink">{t(l, 'detail.program')}</h2>
+                <OriginalNote lang={l} text={f.program} />
                 <p className="whitespace-pre-line rounded-[var(--radius-card)] bg-surface p-5 text-[15px] leading-relaxed text-ink/85">{f.program}</p>
               </section>
             )}
@@ -432,11 +435,12 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
           <aside className="lg:sticky lg:top-24 lg:self-start">
             <div className="rounded-[var(--radius-card)] border border-line bg-surface p-5 shadow-[0_8px_28px_-16px_rgba(79,50,22,.25)]">
               <h2 className="mb-4 text-[15px] font-black text-ink">{t(l, 'detail.info')}</h2>
+              {(always || isLongRun(f)) && <p className="mb-4 text-[13px] leading-relaxed text-muted">{t(l, 'detail.scheduleNote')}</p>}
               <dl className="space-y-3.5 text-[14px]">
                 <Row icon="calendar" label={t(l, 'detail.period')}>
                   <span className="tabular-nums font-semibold">{fmt(f.startDate)} – {fmt(f.endDate)}</span>
                 </Row>
-                {f.hours && <Row icon="clock" label={t(l, 'detail.hours')}>{f.hours}</Row>}
+                {f.hours && <Row icon="clock" label={t(l, 'detail.hours')}>{f.hours}<OriginalNote lang={l} text={f.hours} /></Row>}
                 {/* 요금은 셋이다 — 무료 / 유료 / 모름. 모르는 것을 「무료」라고 하지 않는다.
                     공공 API가 요금을 안 준 축제가 425건 중 300건이고, 그건 공짜라는 뜻이
                     아니다. 유료 축제를 싣기 시작하면 이 단정이 실제 피해가 된다. */}
@@ -444,15 +448,16 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
                   {fee === 'unknown' ? (
                     <span className="text-hint">{t(l, 'detail.feeUnknown')}</span>
                   ) : (
-                    <span className={fee === 'free' ? 'font-bold text-brand' : ''}>{f.fee}</span>
+                    <span className={fee === 'free' ? 'font-bold text-brand' : ''}>{L.fee}</span>
                   )}
+                  {L.feeIsOriginal && <OriginalNote lang={l} />}
                 </Row>
                 {(f.address || L.placeName) && (
                   <Row icon="pin" label={t(l, 'detail.place')}>
                     <span className="break-keep">{f.address ?? L.placeName}</span>
                   </Row>
                 )}
-                {f.ageInfo && <Row icon="user" label={t(l, 'detail.age')}>{f.ageInfo}</Row>}
+                {f.ageInfo && <Row icon="user" label={t(l, 'detail.age')}>{f.ageInfo}<OriginalNote lang={l} text={f.ageInfo} /></Row>}
                 {f.organizer && <Row icon="user" label={t(l, 'detail.organizer')}>{f.organizer}</Row>}
                 {f.tel && (
                   <Row icon="phone" label={t(l, 'detail.tel')}>
@@ -509,6 +514,11 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
       <Footer lang={l} />
     </>
   )
+}
+
+function OriginalNote({ lang, text }: { lang: Lang; text?: string | null }) {
+  if (lang === 'ko' || (text !== undefined && !/[가-힣]/.test(text ?? ''))) return null
+  return <p className="my-2 text-[13px] leading-relaxed text-muted">{t(lang, 'detail.original')}</p>
 }
 
 function Row({ icon, label, children }: { icon: Parameters<typeof Icon>[0]['name']; label: string; children: React.ReactNode }) {

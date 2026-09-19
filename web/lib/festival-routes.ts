@@ -21,6 +21,13 @@ export function externalIdsToSlugs(externalIds: readonly string[]): string[] {
   return externalIds.map(toSlug)
 }
 
+/** Windows cannot create Next's prerender cache paths for these raw dynamic segment values. */
+export function staticFestivalSlugs(slugs: readonly string[], platform = process.platform): string[] {
+  return platform === 'win32'
+    ? slugs.filter((slug) => !/[<>:"/\\|?*\x00-\x1f]/.test(slug))
+    : [...slugs]
+}
+
 /**
  * 주소 하나를 축제로 옮긴다.
  *
