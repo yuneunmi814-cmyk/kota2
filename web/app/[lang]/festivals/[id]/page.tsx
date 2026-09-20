@@ -2,6 +2,7 @@ import { operatingDaysLabel } from '@/lib/operating-days'
 import { editorialField } from '@/lib/editorial'
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { todayKst } from '@/lib/date'
 import { notFound, permanentRedirect } from 'next/navigation'
 import { listFestivalSummaries, feeKind, findByKey, isAlwaysOn, isLongRun, isPublicData, listFestivalSlugs, localized, regionRank, statusOf } from '@/lib/festivals'
 import { detailSections, festivalJsonLd, heroMedia, metaDescription, nearbyFestivals, sourceHost, sourceUrl } from '@/lib/detail-view'
@@ -75,6 +76,7 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
 
   const L = localized(f, l)
   const st = statusOf(f)
+  const ended = st === 'ended' && !isAlwaysOn(f)
   const fee = feeKind(f)
   const always = isAlwaysOn(f)
   const rank = await regionRank(f)
@@ -177,6 +179,13 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
             <span className="rounded-full bg-brand px-3 py-1 text-[12px] font-bold text-white">{t(l, isLongRun(f) ? 'status.inPeriod' : 'status.ongoing')}</span>
           )}
           {always && <span className="rounded-full bg-surface px-3 py-1 text-[12px] font-bold text-muted">{t(l, 'status.always')}</span>}
+          {/* 끝난 축제 — 검색으로 들어온 사람이 날짜를 읽기 전에 알아야 한다. 헛걸음이 제일 비싼 실수다.
+              '올해는'은 종료일이 올해일 때만 쓴다. 지난해 기록에 붙으면 거짓말이 된다. */}
+          {ended && (
+            <span className="rounded-full bg-ink px-3 py-1 text-[12px] font-bold text-white">
+              {f.endDate.slice(0, 4) === todayKst().slice(0, 4) ? t(l, 'status.ended') : t(l, 'status.endedYear', { y: f.endDate.slice(0, 4) })}
+            </span>
+          )}
           {/* 기간이 두 달을 넘으면 매일 열리는 게 아니다 — 여기서 못 짚어주면 헛걸음이 된다 */}
           {!always && isLongRun(f) && (
             <span className="rounded-full bg-surface px-3 py-1 text-[12px] font-bold text-muted">{t(l, 'status.selectDates')}</span>
@@ -195,6 +204,15 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
             </span>
           )}
         </div>
+
+        {ended && (
+          <div className="mb-5 rounded-[var(--radius-card)] bg-surface p-4 text-[14px] leading-relaxed text-ink/85">
+            <p>{t(l, 'detail.endedNote')}</p>
+            <Link href={`/${l}/festivals/`} className="mt-2 inline-block font-bold text-brand underline underline-offset-4">
+              {t(l, 'detail.endedCta')}
+            </Link>
+          </div>
+        )}
 
         {/* 지역 내 순위 — 트립어드바이저가 '서울의 즐길거리 1,619개 중에서 5위'를 놓는 자리.
             그쪽 근거는 리뷰 평점이고 우리 근거는 통신사 방문자 실측이다. 뱃지가 아니라 문장으로
