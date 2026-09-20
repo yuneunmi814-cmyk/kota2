@@ -61,15 +61,18 @@ with sync_playwright() as p:
         expect(page.locator('main img[src*="fallback"]').first).to_be_visible()
         expect(page.locator('main img[src*="fallback"]').first.locator('..').locator('span.relative')).to_have_text('부천국제만화축제')
         print('PASS real poster preserved; failed poster replaced without losing title',flush=True)
+        page.clock.resume()
         page.set_viewport_size({'width':1280,'height':900})
         for lang in ('ko','en','ja','th'):
-            page.goto(args.base+f'/{lang}/festivals/stdfest-구름산예술제-2026-09-19/',wait_until='networkidle',timeout=90000)
+            page.goto(args.base+f'/{lang}/festivals/stdfest-구름산예술제-2026-09-19/',wait_until='domcontentloaded',timeout=90000)
+            expect(page.locator('main h1')).to_be_visible(timeout=20000)
             localized_name = page.locator('main h1').inner_text()
-            page.goto(args.base+f'/{lang}/festivals/?q='+quote(localized_name),wait_until='networkidle',timeout=90000)
+            page.goto(args.base+f'/{lang}/festivals/?q='+quote(localized_name),wait_until='domcontentloaded',timeout=90000)
             fallback=page.locator('main img[src*="fallback"]').first
-            expect(fallback).to_be_visible()
+            expect(fallback).to_be_visible(timeout=20000)
             expect(fallback.locator('..').locator('span.relative')).to_have_text(localized_name)
             assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
+            print('PASS localized festival name:',lang,flush=True)
         assert not errors, errors
         print('PASS four languages, desktop no overflow, no runtime/hydration errors',flush=True)
     finally:
