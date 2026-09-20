@@ -240,7 +240,9 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
         {f.imageAttribution && <p className="mb-3 text-xs text-muted">{f.imageAttribution}</p>}
         {heroSrc && (
         <div
-          className={`mb-8 grid gap-2 overflow-hidden rounded-[var(--radius-card)] grid-cols-1 ${sideTiles.length ? 'sm:grid-cols-3' : ''}`}
+          data-hero
+          className={`mb-8 grid gap-2 overflow-hidden rounded-[var(--radius-card)] grid-cols-1 transition-[height] duration-300 ${sideTiles.length ? 'sm:grid-cols-3' : ''}`}
+          // 기본 높이. 세로형 포스터면 Poster가 로드 뒤 실제 비율로 이 높이를 키운다(components/Poster.tsx의 fitHero).
           style={{ height: 'clamp(250px, 48vw, 430px)' }}
         >
           <div className={`relative h-full overflow-hidden ${sideTiles.length ? 'sm:col-span-2' : ''}`}>
