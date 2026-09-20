@@ -1,4 +1,5 @@
 import { operatingDaysLabel } from '@/lib/operating-days'
+import { todayKst } from '@/lib/date'
 import { editorialField } from '@/lib/editorial'
 import { feeKind, isAlwaysOn, isLongRun, isPublicData, type Festival } from '@/lib/festivals'
 import { localized } from '@/lib/festival-fields'
@@ -159,6 +160,8 @@ export default function FestivalBody({ f, L, lang, ytId, mapHref, ended }: {
           {l !== 'ko' && <p className="mt-4 text-[13px] leading-relaxed text-muted">{t(l, 'official.helpline')} <a href="tel:1330" className="font-bold text-brand underline">1330</a></p>}
         </> : <p className="text-[15px] text-muted">{t(l, 'detail.noContact')}</p>}
         <p className="mt-6 text-[12px] leading-relaxed text-hint">{t(l, isPublicData(f) ? 'detail.source' : 'detail.source.manual')}</p>
+        {/* 공공데이터 동기화 시각이다. 주최 측 확인 날짜(아래 verifiedAt)와 구별한다. */}
+        {isPublicData(f) && f.syncedAt && <p className="mt-1 text-[12px] tabular-nums text-hint">{t(l, 'detail.checked', { d: todayKst(new Date(f.syncedAt)) })}</p>}
         {f.verifiedAt && f.verificationSource && <a href={f.verificationSource} target="_blank" rel="noopener noreferrer" className="mt-2 block text-[12px] text-hint underline underline-offset-2">{{ ko: '운영 안내·공식 링크 확인', en: 'Programme and official link checked', ja: '運営案内・公式リンク確認', th: 'ตรวจสอบกำหนดการและลิงก์ทางการ' }[l]} · {f.verifiedAt}</a>}
       </section>
     </div>
