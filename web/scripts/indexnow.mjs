@@ -6,7 +6,7 @@
 // 키는 비밀이 아니다. public/<키>.txt 로 공개돼 있어야 "이 사이트 주인이 보낸 것"이 증명된다.
 const HOST = 'ko-ta.co.kr'
 const KEY = 'f644e39e7ea5c097d586834fa2afc562'
-const ENDPOINTS = ['https://api.indexnow.org/indexnow', 'https://searchadvisor.naver.com/indexnow']
+const ENDPOINTS = ['https://api.indexnow.org/indexnow', 'https://www.bing.com/indexnow', 'https://searchadvisor.naver.com/indexnow']
 
 const args = process.argv.slice(2)
 let urls
@@ -21,7 +21,9 @@ for (const endpoint of ENDPOINTS) {
     const res = await fetch(endpoint, {
       method: 'POST',
       headers: { 'content-type': 'application/json; charset=utf-8' },
-      body: JSON.stringify({ host: HOST, key: KEY, keyLocation: `https://${HOST}/${KEY}.txt`, urlList: urls.slice(i, i + 10000) }),
+      // keyLocation은 보내지 않는다 — 키 파일이 루트에 있으면 생략이 기본이고, 적어 보내면 api.indexnow.org가
+      // 여러 주소 묶음 요청을 403으로 거절했다(2026-09-20 실측. 네이버는 어느 쪽이든 200).
+      body: JSON.stringify({ host: HOST, key: KEY, urlList: urls.slice(i, i + 10000) }),
     })
     // 200·202 = 받음. 403 = 키 파일을 못 읽음(배포 전이거나 주소가 다름). 422 = 주소가 host와 안 맞음.
     console.log(`${endpoint} → ${res.status} ${res.statusText}`)
