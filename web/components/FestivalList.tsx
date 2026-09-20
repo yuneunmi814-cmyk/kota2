@@ -57,8 +57,8 @@ export default function FestivalList({
   // 그 셋은 '무엇을 보여줄지'와 무관한데도 이 파일에 섞여 있어, 카드 한 줄을 고치려 해도
   // 스크롤 복원과 위치 권한 코드를 지나가야 했다.
   const {
-    period, from, to, setFrom, setTo, region, sido, theme, sort, q, graded, page,
-    setPeriod, setRegion, setSido, setTheme, setSort, setQ, setPage, setGraded,
+    period, from, to, setFrom, setTo, region, sido, theme, sort, q, graded, hideAlways, page,
+    setPeriod, setRegion, setSido, setTheme, setSort, setQ, setPage, setGraded, setHideAlways,
     ready,
   } = useListParams({ period: initialPeriod, region: initialRegion, theme: initialTheme, sort: initialSort, q: initialQuery, graded: initialGraded })
   const { rememberScroll, farDown } = useScrollMemory(ready)
@@ -68,9 +68,9 @@ export default function FestivalList({
   const shown = page * PAGE
 
   const list = useMemo(() => {
-    const filtered = filterListItems(items, { period, from, to, region, sido, theme, graded, query: q, weekend })
+    const filtered = filterListItems(items, { period, from, to, region, sido, theme, graded, hideAlways, query: q, weekend })
     return sortListItems(filtered, sort, coords)
-  }, [items, period, from, to, region, sido, theme, graded, q, sort, coords, weekend])
+  }, [items, period, from, to, region, sido, theme, graded, hideAlways, q, sort, coords, weekend])
 
   // 검색어 — 타이핑이 멎고 800ms 뒤에 한 번만 남긴다. 글자마다 남기면 '강','강릉','강릉불'이
   // 전부 쌓여 무엇을 찾았는지 알 수 없게 된다. 결과 수도 함께 남겨서 '찾았는데 없더라'를 본다.
@@ -96,6 +96,7 @@ export default function FestivalList({
       sido: null,
       theme: null,
       graded: false,
+      hideAlways,
       query: q,
       weekend,
     })
@@ -108,7 +109,7 @@ export default function FestivalList({
     const m = new Map<string, number>()
     for (const f of base) if (f.sd) m.set(f.sd, (m.get(f.sd) ?? 0) + 1)
     return [...m.entries()].map(([sido, count]) => ({ sido, count })).sort((a, b) => b.count - a.count)
-  }, [items, period, from, to, q, weekend])
+  }, [items, period, from, to, hideAlways, q, weekend])
 
   // 테마 칩의 근거가 되는 목록 — 테마만 빼고 지금 걸린 조건을 전부 적용한 것.
   const baseForTheme = useMemo(() => {
@@ -118,10 +119,11 @@ export default function FestivalList({
       sido,
       theme: null,
       graded,
+      hideAlways,
       query: q,
       weekend,
     })
-  }, [items, period, from, to, region, sido, graded, q, weekend])
+  }, [items, period, from, to, region, sido, graded, hideAlways, q, weekend])
 
   const subSidos = useMemo(() => {
     const rs = REGIONS.find((r) => r.key === region)?.sidos
@@ -151,16 +153,16 @@ export default function FestivalList({
   }, [ready, period, region, sido, theme])
 
   // 걸어둔 필터가 하나라도 있는가 — 0건 안내 문구를 고르는 데 쓴다
-  const hasFilters = period !== 'all' || !!from || !!to || !!region || !!sido || !!theme || graded
+  const hasFilters = period !== 'all' || !!from || !!to || !!region || !!sido || !!theme || graded || hideAlways
 
   const labels = {
-    ko: { dates: '여행 날짜', from: '시작일', to: '종료일', clear: '조건 초기화', note: '선택한 기간에 하루라도 열리는 축제입니다. 장기 행사는 실제 운영일을 확인하세요.' },
-    en: { dates: 'Travel dates', from: 'Start date', to: 'End date', clear: 'Reset filters', note: 'Festivals overlapping your dates. Check operating days for long-running events.' },
-    ja: { dates: '旅行の日程', from: '開始日', to: '終了日', clear: '条件をリセット', note: '選択期間と重なる祭りです。長期開催のイベントは実際の営業日をご確認ください。' },
-    th: { dates: 'วันเดินทาง', from: 'วันเริ่มต้น', to: 'วันสิ้นสุด', clear: 'ล้างตัวกรอง', note: 'เทศกาลที่จัดในช่วงวันที่เลือก โปรดตรวจสอบวันเปิดจริงของงานระยะยาว' },
+    ko: { dates: '여행 날짜', from: '시작일', to: '종료일', clear: '조건 초기화', note: '선택한 기간에 하루라도 열리는 축제입니다. 장기 행사는 실제 운영일을 확인하세요.', hideAlways: '상시 축제 가리기', hideAlready: '이 날짜·시기 조건에서는 상시 축제가 이미 제외됩니다.' },
+    en: { dates: 'Travel dates', from: 'Start date', to: 'End date', clear: 'Reset filters', note: 'Festivals overlapping your dates. Check operating days for long-running events.', hideAlways: 'Hide year-round festivals', hideAlready: 'Year-round festivals are already excluded by these dates or this period.' },
+    ja: { dates: '旅行の日程', from: '開始日', to: '終了日', clear: '条件をリセット', note: '選択期間と重なる祭りです。長期開催のイベントは実際の営業日をご確認ください。', hideAlways: '通年開催の祭りを非表示', hideAlready: 'この日程・時期では通年開催の祭りはすでに除外されています。' },
+    th: { dates: 'วันเดินทาง', from: 'วันเริ่มต้น', to: 'วันสิ้นสุด', clear: 'ล้างตัวกรอง', note: 'เทศกาลที่จัดในช่วงวันที่เลือก โปรดตรวจสอบวันเปิดจริงของงานระยะยาว', hideAlways: 'ซ่อนเทศกาลที่จัดตลอดปี', hideAlready: 'ช่วงวันหรือช่วงเวลานี้ไม่รวมเทศกาลที่จัดตลอดปีอยู่แล้ว' },
   }[lang]
   const resetFilters = () => {
-    setPeriod('all'); setRegion(null); setSido(null); setTheme(null); setGraded(false); setQ(''); setSort('date')
+    setPeriod('all'); setRegion(null); setSido(null); setTheme(null); setGraded(false); setHideAlways(false); setQ(''); setSort('date')
   }
 
   const chip = (on: boolean) =>
@@ -309,6 +311,16 @@ export default function FestivalList({
       {(hasFilters || q.trim() || sort !== 'date') && (
         <button type="button" onClick={resetFilters} className="mb-4 text-[13px] font-bold text-brand underline underline-offset-4">{labels.clear}</button>
       )}
+
+      <div className="mb-4">
+        <label className="flex min-h-11 w-fit cursor-pointer items-center gap-3 rounded-lg px-1 text-[13px] font-bold text-muted">
+          <input type="checkbox" checked={hideAlways} onChange={(e) => setHideAlways(e.target.checked)} className="h-5 w-5 shrink-0 accent-brand" />
+          <span>{labels.hideAlways}</span>
+        </label>
+        {(from || to || period === 'ongoing' || period === 'weekend' || typeof period === 'number') && (
+          <p className="ml-9 text-[12px] text-hint">{labels.hideAlready}</p>
+        )}
+      </div>
 
       {/* 결과 수 + 정렬 */}
       <div className="mb-5 flex items-center justify-between gap-3">

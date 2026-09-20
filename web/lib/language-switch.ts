@@ -1,4 +1,5 @@
 import type { Lang } from './i18n.ts'
+import { travelRange } from './list-rules.ts'
 import { REGIONS } from './sido.ts'
 import { THEMES } from './themes.ts'
 
@@ -12,6 +13,13 @@ function listQuery(search: string): string {
   const period = source.get('period')
   if (period === 'ongoing' || period === 'upcoming' || period === 'weekend' ||
       (period != null && /^(?:[1-9]|1[0-2])$/.test(period))) result.set('period', period)
+
+  const dates = travelRange(source.get('from'), source.get('to'))
+  if (dates) {
+    result.set('from', dates[0])
+    result.set('to', dates[1])
+  }
+  if (source.get('hideAlways') === '1') result.set('hideAlways', '1')
 
   const region = source.get('region')
   if (region && REGIONS.some((r) => r.key === region)) result.set('region', region)

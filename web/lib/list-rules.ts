@@ -35,6 +35,7 @@ export interface ListFilters {
   sido: string | null
   theme: string | null
   graded: boolean
+  hideAlways?: boolean
   query: string
   weekend: [string, string]
   today?: string
@@ -85,6 +86,7 @@ export function defaultOrder(items: ListItem[]): ListItem[] {
 /** 목록 화면의 필터 규칙. 같은 입력은 항상 같은 결과를 낸다. */
 export function filterListItems(items: ListItem[], filters: ListFilters): ListItem[] {
   let out = items.filter((f) => f.st !== 'ended')
+  if (filters.hideAlways) out = out.filter((f) => !f.al)
 
   const dates = travelRange(filters.from, filters.to)
   if (dates) out = out.filter((f) => hasOperatingDay({startDate:f.s,endDate:f.e,operatingWeekdays:f.wd}, dates[0], dates[1]) && !f.al)
