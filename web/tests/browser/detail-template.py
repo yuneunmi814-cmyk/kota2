@@ -12,8 +12,9 @@ from playwright.sync_api import sync_playwright
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--base', default='http://127.0.0.1:3111')
+parser.add_argument('--output', default='output/playwright/detail')
 args = parser.parse_args()
-output = Path(__file__).resolve().parents[4] / 'screenshots' / 'detail'
+output = Path(args.output)
 output.mkdir(parents=True, exist_ok=True)
 
 core = ['about', 'program', 'schedule', 'admission', 'notes', 'location', 'contact']
