@@ -67,7 +67,8 @@ export function pageMetadata({ lang, path, title, description, image, absoluteTi
     description,
     alternates: {
       canonical: url,
-      languages: Object.fromEntries(LANGS.map((l) => [l, absUrl(l, path)])),
+      // x-default — 네 언어 어디에도 안 맞는 방문자에게 보여 줄 판. 외국인 여행자가 주 대상이라 영어로 둔다.
+      languages: { ...Object.fromEntries(LANGS.map((l) => [l, absUrl(l, path)])), 'x-default': absUrl('en', path) },
     },
     openGraph: {
       type: 'website', siteName: 'KOTA', locale: HTML_LANG[lang].replace('-', '_'),

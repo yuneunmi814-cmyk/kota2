@@ -4,7 +4,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import type { Festival } from '@/lib/festivals'
 import { listFestivalSummaries, isAlwaysOn, localized, statusOf } from '@/lib/festivals'
-import { LANGS, isLang, pageMetadata, type Lang } from '@/lib/i18n'
+import { LANGS, SITE_URL, isLang, pageMetadata, type Lang } from '@/lib/i18n'
 import { t } from '@/lib/ui'
 import Header from '@/components/Header'
 import FestivalRow from '@/components/FestivalRow'
@@ -104,6 +104,42 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
     <>
       <Header lang={l} />
 
+      {/* 구조화 데이터 — 검색엔진·AI 검색에 '이 사이트가 무엇이고 어떻게 찾는지'를 말한다.
+          alternateName에 「코타」를 넣는 이유: 한국어 검색은 영문 상표를 한글로 친다. */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@graph': [
+              {
+                '@type': 'WebSite',
+                '@id': `${SITE_URL}/#website`,
+                url: `${SITE_URL}/${l}/`,
+                name: 'KOTA',
+                alternateName: ['KOTA Korea Festa', '코타', '코타 축제'],
+                description: t(l, 'home.sub', { n: all.filter((f) => statusOf(f) !== 'ended').length }),
+                inLanguage: ['ko', 'en', 'ja', 'th'],
+                publisher: { '@id': `${SITE_URL}/#org` },
+                potentialAction: {
+                  '@type': 'SearchAction',
+                  target: { '@type': 'EntryPoint', urlTemplate: `${SITE_URL}/${l}/festivals/?q={search_term_string}` },
+                  'query-input': 'required name=search_term_string',
+                },
+              },
+              {
+                '@type': 'Organization',
+                '@id': `${SITE_URL}/#org`,
+                name: 'KOTA',
+                alternateName: '코타',
+                url: `${SITE_URL}/`,
+                logo: `${SITE_URL}/icon.png`,
+                image: `${SITE_URL}/og.png`,
+              },
+            ],
+          }).replace(/</g, '\\u003c'),
+        }}
+      />
       <main className="pb-24">
         {/* 히어로 — 질문으로 연다. 목록을 먼저 보여주면 '또 하나의 축제 포털'이 된다 */}
         {/* 창살 — 한옥 창의 격자. 가운데(글자 자리)는 비우고 양옆에서만 드러난다 */}

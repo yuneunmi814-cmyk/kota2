@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import type { ReactNode } from 'react'
+import Analytics from '@/components/Analytics'
 import BackToTop from '@/components/BackToTop'
 import { HTML_LANG, LANGS, SITE_URL, isLang, type Lang } from '@/lib/i18n'
 import { t } from '@/lib/ui'
@@ -39,6 +40,12 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
     metadataBase: new URL(SITE_URL),
     title: { default: s.title, template: '%s · KOTA' },
     description: s.desc,
+    // 검색엔진 소유 확인 — 구글 서치콘솔·네이버 서치어드바이저가 주는 문자열을 Vercel 환경변수에 넣는다.
+    // 값이 없으면 태그 자체가 안 나간다. 코드에 박지 않는 이유: 계정이 바뀌면 재배포만으로 바꾸려고.
+    verification: {
+      ...(process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION ? { google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION } : {}),
+      ...(process.env.NEXT_PUBLIC_NAVER_SITE_VERIFICATION ? { other: { 'naver-site-verification': process.env.NEXT_PUBLIC_NAVER_SITE_VERIFICATION } } : {}),
+    },
     icons: {
       icon: [
         { url: '/favicon.ico', sizes: '48x48' },
@@ -95,6 +102,7 @@ export default async function LangLayout({
         <div id="page-start" tabIndex={-1} className="sr-only">{t(l, 'list.toTop')}</div>
         {children}
         <BackToTop lang={l} />
+        <Analytics />
       </body>
     </html>
   )

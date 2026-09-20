@@ -537,6 +537,31 @@ const th: Record<LegalKind, Doc> = {
 
 const ALL: Record<Lang, Record<LegalKind, Doc>> = { ko, en, ja, th }
 
+// 방문 통계(Google Analytics)는 켜져 있는 빌드에서만 방침에 나타난다.
+// 스위치는 components/Analytics.tsx와 같은 환경변수다 — 받는 것과 적은 것이 어긋나지 않게.
+const GA_ON = /^G-[A-Z0-9]+$/.test(process.env.NEXT_PUBLIC_GA_ID?.trim() ?? '')
+const GA_COLLECT: Record<Lang, string> = {
+  ko: '방문 통계(자동) — Google Analytics로 어떤 화면이 얼마나 쓰이는지를 집계합니다. 이를 위해 브라우저에 쿠키(_ga)가 저장되고, 방문한 화면·머문 시간·대략의 지역(국가·시도 수준)·기기 종류가 구글로 전송됩니다. 광고용 신호는 꺼 두었고 IP 주소는 저장되지 않습니다. 브라우저에서 쿠키를 막거나 구글의 차단 부가기능(tools.google.com/dlpage/gaoptout)으로 거부하실 수 있습니다.',
+  en: 'Visit statistics (automatic) — we use Google Analytics to count which screens are used. A cookie (_ga) is stored in your browser, and the pages you view, time spent, approximate region (country/province level) and device type are sent to Google. Advertising signals are turned off and IP addresses are not stored. You can refuse by blocking cookies or with Google’s opt-out add-on (tools.google.com/dlpage/gaoptout).',
+  ja: '訪問統計(自動) — Google Analyticsで、どの画面がどれだけ使われているかを集計します。そのためブラウザにCookie(_ga)が保存され、閲覧した画面・滞在時間・おおよその地域(国・道レベル)・端末の種類がGoogleに送信されます。広告向けのシグナルは無効にしており、IPアドレスは保存されません。ブラウザでCookieを拒否するか、Googleのオプトアウトアドオン(tools.google.com/dlpage/gaoptout)で拒否できます。',
+  th: 'สถิติการเข้าชม (อัตโนมัติ) — เราใช้ Google Analytics เพื่อนับว่าหน้าใดถูกใช้งานมากน้อยเพียงใด จึงมีการเก็บคุกกี้ (_ga) ในเบราว์เซอร์ และส่งข้อมูลหน้าที่เปิด ระยะเวลาที่ใช้ ภูมิภาคโดยประมาณ (ระดับประเทศ/จังหวัด) และประเภทอุปกรณ์ไปยัง Google เราปิดสัญญาณด้านโฆษณา และไม่มีการเก็บที่อยู่ IP คุณปฏิเสธได้โดยบล็อกคุกกี้หรือใช้ส่วนเสริมของ Google (tools.google.com/dlpage/gaoptout)',
+}
+const GA_PROCESSOR: Record<Lang, string> = {
+  ko: 'Google — 방문 통계 집계(Google Analytics)',
+  en: 'Google — visit statistics (Google Analytics)',
+  ja: 'Google — 訪問統計の集計(Google Analytics)',
+  th: 'Google — สถิติการเข้าชม (Google Analytics)',
+}
+
 export function legalDoc(lang: Lang, kind: LegalKind): Doc {
-  return ALL[lang][kind]
+  const doc = ALL[lang][kind]
+  if (!GA_ON || kind !== 'privacy') return doc
+  // 1번(받는 정보)과 5번(맡겨서 처리하는 곳)에 한 줄씩 더한다. 원본은 건드리지 않는다.
+  return {
+    ...doc,
+    sections: doc.sections.map((sec, i) =>
+      i === 0 ? { ...sec, ul: [...(sec.ul ?? []), GA_COLLECT[lang]] }
+      : i === 4 ? { ...sec, ul: [...(sec.ul ?? []), GA_PROCESSOR[lang]] }
+      : sec),
+  }
 }
