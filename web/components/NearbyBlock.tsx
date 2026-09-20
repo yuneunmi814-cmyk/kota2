@@ -1,5 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
+import { hasOperatingDay } from '@/lib/operating-days'
+import { todayKst } from '@/lib/date'
 import { requestPosition } from '@/lib/geo'
 import Link from 'next/link'
 import { distanceKm, isAlwaysOn, statusOf, type Festival } from '@/lib/festivals'
@@ -149,8 +151,9 @@ export default function NearbyBlock({ all, lang }: { all: Festival[]; lang: Lang
     )
   }
 
+  const today = todayKst()
   const near = all
-    .filter((f) => f.lat != null && f.lng != null && statusOf(f) === 'ongoing' && !isAlwaysOn(f))
+    .filter((f) => f.lat != null && f.lng != null && statusOf(f, today) === 'ongoing' && !isAlwaysOn(f) && hasOperatingDay(f, today, today))
     .map((f) => ({ f, km: distanceKm(state.coords, { lat: f.lat as number, lng: f.lng as number }) }))
     .filter((x) => x.km <= RADIUS_KM)
     .sort((a, b) => a.km - b.km)

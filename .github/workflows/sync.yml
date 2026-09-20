@@ -34,6 +34,15 @@ jobs:
       - run: npm run enrich
         env:
           TOURAPI_SERVICE_KEY: ${{ secrets.TOURAPI_SERVICE_KEY }}
+      - run: npm run gallery
+        env:
+          TOURAPI_SERVICE_KEY: ${{ secrets.TOURAPI_SERVICE_KEY }}
+          GALLERY_MAX_CALLS: '40'
+      # Only edition-specific reviewed images with documented rights are applied.
+      - run: npm run scrape
+        env:
+          SCRAPE_MAX_ITEMS: '20'
+      - run: npm run audit:quality
       # 관광빅데이터(통신사 방문자수)로 축제별 유입 배율 — 날짜별 스냅샷은 커밋된 캐시를 쓰고 새 날만 받는다
       - run: npm run popularity
         env:

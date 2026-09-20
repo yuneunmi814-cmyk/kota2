@@ -1,3 +1,5 @@
+import { todayKst } from './date.ts'
+import { hasOperatingDay } from './operating-days.ts'
 import type { DayBadge } from './festivals.ts'
 import { REGIONS } from './sido.ts'
 
@@ -17,8 +19,10 @@ export interface ListItem {
   th: string[]
   img: string | null
   ip: boolean
+  imageNotice?: string
   lat: number | null
   lng: number | null
+  wd?: number[]
   pop: number
 }
 
@@ -33,11 +37,29 @@ export interface ListFilters {
   graded: boolean
   query: string
   weekend: [string, string]
+  today?: string
+  from?: string
+  to?: string
 }
 
 export interface LocatedListItem {
   f: ListItem
   km: number | null
+}
+
+/** Strict ISO dates keep URL filters and calendar navigation within real dates. */
+export function validTravelDate(value: string | null | undefined): string {
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return ''
+  const parsed = new Date(`${value}T00:00:00Z`)
+  return Number.isFinite(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value ? value : ''
+}
+
+/** A single boundary means one travel day; reversed shared URLs are normalized. */
+export function travelRange(from?: string | null, to?: string | null): [string, string] | null {
+  const a = validTravelDate(from)
+  const b = validTravelDate(to)
+  if (!a && !b) return null
+  return [a || b, b || a].sort() as [string, string]
 }
 
 /** 날짜순 기본 정렬 — 진행중 단기, 예정, 장기, 상시 순서. */
@@ -55,11 +77,13 @@ export function defaultOrder(items: ListItem[]): ListItem[] {
 export function filterListItems(items: ListItem[], filters: ListFilters): ListItem[] {
   let out = items.filter((f) => f.st !== 'ended')
 
-  if (filters.period === 'ongoing') out = out.filter((f) => f.st === 'ongoing' && !f.al)
+  const dates = travelRange(filters.from, filters.to)
+  if (dates) out = out.filter((f) => hasOperatingDay({startDate:f.s,endDate:f.e,operatingWeekdays:f.wd}, dates[0], dates[1]) && !f.al)
+  else if (filters.period === 'ongoing') out = out.filter((f) => f.st === 'ongoing' && !f.al && (!f.wd || hasOperatingDay({startDate:f.s,endDate:f.e,operatingWeekdays:f.wd}, filters.today ?? todayKst(), filters.today ?? todayKst())))
   else if (filters.period === 'upcoming') out = out.filter((f) => f.st === 'upcoming')
   else if (filters.period === 'weekend') {
     const [sat, sun] = filters.weekend
-    out = out.filter((f) => f.s <= sun && f.e >= sat && !f.al)
+    out = out.filter((f) => hasOperatingDay({startDate:f.s,endDate:f.e,operatingWeekdays:f.wd}, sat, sun) && !f.al)
   } else if (typeof filters.period === 'number') {
     const month = filters.period
     out = out.filter((f) => f.m.includes(month) && !f.al)

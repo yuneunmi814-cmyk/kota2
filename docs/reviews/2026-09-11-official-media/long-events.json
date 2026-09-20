@@ -1,0 +1,150 @@
+[
+  {
+    "name": "2026 제주 국가유산 방문의 해",
+    "sourceUrl": "https://www.visitjeju.net/kr/festival/view?contentsid=CNTS_300000000014223",
+    "organizerUrl": "https://jejuheritage.kr/2026_about",
+    "imageUrl": "https://api.cdn.visitjeju.net/photomng/imgpath/202604/15/ed2c79bc-eac6-426d-9af2-2866315233dc.webp",
+    "imageStatus": "identity-verified-rights-pending",
+    "operatingDates": "2026-03-27~2026-11-22 캠페인 기간. 자유 유산탐방과 특정 회차 프로그램 구분 필요.",
+    "weekendStatus": "개별 프로그램 주말 개최 미확인. 전체 기간을 매일 열리는 공연으로 해석하지 말 것.",
+    "notes": "2026 연도·기간·국가유산청/제주도 로고를 이미지에서 확인. 주최 홈페이지는 403. 별도 Heritage Week가 있어 주말 프로그램을 특정할 근거는 부족.",
+    "verifiedOn": "2026-09-11",
+    "rights": {
+      "status": "restricted-pending-permission",
+      "source": "https://www.visitjeju.net/kr/common/terms",
+      "finding": "제14조: 상업적 목적 이용 불가, 무단 복제·배포 제한 및 사전 동의 예외. 공개 이미지 URL 존재만으로 외부 웹앱 재사용 허가 확정 불가. JEJU TourAPI 별도 계약 허용 여부 미확인."
+    },
+    "productionWrite": false
+  },
+  {
+    "name": "2026 원도심 도보투어 (성안올레+별별투어)",
+    "sourceUrl": "https://www.visitjeju.net/kr/festival/view?contentsid=CNTS_300000000014329",
+    "imageUrl": "https://api.cdn.visitjeju.net/photomng/imgpath/202605/28/0da4e68d-019d-4da6-8814-9551f25b4e7a.webp",
+    "imageStatus": "identity-verified-rights-pending",
+    "operatingDates": "4~11월 매주 토요일(7~8월 미운영). 9월 일요일 4회 추가. 4·11월 09:30~12:00, 5·6월 19:00~21:30, 9·10월 18:00~20:30.",
+    "weekendStatus": "9월 토·일 운영 확인. 예약 잔여석 및 우천 변경 별도 확인.",
+    "notes": "공식 2026 페이지의 대표 포스터, 이미지 자체에는 연도 없음. 4~11월 매주 토 운영·제주시·제주착한여행 로고 확인. 참가비 5천 원 참여 시 탐나는전 환급, 사전 신청.",
+    "verifiedOn": "2026-09-11",
+    "rights": {
+      "status": "restricted-pending-permission",
+      "source": "https://www.visitjeju.net/kr/common/terms",
+      "finding": "제14조: 상업적 목적 이용 불가, 무단 복제·배포 제한 및 사전 동의 예외. 공개 이미지 URL 존재만으로 외부 웹앱 재사용 허가 확정 불가. JEJU TourAPI 별도 계약 허용 여부 미확인."
+    },
+    "productionWrite": false
+  },
+  {
+    "name": "계절이 들리는 원도심 (2026 버스킹 있는 날 in 제주시)",
+    "sourceUrl": "https://visitjeju.net/kr/festival/view?contentsid=CNTS_300000000014266",
+    "imageUrl": "https://api.cdn.visitjeju.net/photomng/imgpath/202606/04/eb0f4fd1-63ce-4c70-8c42-ef1c166e9f5e.webp",
+    "imageStatus": "identity-verified-rights-pending",
+    "operatingDates": "2026-04-01~2026-12-09 매주 수요일 11:30·12:30.",
+    "weekendStatus": "주말 제외 필요: 수요일 전용.",
+    "notes": "포스터를 직접 보아 2026·매주 수요일·11:30/12:30 확인. 상단 구조화 설명에는 13:00 잔존하나 상세 본문과 포스터는 12:30 일치. 상단 대표 이미지 대신 6월 4일 본문 포스터 사용 후보.",
+    "verifiedOn": "2026-09-11",
+    "rights": {
+      "status": "restricted-pending-permission",
+      "source": "https://www.visitjeju.net/kr/common/terms",
+      "finding": "제14조: 상업적 목적 이용 불가, 무단 복제·배포 제한 및 사전 동의 예외. 공개 이미지 URL 존재만으로 외부 웹앱 재사용 허가 확정 불가. JEJU TourAPI 별도 계약 허용 여부 미확인."
+    },
+    "productionWrite": false
+  },
+  {
+    "name": "당진 삽교호 드론 라이트 쇼",
+    "sourceUrl": "https://www.dangjin.go.kr/prog/fstvlSchedule/tour/selectList.do",
+    "imageUrl": null,
+    "rejectedImageUrl": "https://www.dangjin.go.kr/cmm/fms/FILE_000000001190321/getImage.do?atchFileId=FILE_000000001190321&fileSn=0&kind=160",
+    "imageStatus": "reject-spring-poster",
+    "operatingDates": "공식 관광 일정 본문: 상반기 2026-05-02~06-06, 하반기 2026-09-12~10-17, 매주 토요일.",
+    "weekendStatus": "9월12일 토요일 해당. 일요일 제외. 10월31일 종료 데이터 수정 필요.",
+    "notes": "공식 JSON cntNo=141 본문과 시작·종료 구조화필드 불일치(필드는 상반기만). 연결 포스터는 직접 확인 결과 5/2~6/6 상반기 포스터로 하반기 카드에 사용하지 않음. 홈페이지 djdrone.co.kr SSL 오류. 하반기 포스터 및 재사용 조건 미확인.",
+    "verifiedOn": "2026-09-11",
+    "rights": {
+      "status": "unconfirmed",
+      "finding": "후보가 구회차이거나 원문 접근 실패해 채택 가능한 이미지와 해당 이용조건을 확보하지 못함."
+    },
+    "productionWrite": false
+  },
+  {
+    "name": "2026 새연교 주말 문화공연 금토금토 새연쇼",
+    "sourceUrl": "https://www.visitjeju.net/kr/festival/view?contentsid=CNTS_300000000014207",
+    "imageUrl": "https://api.cdn.visitjeju.net/photomng/imgpath/202604/06/6470e530-4ee6-4ff8-b29c-457cea6130b8.webp",
+    "imageStatus": "identity-verified-rights-pending",
+    "operatingDates": "2026-04-25~10-31 매주 금·토 19:00~20:40, 기상 악화 시 취소 가능. 하계 특정기간 20:50까지.",
+    "weekendStatus": "토요일 해당, 일요일 제외.",
+    "notes": "이미지에서 2026·4/25~10/31·매주 금토 19시·20시 불꽃쇼·서귀포시 확인.",
+    "verifiedOn": "2026-09-11",
+    "rights": {
+      "status": "restricted-pending-permission",
+      "source": "https://www.visitjeju.net/kr/common/terms",
+      "finding": "제14조: 상업적 목적 이용 불가, 무단 복제·배포 제한 및 사전 동의 예외. 공개 이미지 URL 존재만으로 외부 웹앱 재사용 허가 확정 불가. JEJU TourAPI 별도 계약 허용 여부 미확인."
+    },
+    "productionWrite": false
+  },
+  {
+    "name": "2026 서울국제정원박람회",
+    "sourceUrl": "https://www.seoul.go.kr/festa/garden/y2026/introduce/introduce2026",
+    "posterSourceUrl": "https://gov.seoul.go.kr/festa/garden/y2026/introduce/expo-tips?article=45681",
+    "imageUrl": "https://gov.seoul.go.kr/festa/garden/files/2026/06/6a34fe043b0118.78066248-scaled.jpg",
+    "imageStatus": "identity-verified-web-poster-provided",
+    "operatingDates": "2026-05-01~10-27 서울숲. 서울시 4월30일 보도자료: 정원 관람 언제든 가능. 세부 프로그램 시간은 별도 일정.",
+    "weekendStatus": "주말 정원 관람 가능. 공연 등 특정 프로그램 개최 여부는 별도.",
+    "notes": "공식 포스터 게시물은 웹용(RGB)·인쇄용(CMYK) 다운로드를 명시. 포스터에서 2026·5/1~10/27·서울숲 확인. 행사개요 img-poster.jpg는 글자 없는 가로 배경 조각으로 제외. 매헌시민의숲은 10/1~10/27의 별도 장소 일정.",
+    "verifiedOn": "2026-09-11",
+    "rights": {
+      "status": "web-download-provided-scope-unconfirmed",
+      "source": "https://gov.seoul.go.kr/festa/garden/y2026/introduce/expo-tips?article=45681",
+      "finding": "공식 게시물이 웹용 포스터 다운로드를 제공함. 일반 상업 재사용·변형 허가 범위는 명시 미확인. 별도 배경화면 파일은 개인용 외 2차 가공·상업 이용 금지이므로 혼동하지 않음. 포스터 무변형 행사안내 사용 범위 확인 대상으로 남김."
+    },
+    "productionWrite": false
+  },
+  {
+    "name": "2026 제주목 관아 야간개장",
+    "sourceUrl": "https://m.visitjeju.net/kr/festival/view?contentsid=CNTS_300000000014416&menuId=DOM_000001718007000000",
+    "organizerUrl": "https://www.jeju.go.kr/mokkwana/data/notice.htm?act=view&seq=2017532",
+    "imageUrl": "https://api.cdn.visitjeju.net/photomng/imgpath/202606/11/6f2084c4-48ab-457e-8289-dc7e2501b51b.jpg",
+    "imageStatus": "identity-verified-rights-pending",
+    "operatingDates": "2026-05-01~10-31 수~일 18:00~21:00 야간산책, 월·화 제외, 무료. 버스킹·공연·교대의식은 별도 지정일.",
+    "weekendStatus": "9/12·13 야간산책은 해당. 제공된 정기공연 목록에는 그 주말 공연 없음.",
+    "notes": "2026 포스터 직접 검수. 버스킹 5/8·6/5·7/3·7/31·9/4·10/30, 특별공연 5/9·6/6·7/4·8/1·9/5·10/31. 교대의식 9/5·9/26·10/31. 특정 공연이 매주 열리는 것처럼 표시하면 안 됨.",
+    "verifiedOn": "2026-09-11",
+    "rights": {
+      "status": "restricted-pending-permission",
+      "source": "https://www.visitjeju.net/kr/common/terms",
+      "finding": "제14조: 상업적 목적 이용 불가, 무단 복제·배포 제한 및 사전 동의 예외. 공개 이미지 URL 존재만으로 외부 웹앱 재사용 허가 확정 불가. JEJU TourAPI 별도 계약 허용 여부 미확인."
+    },
+    "productionWrite": false
+  },
+  {
+    "name": "바람 불어 좋은 날, 판교에서",
+    "sourceUrl": "https://www.seocheonctf.or.kr/board/exhibition/view/4947.do?page=1&searchkey=&searchword=",
+    "secondaryOfficialUrl": "https://cnc.cacf.or.kr/main/html/sub02/02.html?mng_no=9453&mode=V",
+    "imageUrl": null,
+    "imageStatus": "unresolved-source-404",
+    "operatingDates": "2026-05-30~09-26 화~일 09:00~18:00, 월요일 휴관. 프로그램별 기간 상이.",
+    "weekendStatus": "주말 전시 관람 가능. 개별 영화·대화 프로그램은 별도.",
+    "notes": "서천문화관광재단 공식 검색 색인에 상세 날짜/시간/입장료 확인, 직접 원문은 www/비www 모두 404. 충남문화포털 공식 색인도 날짜·월요일 휴관 일치. 포스터 파일명 1779975859831_o13d.jpg만 색인에 노출, 완전 URL 및 시각 검수·사용조건 미확인. URL을 추측하지 않음.",
+    "verifiedOn": "2026-09-11",
+    "rights": {
+      "status": "unconfirmed",
+      "finding": "후보가 구회차이거나 원문 접근 실패해 채택 가능한 이미지와 해당 이용조건을 확보하지 못함."
+    },
+    "productionWrite": false
+  },
+  {
+    "name": "2026 제주 거리예술제 하반기",
+    "sourceUrl": "https://story.kakao.com/ch/jejusi/iWo8mJ9vfPa",
+    "organizerUrl": "https://blog.naver.com/wowjejusi/224260143422",
+    "imageUrl": null,
+    "rejectedImageUrl": "https://story-img.kakaocdn.net/dn/wlG5W/dJMb971xqoW/BWydwXkikkKNGTfFUKo0KK/img_l.jpg?width=2150&height=3071&avg=%2523d8dbc2&v=2",
+    "imageStatus": "reject-spring-poster",
+    "operatingDates": "제주시 공식 인증 채널: 하반기 2026-09-04~11-13 매주 금·토, 주2회 총20회. 누웨마루19:00~20:30/칠성로14:00~15:30.",
+    "weekendStatus": "토요일 해당, 일요일 제외. 정확한 장소별 회차는 새 하반기 공지 확인 필요.",
+    "notes": "공식 SNS 텍스트에 하반기 운영 기재. 그러나 해당 게시물 og:image는 직접 시각 검수 결과 4/24~6/6 상반기 포스터. 하반기용으로 채택하지 않음. 날짜 범위 금·토 횟수와 총20회도 완전 일치하지 않아 취소/휴무 예외 미확인.",
+    "verifiedOn": "2026-09-11",
+    "rights": {
+      "status": "unconfirmed",
+      "finding": "후보가 구회차이거나 원문 접근 실패해 채택 가능한 이미지와 해당 이용조건을 확보하지 못함."
+    },
+    "productionWrite": false
+  }
+]

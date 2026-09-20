@@ -1,3 +1,4 @@
+import { shareOperatingDay } from './operating-days.ts'
 import { distanceKm, isAlwaysOn, statusOf } from './festival-fields.ts'
 import type { FeeKind } from './festival-fields.ts'
 import type { Festival } from './festivals.ts'
@@ -40,7 +41,8 @@ export function nearbyFestivals(
         x.lat != null &&
         x.lng != null &&
         statusOf(x, today) !== 'ended' &&
-        !isAlwaysOn(x),
+        !isAlwaysOn(x) &&
+        shareOperatingDay(f, x),
     )
     .map((x) => ({ x, km: distanceKm(origin, { lat: x.lat as number, lng: x.lng as number }) }))
     .filter((o) => o.km <= radiusKm)
