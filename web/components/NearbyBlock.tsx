@@ -96,12 +96,16 @@ export default function NearbyBlock({ all, lang }: { all: Festival[]; lang: Lang
             <h2 className="h-display text-[22px] text-ink sm:text-[24px]">{t(lang, 'nearby.title')}</h2>
             <p className="mt-1 text-[14px] text-muted">{t(lang, 'nearby.startNote')}</p>
           </div>
-          <button
-            onClick={ask}
+          {/* 누르면 홈에서 펼치지 않고 전국 축제의 '거리순' 화면으로 바로 간다(2026-09-20 팀 요청).
+              홈에서 네 장만 펼쳐 보여 주고 '모두 보기'를 한 번 더 누르게 하는 것은 같은 일을 두 번 시키는 것이었다.
+              위치 허용은 목록 화면이 묻는다(lib/list-state.ts의 useDistanceCoords) — 거절해도 날짜순 목록은 남는다.
+              이미 이번 방문에서 위치를 허용한 사람에게는 아래의 가까운 네 장 미리보기를 그대로 보여 준다. */}
+          <Link
+            href={`/${lang}/festivals/?sort=distance&period=ongoing`}
             className="shrink-0 rounded-full bg-brand px-5 py-2.5 text-[14px] font-bold text-white transition hover:bg-brand-600"
           >
             {t(lang, 'nearby.start')}
-          </button>
+          </Link>
         </div>
       </section>
     )
