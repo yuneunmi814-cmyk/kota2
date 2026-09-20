@@ -177,15 +177,17 @@ export default function FestivalList({
   return (
     <div ref={rowsRef}>
       {/* 검색 */}
-      <div className="mb-5 flex items-center gap-2 rounded-full border border-line bg-surface px-5 py-1 focus-within:border-brand">
-        <Icon name="search" size={18} className="text-hint" />
-        <input
-          aria-label={t(lang, 'search.placeholder')}
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder={t(lang, 'search.placeholder')}
-          className="min-w-0 flex-1 bg-transparent py-3 text-[15px] outline-none placeholder:text-hint"
-        />
+      <div className="sticky top-[65px] z-20 -mx-5 mb-5 bg-paper/95 px-5 py-3 backdrop-blur-sm">
+        <div className="flex items-center gap-2 rounded-full border border-line bg-surface px-5 py-1 focus-within:border-brand">
+          <Icon name="search" size={18} className="text-hint" />
+          <input
+            aria-label={t(lang, 'search.placeholder')}
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder={t(lang, 'search.placeholder')}
+            className="min-w-0 flex-1 bg-transparent py-3 text-[15px] outline-none placeholder:text-hint"
+          />
+        </div>
       </div>
 
       <fieldset className="mb-5 rounded-xl border border-line p-4">
