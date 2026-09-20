@@ -98,7 +98,7 @@ export default function KakaoMap({
   if (EMBED) {
     return (
       <figure className="overflow-hidden rounded-[var(--radius-card)] border border-line">
-        <div ref={box} className="aspect-[16/9] w-full bg-[#f2f2f0]" />
+        <div ref={box} className="aspect-[16/9] w-full bg-paper-2" />
         <figcaption className="flex items-center justify-between gap-3 px-3 py-2 text-[12px] text-hint">
           <span className="truncate">{label}</span>
           <a href={href} target="_blank" rel="noopener noreferrer" className="shrink-0 font-bold text-brand hover:underline">

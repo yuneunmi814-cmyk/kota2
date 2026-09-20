@@ -46,7 +46,7 @@ export default function ThemeRail({
             href={`/${lang}/themes/${key}/`}
             className="lift group w-[168px] shrink-0 snap-start overflow-hidden rounded-[var(--radius-card)] border border-line bg-surface lg:w-auto"
           >
-            <div className="relative aspect-[4/3] overflow-hidden bg-[#f2f2f0]">
+            <div className="relative aspect-[4/3] overflow-hidden bg-paper-2">
               {face?.imageUrl ? (
                 <>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
