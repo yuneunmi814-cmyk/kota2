@@ -13,7 +13,7 @@ import { useState } from 'react'
 // 라벨을 달아도 대부분은 축제 사진으로 읽는다. 채워 보이려고 엉뚱한 사진을 놓느니
 // 없다고 말하는 편이 정직하고, 여행자도 헛된 기대를 안 한다.
 
-const PLACEHOLDER = 'bg-paper-2'
+const PLACEHOLDER = 'bg-[#f2f2f0]'
 
 // http:// 로만 열리는 포스터는 우리 중계(app/img)를 거쳐 부른다.
 //
@@ -105,7 +105,7 @@ export default function Poster({
       )}
       {/* 포스터가 없거나 죽은 링크일 때 — 상태를 그대로 말한다 */}
       {(!src || failed) && pendingLabel && (
-        <div className="pattern-changsal-fill absolute inset-0 flex flex-col justify-center gap-3 border-b border-line px-5 py-7">
+        <div className="absolute inset-0 flex flex-col justify-center gap-3 border-b border-line bg-brand-50 px-5 py-7">
           <span className="line-clamp-3 text-xl font-bold leading-snug text-brand">{name}</span>
           <span className="text-xs font-medium text-muted">{pendingLabel}</span>
         </div>
