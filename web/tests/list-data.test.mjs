@@ -73,6 +73,23 @@ test('날짜순은 진행중 단기 축제를 먼저, 상시 행사를 마지막
   )
 })
 
+test('날짜순은 같은 묶음 안에서 사진 있는 축제를 먼저 두되, 묶음 경계와 날짜순은 지킨다', () => {
+  const rows = [
+    item({ k: 'ongoing:no-img:ends-first', st: 'ongoing', e: '2026-09-03' }),
+    item({ k: 'ongoing:img:ends-later', st: 'ongoing', e: '2026-09-08', img: 'https://example.com/a.jpg' }),
+    item({ k: 'ongoing:img:ends-first', st: 'ongoing', e: '2026-09-04', img: 'https://example.com/b.jpg' }),
+    item({ k: 'upcoming:img', s: '2026-09-20', img: 'https://example.com/c.jpg' }),
+    item({ k: 'upcoming:no-img', s: '2026-09-10' }),
+  ]
+
+  assert.deepEqual(
+    sortListItems(rows, 'date', null).map(({ f }) => f.k),
+    // 사진 없는 진행중 축제는 사진 있는 '예정' 축제보다는 앞이다 — 묶음 경계를 넘지 않는다
+    ['ongoing:img:ends-first', 'ongoing:img:ends-later', 'ongoing:no-img:ends-first', 'upcoming:img', 'upcoming:no-img'],
+  )
+  assert.equal(rows.length, 5, '사진 없는 축제도 목록에서 빠지지 않는다')
+})
+
 test('거리순과 인기순은 원본 목록을 바꾸지 않는다', () => {
   const rows = [
     item({ k: 'festival:far-popular', lat: 35.1796, lng: 129.0756, pop: 100 }),

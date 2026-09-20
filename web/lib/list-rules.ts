@@ -62,13 +62,22 @@ export function travelRange(from?: string | null, to?: string | null): [string, 
   return [a || b, b || a].sort() as [string, string]
 }
 
-/** 날짜순 기본 정렬 — 진행중 단기, 예정, 장기, 상시 순서. */
+/** 날짜순 기본 정렬 — 진행중 단기, 예정, 장기, 상시 순서.
+ *
+ * 같은 묶음 안에서는 사진이 있는 축제를 먼저 둔다(2026-09-18 팀 회의 결정). 날짜순 맨 앞은
+ * '오늘 끝나는 축제'인데 거기에 사진 없는 행이 몰려, 목록 첫 줄 네 장이 전부 빈 카드였다(2026-09-20 실측).
+ * 사진 없는 축제를 지우지는 않는다 — 주최 측이 안 올렸을 뿐 열리는 축제다. 순서만 뒤로 보낸다.
+ * 묶음(진행중/예정/장기/상시) 경계는 넘지 않고, 각 절반 안에서는 날짜순을 그대로 지킨다.
+ */
 export function defaultOrder(items: ListItem[]): ListItem[] {
   const rank = (x: ListItem) => (x.al ? 3 : x.lr ? 2 : x.st === 'ongoing' ? 0 : 1)
   return [...items].sort((a, b) => {
     const ra = rank(a)
     const rb = rank(b)
     if (ra !== rb) return ra - rb
+    const ia = a.img ? 0 : 1
+    const ib = b.img ? 0 : 1
+    if (ia !== ib) return ia - ib
     return ra === 0 ? a.e.localeCompare(b.e) : a.s.localeCompare(b.s)
   })
 }
