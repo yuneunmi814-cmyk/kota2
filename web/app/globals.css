@@ -213,6 +213,20 @@ body {
 .pattern-changsal-fill { background-image: url('/pattern/changsal-light.svg'); background-size: 72px 72px; background-color: var(--color-brand-50); }
 [data-theme='navy'] .pattern-changsal-fill { background-image: url('/pattern/changsal-navy.svg'); }
 
+/* 홈을 뺀 모든 화면의 맨 위(헤더 아래)·맨 아래(푸터 위) 띠 — 창살 한 줄. 홈은 히어로가 이미 문양을 쓴다 */
+.pattern-changsal-band {
+  height: 40px;
+  background-color: var(--color-brand-50);
+  background-image: url('/pattern/changsal-light.svg');
+  background-size: 40px 40px;
+  background-position: center top;
+  background-repeat: repeat-x;
+}
+[data-theme='navy'] .pattern-changsal-band { background-image: url('/pattern/changsal-navy.svg'); }
+@media (max-width: 640px) {
+  .pattern-changsal-band { height: 32px; background-size: 32px 32px; }
+}
+
 /* 로고는 테마마다 글자색이 다른 판을 쓴다(남색 바탕에 남색 'Korea Festa'는 안 보인다) */
 .logo-dark { display: none; }
 [data-theme='navy'] .logo-light { display: none; }
