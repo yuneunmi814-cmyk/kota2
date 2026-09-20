@@ -51,6 +51,7 @@ export default function KakaoMap({
   lat,
   lng,
   label,
+  displayLabel,
   festivalId,
   linkLabel,
   loadingLabel,
@@ -58,6 +59,8 @@ export default function KakaoMap({
   lat: number
   lng: number
   label: string
+  /** 화면에 보일 글자. 없으면 label. 카카오맵 링크에는 늘 한국어 label을 쓴다(목적지 이름) */
+  displayLabel?: string
   festivalId?: string
   linkLabel: string
   // 화면에 안 보이는 문구라고 번역을 건너뛰면 안 된다 — 스크린리더 사용자에게는 이게 화면이다.
@@ -100,7 +103,7 @@ export default function KakaoMap({
       <figure className="overflow-hidden rounded-[var(--radius-card)] border border-line">
         <div ref={box} className="aspect-[16/9] w-full bg-paper-2" />
         <figcaption className="flex items-center justify-between gap-3 px-3 py-2 text-[12px] text-hint">
-          <span className="truncate">{label}</span>
+          <span className="truncate">{displayLabel ?? label}</span>
           <a href={href} target="_blank" rel="noopener noreferrer" className="shrink-0 font-bold text-brand hover:underline">
             {linkLabel}
           </a>
@@ -125,7 +128,7 @@ export default function KakaoMap({
         <Icon name="pin" size={22} />
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-[15px] font-bold text-ink group-hover:text-brand">{label}</span>
+        <span className="block truncate text-[15px] font-bold text-ink group-hover:text-brand">{displayLabel ?? label}</span>
         <span className="mt-0.5 block text-[13px] text-hint">{linkLabel}</span>
       </span>
       <span className="shrink-0 text-hint transition group-hover:translate-x-0.5 group-hover:text-brand">

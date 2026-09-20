@@ -156,13 +156,13 @@ export default function FestivalBody({ f, L, lang, ytId, mapHref, ended }: {
             </div>
           </div>
         )}
-        {hasCoords ? <KakaoMap lat={f.lat as number} lng={f.lng as number} label={f.address ?? L.placeName ?? L.name} festivalId={f.externalId} linkLabel={t(l, 'map.open')} loadingLabel={t(l, 'map.loading')} /> : <p className="text-[15px] text-muted">{t(l, 'detail.noLocation')}</p>}
+        {hasCoords ? <KakaoMap lat={f.lat as number} lng={f.lng as number} label={f.address ?? L.placeName ?? L.name} displayLabel={l !== 'ko' && f.address ? localizeAddress(f.address, l) : undefined} festivalId={f.externalId} linkLabel={t(l, 'map.open')} loadingLabel={t(l, 'map.loading')} /> : <p className="text-[15px] text-muted">{t(l, 'detail.noLocation')}</p>}
         {mapHref && <a href={mapHref} target="_blank" rel="noopener noreferrer" className="mt-4 inline-flex items-center gap-2 rounded-full bg-kakao px-5 py-2.5 text-[14px] font-bold text-kakao-ink hover:brightness-95"><Icon name="pin" size={16} />{t(l, 'detail.directions')}</a>}
       </section>
 
       <section id="contact" className={sectionClass}>
         <h2 className={headingClass}>{t(l, 'detail.contact')}</h2>
-        {f.organizer && <dl className="mb-4 border-t border-line"><Fact label={t(l, 'detail.organizer')}>{f.organizer}<OriginalNote lang={l} text={f.organizer} /></Fact></dl>}
+        {f.organizer && <dl className="mb-4 border-t border-line"><Fact label={t(l, 'detail.organizer')}>{f.organizer}{l !== 'ko' && /[가-힣]/.test(f.organizer) && <p className="mt-1 text-[13px] leading-relaxed text-muted">{t(l, 'detail.koOrganizer')}</p>}</Fact></dl>}
         {(f.homepage || f.instagram || f.tel) ? <>
           <p className="mb-4 text-[13px] leading-relaxed text-muted">{t(l, 'official.sub')}</p>
           <div className="flex flex-wrap gap-2">
