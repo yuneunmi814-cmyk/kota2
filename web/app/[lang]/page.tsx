@@ -215,7 +215,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
 
       </main>
 
-      <Footer lang={l} />
+      <Footer lang={l} band={false} />
     </>
   )
 }

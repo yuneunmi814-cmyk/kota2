@@ -23,6 +23,7 @@ export default function Header({ lang, path = '' }: { lang: Lang; path?: string 
   const allLabel =
     lang === 'ko' ? '축제 전체' : lang === 'ja' ? '祭り一覧' : lang === 'th' ? 'เทศกาลทั้งหมด' : 'All festivals'
   return (
+    <>
     <header className="sticky top-0 z-30 border-b border-line bg-paper/90 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5">
         {/* 로고 — 「KOTA Korea Festa」. 태극 O와 오방색 엠블럼이 '한국 축제'를 첫눈에 말한다.
@@ -94,5 +95,8 @@ export default function Header({ lang, path = '' }: { lang: Lang; path?: string 
         </nav>
       </div>
     </header>
+    {/* 홈(path 없음)은 히어로가 문양을 쓰므로 띠를 두지 않는다 */}
+    {clean !== '' && <div aria-hidden className="pattern-changsal-band border-b border-line" />}
+    </>
   )
 }

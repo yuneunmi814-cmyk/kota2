@@ -17,9 +17,10 @@ const OPERATOR: Record<Lang, string> = {
   th: `ดำเนินการโดย Project Yoon (프로젝트윤) · ผู้แทน Yoon Eunmi · เลขทะเบียนธุรกิจ ${BIZ_NO}`,
 }
 
-export default function Footer({ lang }: { lang: Lang }) {
+export default function Footer({ lang, band = true }: { lang: Lang; band?: boolean }) {
   return (
     <footer className="border-t border-line bg-paper-2/60">
+      {band && <div aria-hidden className="pattern-changsal-band border-b border-line" />}
       <div className="mx-auto max-w-6xl space-y-3 px-5 py-10 text-[13px] text-hint">
         {/* 법적고지는 모든 화면에서 두 번 안에 닿아야 한다 — 푸터가 그 자리다 */}
         <nav className="flex flex-wrap gap-x-4 gap-y-2">
