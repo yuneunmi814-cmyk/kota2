@@ -1,5 +1,19 @@
 @import 'tailwindcss';
 
+/* ── 2026-09-20 팔레트 교체: 초록(트립어드바이저 실측) → 로고 추출색 ──────────────
+ *
+ * 로고가 「KOTA Korea Festa」(태극 O · 오방색)로 확정되면서 화면도 같은 목소리를 내야 했다.
+ * 로고만 한국적이고 화면이 초록 OTA 그대로면 로고가 붙인 스티커처럼 보인다(전도준 레퍼런스 보고서 v2).
+ * 방향은 보고서의 1번 「창살」 — 화려한 로고 옆에서 화면은 조용하게. 면의 90%는 흰색과 남색,
+ * 태극 빨강·파랑은 뱃지·링크 같은 작은 자리에만 쓴다. 노랑·주황은 흰 바탕에서 안 읽혀(2.1·2.8:1) 글자에 쓰지 않는다.
+ *
+ * 아래 @theme의 옛 주석(트립어드바이저 실측 이야기)은 '왜 글씨색과 브랜드색을 하나로 쓰는가'의
+ * 근거라 남겨 둔다 — 색만 남색으로 옮겼고 그 요령은 그대로다.
+ *
+ * 테마는 둘이다. 화이트(기본)와 네이비. <html data-theme>로 가른다.
+ * 기본값은 언어로 정한다: 태국어=네이비, 그 외=화이트(전도준: 일본은 차분한 흰 화면, 태국은 밤 장면을 좋아했다).
+ * 헤더의 버튼으로 바꾸면 그 선택을 기억한다. */
+
 /* 디자인 토큰.
  *
  * 색은 직접 고른다 — "깔끔하게"만 시키면 어느 프로젝트든 같은 회색·파랑이 나오고,
@@ -27,24 +41,24 @@
    *
    * 그래서 brand 와 ink 가 같은 색이다. 그쪽도 이 초록 하나로 글씨·버튼·테두리를
    * 다 쓴다. 색 수를 늘리지 않는 게 이 팔레트의 요령이다. */
-  --color-brand: #002b11;
-  --color-brand-600: #003d1a; /* 어두운 면의 hover — 검정에 가까워 밝히는 쪽으로 */
-  --color-brand-400: #00ab42; /* 중간 초록 (실측) */
-  --color-brand-50: #eef2ef; /* 옅은 면 — 위 초록에서 파생 */
+  --color-brand: #1b346c;
+  --color-brand-600: #27478c; /* 어두운 면의 hover — 밝히는 쪽으로 */
+  --color-brand-400: #156aad; /* 로고 TA의 파랑 — 링크·선택 상태 */
+  --color-brand-50: #eef2f8; /* 옅은 면 — 위 남색에서 파생 */
 
   --color-paper: #ffffff;
-  --color-paper-2: #f7f7f7; /* 실측 — 그쪽에서 가장 흔한 면 */
+  --color-paper-2: #f6f7fa; /* 페이퍼 — 남색기 도는 아주 옅은 회색 */
   --color-surface: #ffffff;
 
   /* 초록기 도는 중성. 흰 바탕 위 ink 15.5:1, muted 10.2:1, hint 3.7:1 */
-  --color-ink: #002b11;
-  --color-muted: #38443a;
-  --color-hint: #596f5e;
-  --color-line: #eaeaea;
+  --color-ink: #1b346c;
+  --color-muted: #4b5775;
+  --color-hint: #66718c;
+  --color-line: #e4e7ef;
 
   /* 급한 것을 알리는 자리 — 「오늘 종료」 뱃지, 오류 문구.
    * 트립어드바이저가 같은 자리에 쓰는 자홍(실측). 흰 글씨를 얹어 6.6:1. */
-  --color-r: #b61753;
+  --color-r: #de121d;
 
   /* 회전 배너 한 자리에만 쓰는 형광. 트립어드바이저 홈에서 그대로 가져온 색이고,
    * 실제로 그쪽도 이 색을 배너 근처 여섯 자리에만 쓴다(2026-08-18 실측).
@@ -52,8 +66,8 @@
    * 한때 이 색을 brand 자리에 올려 버튼·칩·배지까지 전부 칠한 적이 있는데, 목록마다
    * 형광 칩이 깔리니 정작 배너가 묻혔다. 형광은 화면에서 한 번 나올 때만 힘이 있다.
    * ⚠️ 위에 흰 글씨를 얹지 말 것 — 대비 1.7:1로 안 읽힌다. 잉크를 얹는다(9.1:1). */
-  --color-signal: #00eb5b;
-  --color-signal-ink: #04301b;
+  --color-signal: #e6eef8; /* 회전 배너의 면 — 옅은 남색 틴트. 그 위 글씨는 ink */
+  --color-signal-ink: #1b346c;
 
   /* 밖으로 나가는 버튼은 목적지의 색을 입는다.
    *
@@ -152,3 +166,87 @@ body {
 /* Visible keyboard navigation across discovery and detail controls. */
 :where(a, button, input, select, summary):focus-visible { outline: 3px solid var(--color-brand-400); outline-offset: 3px; }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; } }
+
+/* ── 네이비 테마 ────────────────────────────────────────────────────────────
+ * 토큰만 뒤집는다. 컴포넌트는 손대지 않는다 — 색을 직접 박은 곳이 거의 없어서 가능하다. */
+[data-theme='navy'] {
+  --color-brand: #9cc8f3;      /* 글씨·테두리로 쓰일 때 남색 바탕 위 9:1 */
+  --color-brand-600: #c2ddf8;
+  --color-brand-400: #6fb0ea;
+  --color-brand-50: #1a2d5c;
+  --color-paper: #0e1b3d;
+  --color-paper-2: #14244c;
+  --color-surface: #172a57;
+  --color-ink: #ffffff;
+  --color-muted: #c6cee2;
+  --color-hint: #97a3c2;
+  --color-line: #2a3c6b;
+  --color-r: #de121d;
+  --color-signal: #21407f;     /* 회전 배너의 면 — 바탕보다 한 단 밝은 남색 */
+  --color-signal-ink: #ffffff;
+  color-scheme: dark;
+}
+/* 네이비에서는 brand·ink가 밝은 색이 된다. 그 위에 얹힌 흰 글씨는 남색으로 뒤집는다.
+   (버튼마다 on-brand 토큰을 새로 다는 대신 여기 한 곳에서 처리한다 — 39곳을 건드리지 않으려고) */
+[data-theme='navy'] .bg-brand.text-white, [data-theme='navy'] .bg-brand .text-white,
+[data-theme='navy'] .bg-ink.text-white, [data-theme='navy'] .bg-ink .text-white,
+[data-theme='navy'] .hover\:bg-brand-600.text-white { color: #0e1b3d; }
+/* 사진 위에 얹는 흰 알약은 네이비에서도 흰색이다. 안의 글씨만 남색으로 고정한다 */
+[data-theme='navy'] .bg-white, [data-theme='navy'] [class*='bg-white/'] { color: #1b346c; }
+[data-theme='navy'] .bg-white .text-ink, [data-theme='navy'] [class*='bg-white/'] .text-ink { color: #1b346c; }
+
+/* ── 창살 문양 ──────────────────────────────────────────────────────────────
+ * 亞자 격자. 장식이 아니라 '틀'로 쓴다 — 글자 뒤에서는 거의 안 보이게, 오른쪽으로 갈수록 드러나게.
+ * 날짜·배율·상태처럼 읽어야 하는 정보 밑에는 깔지 않는다. 포스터 위에도 얹지 않는다. */
+.pattern-changsal {
+  background-image:
+    linear-gradient(90deg, var(--color-paper) 38%, color-mix(in srgb, var(--color-paper) 55%, transparent) 64%, transparent),
+    url('/pattern/changsal-light.svg');
+  background-size: auto, 96px 96px;
+}
+[data-theme='navy'] .pattern-changsal {
+  background-image:
+    linear-gradient(90deg, var(--color-paper) 38%, color-mix(in srgb, var(--color-paper) 55%, transparent) 64%, transparent),
+    url('/pattern/changsal-navy.svg');
+}
+/* 포스터 빈자리 — 같은 빈 카드가 수십 번 반복돼도 '만들다 만 화면'이 아니라 '창'으로 읽히게 */
+.pattern-changsal-fill { background-image: url('/pattern/changsal-light.svg'); background-size: 72px 72px; background-color: var(--color-brand-50); }
+[data-theme='navy'] .pattern-changsal-fill { background-image: url('/pattern/changsal-navy.svg'); }
+
+/* 로고는 테마마다 글자색이 다른 판을 쓴다(남색 바탕에 남색 'Korea Festa'는 안 보인다) */
+.logo-dark { display: none; }
+[data-theme='navy'] .logo-light { display: none; }
+[data-theme='navy'] .logo-dark { display: block; }
+.theme-icon-moon { display: block; } .theme-icon-sun { display: none; }
+[data-theme='navy'] .theme-icon-moon { display: none; } [data-theme='navy'] .theme-icon-sun { display: block; }
+
+/* 홈 히어로는 가운데 정렬이라 좌→우가 아니라 가운데→바깥으로 드러나게 한다 */
+.pattern-changsal-hero {
+  background-image:
+    radial-gradient(ellipse 58% 95% at 50% 45%, var(--color-paper) 52%, color-mix(in srgb, var(--color-paper) 50%, transparent) 78%, transparent),
+    url('/pattern/changsal-light.svg');
+  background-size: auto, 96px 96px;
+  background-position: center, center top;
+}
+[data-theme='navy'] .pattern-changsal-hero {
+  background-image:
+    radial-gradient(ellipse 58% 95% at 50% 45%, var(--color-paper) 52%, color-mix(in srgb, var(--color-paper) 50%, transparent) 78%, transparent),
+    url('/pattern/changsal-navy.svg');
+}
+
+/* 좁은 화면에서는 글자가 화면 폭을 다 쓴다. 문양이 글자 밑으로 들어오지 않게 가운데를 더 넓게 비운다 */
+@media (max-width: 640px) {
+  .pattern-changsal-hero, [data-theme='navy'] .pattern-changsal-hero {
+    background-size: auto, 72px 72px;
+  }
+  .pattern-changsal-hero {
+    background-image:
+      linear-gradient(180deg, transparent, var(--color-paper) 16%, var(--color-paper) 86%, transparent),
+      url('/pattern/changsal-light.svg');
+  }
+  [data-theme='navy'] .pattern-changsal-hero {
+    background-image:
+      linear-gradient(180deg, transparent, var(--color-paper) 16%, var(--color-paper) 86%, transparent),
+      url('/pattern/changsal-navy.svg');
+  }
+}

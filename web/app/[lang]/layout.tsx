@@ -41,8 +41,8 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
     description: s.desc,
     icons: {
       icon: [
-        { url: '/icon.svg', type: 'image/svg+xml' },
-        { url: '/favicon.ico', sizes: '32x32' },
+        { url: '/favicon.ico', sizes: '48x48' },
+        { url: '/icon.png', type: 'image/png', sizes: '512x512' },
       ],
       apple: '/apple-icon.png',
     },
@@ -80,7 +80,17 @@ export default async function LangLayout({
   if (!isLang(lang)) notFound()
   const l: Lang = lang
   return (
-    <html lang={HTML_LANG[l]}>
+    // data-theme 기본값은 언어로 정한다 — 태국어는 네이비, 그 외는 화이트.
+    // 방문자가 헤더에서 바꾼 적이 있으면 아래 인라인 스크립트가 첫 칠 전에 그 선택으로 덮는다.
+    // suppressHydrationWarning: 그 스크립트가 속성을 바꾸므로 서버 HTML과 다를 수 있다(의도된 차이).
+    <html lang={HTML_LANG[l]} data-theme={l === 'th' ? 'navy' : 'white'} suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: "try{var t=localStorage.getItem('kota-theme');if(t==='navy'||t==='white')document.documentElement.dataset.theme=t}catch(e){}",
+          }}
+        />
+      </head>
       <body className="bg-paper text-ink antialiased">
         <div id="page-start" tabIndex={-1} className="sr-only">{t(l, 'list.toTop')}</div>
         {children}

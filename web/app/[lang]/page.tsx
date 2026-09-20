@@ -106,21 +106,24 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
 
       <main className="pb-24">
         {/* 히어로 — 질문으로 연다. 목록을 먼저 보여주면 '또 하나의 축제 포털'이 된다 */}
-        <section className="mx-auto max-w-6xl px-5 pb-8 pt-10 text-center sm:pt-16">
-          <h1 className="h-display mx-auto max-w-3xl text-[40px] text-ink sm:text-[58px]">
-            {t(l, 'home.headline')}
-          </h1>
-          <p className="mx-auto mt-5 max-w-xl text-[16px] text-muted sm:text-[17px]">
-            {t(l, 'home.sub', { n: all.filter((f) => statusOf(f) !== 'ended').length })}
-          </p>
-          <div className="mt-7">
-            <SearchBar lang={l} />
+        {/* 창살 — 한옥 창의 격자. 가운데(글자 자리)는 비우고 양옆에서만 드러난다 */}
+        <section className="pattern-changsal-hero border-b border-line">
+          <div className="mx-auto max-w-6xl px-5 pb-10 pt-10 text-center sm:pt-16">
+            <h1 className="h-display mx-auto max-w-3xl text-[40px] text-ink sm:text-[58px]">
+              {t(l, 'home.headline')}
+            </h1>
+            <p className="mx-auto mt-5 max-w-xl text-[16px] text-muted sm:text-[17px]">
+              {t(l, 'home.sub', { n: all.filter((f) => statusOf(f) !== 'ended').length })}
+            </p>
+            <div className="mt-7">
+              <SearchBar lang={l} />
+            </div>
+            <nav className="mt-4 flex flex-wrap justify-center gap-2 text-sm font-semibold" aria-label={t(l, 'nav.festivals')}>
+              <Link className="rounded-full border border-line px-4 py-2 hover:border-brand" href={`/${l}/festivals/?period=weekend`}>{t(l, 'row.weekend')}</Link>
+              <Link className="rounded-full border border-line px-4 py-2 hover:border-brand" href={`/${l}/calendar/`}>{{ ko: '축제 달력', en: 'Calendar', ja: '祭りカレンダー', th: 'ปฏิทิน' }[l]}</Link>
+              <a className="rounded-full border border-line px-4 py-2 hover:border-brand" href="#nearby">{t(l, 'nearby.title')}</a>
+            </nav>
           </div>
-          <nav className="mt-4 flex flex-wrap justify-center gap-2 text-sm font-semibold" aria-label={t(l, 'nav.festivals')}>
-            <Link className="rounded-full border border-line px-4 py-2 hover:border-brand" href={`/${l}/festivals/?period=weekend`}>{t(l, 'row.weekend')}</Link>
-            <Link className="rounded-full border border-line px-4 py-2 hover:border-brand" href={`/${l}/calendar/`}>{{ ko: '축제 달력', en: 'Calendar', ja: '祭りカレンダー', th: 'ปฏิทิน' }[l]}</Link>
-            <a className="rounded-full border border-line px-4 py-2 hover:border-brand" href="#nearby">{t(l, 'nearby.title')}</a>
-          </nav>
         </section>
 
         {/* 회전 배너 — 트립어드바이저 히어로 바로 아래의 형광 초록 자리 */}

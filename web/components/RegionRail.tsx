@@ -50,7 +50,7 @@ export default function RegionRail({
             href={`/${lang}/festivals/?region=${region.key}`}
             className="lift group w-[132px] shrink-0 snap-start lg:w-auto"
           >
-            <div className="relative aspect-square overflow-hidden rounded-full bg-[#f2f2f0]">
+            <div className="relative aspect-square overflow-hidden rounded-full bg-paper-2">
               {face?.imageUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img

@@ -3,6 +3,7 @@ import { Suspense } from 'react'
 import { LANGS, LANG_NAME, type Lang } from '@/lib/i18n'
 import Icon from './Icon'
 import LanguageSwitcher from './LanguageSwitcher'
+import ThemeToggle from './ThemeToggle'
 
 // 헤더 — 언어 전환이 <a>로 되어 있는 것이 핵심이다.
 //
@@ -24,18 +25,14 @@ export default function Header({ lang, path = '' }: { lang: Lang; path?: string 
   return (
     <header className="sticky top-0 z-30 border-b border-line bg-paper/90 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5">
-        {/* 축포 — 꼬깔에서 조각이 터져 나오는 표식.
-            글자만 있던 자리에 마크를 더한다. 이모지(🎉)를 쓰지 않는 이유는 기기·OS마다
-            다르게 그려져 로고 구실을 못 하기 때문이다. 인라인 SVG라 어디서나 같게 보인다. */}
-        <Link href={`/${lang}/`} className="flex items-center gap-2 text-[21px] font-black tracking-tight text-brand">
-          <svg viewBox="0 0 24 24" className="h-[22px] w-[22px] shrink-0" aria-hidden="true">
-            <path d="M2.6 21.4 9.4 9.2a1.1 1.1 0 0 1 1.7-.25l3.9 3.9a1.1 1.1 0 0 1-.25 1.7L2.6 21.4z" fill="currentColor" />
-            <circle cx="17.6" cy="6.4" r="2.5" fill="var(--color-signal)" />
-            <rect x="12.6" y="1.2" width="2.6" height="4.4" rx="1.3" transform="rotate(-24 13.9 3.4)" fill="var(--color-signal)" />
-            <rect x="19.8" y="9.4" width="4.4" height="2.6" rx="1.3" transform="rotate(-14 22 10.7)" fill="var(--color-signal)" />
-            <rect x="19.6" y="1.6" width="2.6" height="4" rx="1.3" transform="rotate(38 20.9 3.6)" fill="var(--color-signal)" />
-          </svg>
-          KOTA
+        {/* 로고 — 「KOTA Korea Festa」. 태극 O와 오방색 엠블럼이 '한국 축제'를 첫눈에 말한다.
+            테마마다 'Korea Festa' 글자색이 다른 판을 쓴다: 둘 다 그려 두고 CSS가 하나만 보여 준다
+            (서버가 그린 HTML과 첫 화면이 어긋나지 않게). 폭·높이를 적어 자리 밀림을 막는다. */}
+        <Link href={`/${lang}/`} className="flex shrink-0 items-center" aria-label="KOTA Korea Festa">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo-light.webp" alt="KOTA Korea Festa" width={420} height={146} className="logo-light h-10 w-auto sm:h-11" />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo-dark.webp" alt="" aria-hidden="true" width={420} height={146} className="logo-dark h-10 w-auto sm:h-11" />
         </Link>
 
         <nav className="flex items-center gap-1">
@@ -63,6 +60,8 @@ export default function Header({ lang, path = '' }: { lang: Lang; path?: string 
             <Icon name="calendar" size={16} />
             <span className="hidden sm:inline">{calendarLabel}</span>
           </Link>
+
+          <ThemeToggle lang={lang} />
 
           {/* 언어 — 링크라서 크롤러가 4개 언어판을 모두 따라갈 수 있다 */}
           <div className="group relative">
