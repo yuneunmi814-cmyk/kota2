@@ -1,7 +1,9 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import type { ReactNode } from 'react'
+import BackToTop from '@/components/BackToTop'
 import { HTML_LANG, LANGS, SITE_URL, isLang, type Lang } from '@/lib/i18n'
+import { t } from '@/lib/ui'
 import '../globals.css'
 
 // 언어별 레이아웃 — 여기서 <html lang>과 hreflang이 정해진다.
@@ -79,7 +81,11 @@ export default async function LangLayout({
   const l: Lang = lang
   return (
     <html lang={HTML_LANG[l]}>
-      <body className="bg-paper text-ink antialiased">{children}</body>
+      <body className="bg-paper text-ink antialiased">
+        <div id="page-start" tabIndex={-1} className="sr-only">{t(l, 'list.toTop')}</div>
+        {children}
+        <BackToTop lang={l} />
+      </body>
     </html>
   )
 }

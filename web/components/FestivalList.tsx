@@ -416,21 +416,10 @@ export default function FestivalList({
             </div>
           )}
 
-          {/* 맨 위·맨 아래 — 한참 내려간 뒤에만 나온다. 처음부터 떠 있으면 카드를 가릴 뿐이다.
-              '맨 아래'는 지금 펼쳐 놓은 만큼의 끝으로 간다(더 보기 자리) — 거기가 다음 행동이 있는 곳이다.
-              데스크톱에서도 목록은 길지만 마우스 휠과 스크롤바가 있어 급하지 않다. 좁은 화면만 띄운다. */}
+          {/* 맨 아래 — 한참 내려간 뒤에만 나온다. 목록 전용 다음 행동은 유지하되,
+              공용 맨 위 버튼과 겹치지 않도록 위쪽에 둔다. */}
           {farDown && (
-            <div className="fixed bottom-5 right-4 z-30 flex flex-col gap-2 sm:hidden">
-              <button
-                type="button"
-                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                aria-label={t(lang, 'list.toTop')}
-                className="flex h-11 w-11 items-center justify-center rounded-full border border-line bg-surface/95 text-brand shadow-[0_6px_20px_-8px_rgba(79,50,22,.5)] backdrop-blur transition hover:border-brand/40"
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                  <path d="M12 19V5M5 12l7-7 7 7" />
-                </svg>
-              </button>
+            <div className="fixed bottom-28 right-4 z-30 flex flex-col gap-2 sm:hidden">
               <button
                 type="button"
                 onClick={() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })}
