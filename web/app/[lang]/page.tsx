@@ -157,7 +157,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
             <nav className="mt-4 flex flex-wrap justify-center gap-2 text-sm font-semibold" aria-label={t(l, 'nav.festivals')}>
               <Link className="rounded-full border border-line px-4 py-2 hover:border-brand" href={`/${l}/festivals/?period=weekend`}>{t(l, 'row.weekend')}</Link>
               <Link className="rounded-full border border-line px-4 py-2 hover:border-brand" href={`/${l}/calendar/`}>{{ ko: '축제 달력', en: 'Calendar', ja: '祭りカレンダー', th: 'ปฏิทิน' }[l]}</Link>
-              <a className="rounded-full border border-line px-4 py-2 hover:border-brand" href="#nearby">{t(l, 'nearby.title')}</a>
+              <Link className="rounded-full border border-line px-4 py-2 hover:border-brand" href={`/${l}/festivals/?sort=distance&period=ongoing`}>{t(l, 'nearby.title')}</Link>
             </nav>
           </div>
         </section>
