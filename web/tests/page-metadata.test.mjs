@@ -32,6 +32,8 @@ test('the theme share card follows the Japanese theme URL instead of the home UR
   assert.deepEqual(meta.alternates.languages, {
     ko: 'https://ko-ta.co.kr/ko/themes/food/', en: 'https://ko-ta.co.kr/en/themes/food/',
     ja: 'https://ko-ta.co.kr/ja/themes/food/', th: 'https://ko-ta.co.kr/th/themes/food/',
+    // 네 언어 어디에도 안 맞는 방문자용 — 외국인 여행자가 주 대상이라 영어판
+    'x-default': 'https://ko-ta.co.kr/en/themes/food/',
   })
 })
 

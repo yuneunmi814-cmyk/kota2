@@ -30,9 +30,9 @@ export default function Header({ lang, path = '' }: { lang: Lang; path?: string 
             (서버가 그린 HTML과 첫 화면이 어긋나지 않게). 폭·높이를 적어 자리 밀림을 막는다. */}
         <Link href={`/${lang}/`} className="flex shrink-0 items-center" aria-label="KOTA Korea Festa">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo-light.webp" alt="KOTA Korea Festa" width={420} height={146} className="logo-light h-10 w-auto sm:h-11" />
+          <img src="/logo-light.webp" alt="KOTA Korea Festa" width={880} height={304} className="logo-light h-10 w-auto sm:h-11" />
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo-dark.webp" alt="" aria-hidden="true" width={420} height={146} className="logo-dark h-10 w-auto sm:h-11" />
+          <img src="/logo-dark.webp" alt="" aria-hidden="true" width={880} height={304} className="logo-dark h-10 w-auto sm:h-11" />
         </Link>
 
         <nav className="flex items-center gap-1">
