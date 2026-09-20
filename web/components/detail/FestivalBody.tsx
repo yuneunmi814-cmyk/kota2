@@ -3,6 +3,7 @@ import { todayKst } from '@/lib/date'
 import { editorialField } from '@/lib/editorial'
 import { feeKind, isAlwaysOn, isLongRun, isPublicData, type Festival } from '@/lib/festivals'
 import { localized } from '@/lib/festival-fields'
+import { localizeAddress } from '@/lib/address-i18n'
 import type { Lang } from '@/lib/i18n'
 import { t } from '@/lib/ui'
 import KakaoMap from '@/components/KakaoMap'
@@ -142,7 +143,19 @@ export default function FestivalBody({ f, L, lang, ytId, mapHref, ended }: {
 
       <section id="location" className={sectionClass}>
         <h2 className={headingClass}>{t(l, 'detail.location')}</h2>
-        {(f.address || L.placeName) && <p className="mb-4 text-[15px] font-semibold text-ink">{f.address ?? L.placeName}</p>}
+        {/* 외국어 화면: 위에는 현지 표기 주소, 아래에는 한국어 주소를 '왜 있는지' 밝혀서 둔다.
+            한국어 주소는 택시 기사에게 보여 주거나 한국 지도 앱에 붙여 넣을 때 필요하다 */}
+        {l === 'ko' || !f.address ? (
+          (f.address || L.placeName) && <p className="mb-4 text-[15px] font-semibold text-ink">{f.address ?? L.placeName}</p>
+        ) : (
+          <div className="mb-4">
+            <p className="text-[15px] font-semibold text-ink">{localizeAddress(f.address, l)}</p>
+            <div className="mt-2 rounded-lg border border-line bg-paper-2/60 px-3 py-2">
+              <p className="text-[12px] leading-snug text-muted">{t(l, 'detail.koAddress')}</p>
+              <p lang="ko" className="mt-0.5 select-all text-[15px] font-semibold text-ink">{f.address}</p>
+            </div>
+          </div>
+        )}
         {hasCoords ? <KakaoMap lat={f.lat as number} lng={f.lng as number} label={f.address ?? L.placeName ?? L.name} festivalId={f.externalId} linkLabel={t(l, 'map.open')} loadingLabel={t(l, 'map.loading')} /> : <p className="text-[15px] text-muted">{t(l, 'detail.noLocation')}</p>}
         {mapHref && <a href={mapHref} target="_blank" rel="noopener noreferrer" className="mt-4 inline-flex items-center gap-2 rounded-full bg-kakao px-5 py-2.5 text-[14px] font-bold text-kakao-ink hover:brightness-95"><Icon name="pin" size={16} />{t(l, 'detail.directions')}</a>}
       </section>

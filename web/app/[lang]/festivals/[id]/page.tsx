@@ -11,6 +11,7 @@ import { festivalRoutePath, resolveFestivalRoute, staticFestivalSlugs } from '@/
 import { lookupAliasTargets } from '@/lib/route-aliases'
 import { LANGS, SITE_URL, isLang, pageMetadata, type Lang } from '@/lib/i18n'
 import { t } from '@/lib/ui'
+import { localizeAddress } from '@/lib/address-i18n'
 import { sidoLabel } from '@/lib/sido'
 import { ratingOf, reviewsOf } from '@/lib/reviews'
 import Reviews from '@/components/detail/Reviews'
@@ -150,7 +151,13 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
         <div className="mb-2 flex flex-wrap items-start justify-between gap-x-3 gap-y-2">
           <div className="min-w-0">
             <h1 className="h-display text-[28px] leading-[1.15] text-brand sm:text-[36px]">{L.name}</h1>
-            {l !== 'ko' && L.name !== f.name && <p className="mt-1 text-[14px] text-hint">{f.name}</p>}
+            {l !== 'ko' && L.name !== f.name && (
+              <div className="mt-1.5">
+                {/* 축제의 고유 이름은 번역하지 않고 한국어 그대로 둔다 — 지도 앱·택시·현장 간판이 모두 이 이름이다 */}
+                <p lang="ko" className="select-all text-[16px] font-semibold text-muted">{f.name}</p>
+                <p className="text-[12px] leading-snug text-hint">{t(l, 'detail.koName')}</p>
+              </div>
+            )}
           </div>
           <ShareButton
             lang={l}
@@ -218,7 +225,7 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
         {/* 바로 판단할 사실을 사진보다 앞에 둔다. 상세 본문은 이 값들의 맥락과 주의를 설명한다. */}
         <dl aria-label={t(l, 'detail.info')} className="mb-5 grid grid-cols-2 overflow-hidden rounded-[var(--radius-card)] border border-line bg-paper text-sm sm:grid-cols-4">
           <QuickFact label={t(l, 'detail.period')} value={<span className="tabular-nums">{fmt(f.startDate)} – {fmt(f.endDate)}</span>} />
-          <QuickFact label={t(l, 'detail.place')} value={f.address ?? L.placeName ?? t(l, 'detail.noLocation')} sub={l !== 'ko' && /[가-힣]/.test(f.address ?? L.placeName ?? '') ? t(l, 'detail.original') : undefined} />
+          <QuickFact label={t(l, 'detail.place')} value={(l !== 'ko' && f.address ? localizeAddress(f.address, l) : f.address) ?? L.placeName ?? t(l, 'detail.noLocation')} />
           <QuickFact label={t(l, 'detail.hours')} value={quickHours ?? t(l, 'detail.noHours')} sub={quickDays || hoursOriginal ? <>{quickDays}{hoursOriginal && <span className="block">{t(l, 'detail.original')}</span>}</> : undefined} />
           <QuickFact label={t(l, 'detail.fee')} value={longFee ? <><span className="line-clamp-2">{quickFee}</span><a href="#admission" className="mt-1 inline-block text-[12px] text-brand underline underline-offset-2">{t(l, 'detail.seeFee')}</a></> : quickFee} sub={L.feeIsOriginal ? t(l, 'detail.original') : undefined} />
         </dl>
