@@ -1,3 +1,4 @@
+import { operatingDaysLabel } from '@/lib/operating-days'
 import Link from 'next/link'
 import { localized, isAlwaysOn, isLongRun, dayBadge, type Festival } from '@/lib/festivals'
 import DayBadgeChip from './DayBadge'
@@ -36,6 +37,7 @@ export default function FestivalCard({
           className="transition-transform duration-500 group-hover:scale-[1.04]"
         />
         <DayBadgeChip badge={dayBadge(f)} lang={lang} />
+        {f.imageNotice === 'registration-closed' && <span className="absolute bottom-2 left-2 right-2 rounded bg-ink/85 px-2 py-1 text-[10px] font-bold text-white">{t(lang, 'poster.registrationClosed')}</span>}
         {f.imageFrom === 'past' && (
           <span className="absolute bottom-2 right-2 rounded-full bg-ink/70 px-2 py-0.5 text-[10px] font-bold text-white backdrop-blur-sm">
             {t(lang, 'poster.past')}
@@ -84,8 +86,8 @@ export default function FestivalCard({
         </p>
         {/* 두 달 넘게 걸린 기간은 대개 '그 사이 정해진 날에만' 열린다(주말마다, 월 1회…).
             날짜만 보여주면 아무 날이나 가도 되는 줄 알고 허탕을 친다 */}
-        {!always && isLongRun(f) && (
-          <p className="mt-0.5 text-[12px] text-hint/80">{t(lang, 'status.selectDates')}</p>
+        {!always && (isLongRun(f) || f.operatingWeekdays?.length) && (
+          <p className="mt-0.5 text-[12px] text-hint/80">{operatingDaysLabel(f.operatingWeekdays, lang) ?? t(lang, 'status.selectDates')}</p>
         )}
       </div>
     </Link>

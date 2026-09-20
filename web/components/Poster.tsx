@@ -69,12 +69,13 @@ export default function Poster({
   /** 히어로처럼 첫 화면에 보이는 자리에서는 lazy를 끈다 */
   eager?: boolean
 }) {
-  const [failed, setFailed] = useState(false)
+  const [failedSrc, setFailedSrc] = useState<string | null>(null)
+  const failed = !!src && failedSrc === src
   // 이미지가 있어도 틴트+첫 글자를 먼저 깔고 그 위에 얹는다 — 지자체 서버가 느려서
   // 로딩에 몇 초 걸리는 동안 흰 공백이 보이던 문제(실측). 로드되면 이미지가 덮는다.
   return (
     <div className={`relative flex h-full w-full items-center justify-center overflow-hidden ${PLACEHOLDER} ${className}`}>
-      <span className={`font-black leading-none text-ink/15 select-none ${letterClass}`} aria-hidden="true">
+      <span className={`font-black leading-none text-ink/15 select-none ${pendingLabel ? 'hidden' : letterClass}`} aria-hidden="true">
         {initial(name)}
       </span>
       {src && !failed && whole && (
@@ -93,7 +94,8 @@ export default function Poster({
           src={proxied(src)}
           alt={name}
           loading={eager ? 'eager' : 'lazy'}
-          onError={() => setFailed(true)}
+          onError={() => setFailedSrc(src ?? null)}
+          decoding="async"
           className={
             whole
               ? 'relative mx-auto h-full max-w-full object-contain'
@@ -103,9 +105,10 @@ export default function Poster({
       )}
       {/* 포스터가 없거나 죽은 링크일 때 — 상태를 그대로 말한다 */}
       {(!src || failed) && pendingLabel && (
-        <span className="absolute bottom-2 left-2 rounded-full bg-ink/10 px-2 py-0.5 text-[10px] font-bold text-ink/45">
-          {pendingLabel}
-        </span>
+        <div className="absolute inset-0 flex flex-col justify-center gap-3 border-b border-line bg-brand-50 px-5 py-7">
+          <span className="line-clamp-3 text-xl font-bold leading-snug text-brand">{name}</span>
+          <span className="text-xs font-medium text-muted">{pendingLabel}</span>
+        </div>
       )}
     </div>
   )

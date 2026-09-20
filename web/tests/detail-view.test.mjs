@@ -153,3 +153,11 @@ test('주소가 없으면 앞 24자만 보여주고 죽지 않는다', () => {
   assert.equal(sourceHost('한국관광공사'), '한국관광공사')
   assert.equal(sourceUrl('한국관광공사'), undefined)
 })
+
+test('same-trip recommendations exclude nearby events on different dates', () => {
+  const out = nearbyFestivals(기준, [
+    축제({externalId:'later',name:'Later',lat:34.89,lng:128.62,startDate:'2026-11-01',endDate:'2026-11-02'}),
+    축제({externalId:'overlap',name:'Overlap',lat:34.9,lng:128.62,startDate:'2026-09-03',endDate:'2026-09-05'}),
+  ], {today:'2026-09-01'})
+  assert.deepEqual(out.map(o=>o.x.externalId), ['overlap'])
+})

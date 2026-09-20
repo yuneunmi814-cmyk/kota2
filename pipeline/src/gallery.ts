@@ -1,20 +1,12 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import type { Festival } from './lib/types.js'
 import { QuotaError, getJson, serviceKey, sleep } from './lib/http.js'
+import { mediaPriority, retryDue, runLimit, reusableGalleryType } from './lib/media.js'
 import { normalizeName } from './lib/match.js'
 
-// 축제 사진 갤러리 — TourAPI detailImage2.
-//
-// 커버 이미지가 있는 축제(220건)의 82%가 추가 사진을 갖고 있다(평균 5장, 최대 14장).
-// 커버리지(391건 공백)는 1건도 줄지 않지만 상세 페이지 품질이 달라진다 — 지금은 사진 한 장뿐이라
-// 트립어드바이저식 사진 그리드를 유튜브 썸네일과 지도로 메우고 있었다.
-//
-// 신규 키·신규 라이선스 없음. 쿼터는 개발계정 1,000회/일이고 전수 1회가 약 300회다.
-// 캐시(data/gallery-cache.json)에 externalId로 저장해 매주 새 축제만 부른다.
-//
-// ⚠ 저작권: 이 사진들은 전부 공공누리 3유형(출처표시 + **변경금지**)이다(실측 1,095장 100%).
-// 크롭·리사이즈·텍스트 오버레이는 2차적저작물 작성으로 볼 소지가 있어, 화면에서는 원본 비율을
-// 유지하고(object-contain) CSS로만 표시 영역을 제어한다. 출처 표기도 화면에 붙인다.
+// TourAPI detailImage2 gallery. Covers are not required when a CMS ID exists.
+// Retry empty results, keep bounded request batches and retain per-photo rights metadata.
+// Only an explicitly returned Type1 or Type3 license is accepted; missing codes are not permission.
 
 const BASE = 'https://apis.data.go.kr/B551011/KorService2/detailImage2'
 const CACHE = new URL('../data/gallery-cache.json', import.meta.url)
@@ -25,7 +17,7 @@ interface Img { originimgurl?: string; smallimageurl?: string; imgname?: string;
 interface Env {
   response?: { body?: { totalCount?: number; items?: '' | { item?: Img | Img[] } } }
 }
-type Cache = Record<string, { photos: { url: string; thumb: string; name: string }[] }>
+type Cache = Record<string, { photos: NonNullable<Festival['photos']>; checkedAt?: string; contentId?: string }>
 
 async function fetchGallery(contentId: string) {
   const url = `${BASE}?serviceKey=${serviceKey()}&MobileOS=ETC&MobileApp=KOTA&_type=json&contentId=${contentId}&imageYN=Y&numOfRows=30`
@@ -33,10 +25,10 @@ async function fetchGallery(contentId: string) {
   const raw = j.response?.body?.items
   const items = raw && typeof raw === 'object' ? (Array.isArray(raw.item) ? raw.item : raw.item ? [raw.item] : []) : []
   return items
-    // 3유형이 아닌 게 섞여 나오면 쓰지 않는다 — 조건을 모르는 이미지는 안 싣는 게 맞다
-    .filter((x) => x.originimgurl && (x.cpyrhtDivCd ?? 'Type3') === 'Type3')
+    // 명시적인 Type1/Type3만. 미표기와 비영리 제한 유형은 자동 적용하지 않는다.
+    .filter((x) => x.originimgurl && reusableGalleryType(x.cpyrhtDivCd))
     .slice(0, MAX)
-    .map((x) => ({ url: x.originimgurl!, thumb: x.smallimageurl || x.originimgurl!, name: (x.imgname ?? '').trim() }))
+    .map((x) => ({ url: x.originimgurl!, thumb: x.smallimageurl || x.originimgurl!, name: (x.imgname ?? '').trim(), copyrightType: x.cpyrhtDivCd!, source: 'TourAPI detailImage2' }))
 }
 
 const cache: Cache = existsSync(CACHE) ? JSON.parse(readFileSync(CACHE, 'utf-8')) : {}
@@ -55,14 +47,19 @@ const contentIdOf = (f: Festival) => f.tourapiId ?? kfesId.get(normalizeName(f.n
 let calls = 0
 let got = 0
 try {
-  for (const f of items) {
-    if (!f.imageUrl) continue // 커버가 없으면 갤러리도 없다
-    if (cache[f.externalId]) continue
+  // Empty sentinel responses can mean exhausted quota; never overwrite caches in that case.
+  const sentinel = await getJson<Env>(`https://apis.data.go.kr/B551011/KorService2/searchKeyword2?serviceKey=${serviceKey()}&MobileOS=ETC&MobileApp=KOTA&_type=json&contentTypeId=12&keyword=${encodeURIComponent('경복궁')}&numOfRows=1`)
+  const sentinelItems = sentinel.response?.body?.items
+  if (!sentinelItems || typeof sentinelItems !== 'object' || !sentinelItems.item || (Array.isArray(sentinelItems.item) && !sentinelItems.item.length)) throw new QuotaError('센티넬 응답 없음 — 캐시 유지')
+  for (const f of mediaPriority(items)) {
+    if (calls >= runLimit(process.env.GALLERY_MAX_CALLS, 40)) break
     const cid = contentIdOf(f)
     if (!cid) continue
+    const old = cache[f.externalId]
+    if (old && old.contentId === cid && !retryDue(old.checkedAt, f, !!old.photos.length)) continue
     const photos = await fetchGallery(cid)
     calls += 1
-    cache[f.externalId] = { photos }
+    cache[f.externalId] = { photos, checkedAt: new Date().toISOString(), contentId: cid }
     if (photos.length) got += 1
     if (calls % 20 === 0) writeFileSync(CACHE, JSON.stringify(cache))
     await sleep(120)
@@ -79,7 +76,15 @@ let total = 0
 for (const f of items) {
   const c = cache[f.externalId]
   if (!c?.photos.length) continue
-  f.photos = c.photos
+  const licensed = c.photos.filter(p => reusableGalleryType(p.copyrightType))
+  if (!licensed.length) continue
+  const photos = [...(f.photos ?? []), ...licensed]
+  f.photos = photos.filter((p, i) => photos.findIndex(x => x.url === p.url) === i)
+  // Only a directly linked CMS ID can supply this edition's cover. Name archive lookups stay gallery-only.
+  if (!f.imageUrl && f.tourapiId && c.contentId === f.tourapiId) {
+    f.imageUrl = licensed[0]!.url
+    f.imageFrom = 'own'
+  }
   applied += 1
   total += c.photos.length
 }

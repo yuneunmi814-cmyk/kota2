@@ -1,6 +1,7 @@
 import { readFileSync, writeFileSync, existsSync } from 'node:fs'
 import type { Festival } from './lib/types.js'
 import { QuotaError, getJson, serviceKey, sleep } from './lib/http.js'
+import { mediaPriority, retryDue, runLimit } from './lib/media.js'
 import { normalizeName } from './lib/match.js'
 
 // 보강 — 좌표·이미지가 없는 축제를 TourAPI 키워드 검색으로 채운다.
@@ -63,7 +64,7 @@ for (const r of kfesRows) {
   if (!prev || r.startDate > prev.startDate) kfesByName.set(k, { imageUrl: r.imageUrl, startDate: r.startDate })
 }
 
-const cache: Record<string, { lat?: number; lng?: number; imageUrl?: string; miss?: true }> = existsSync(CACHE)
+const cache: Record<string, { lat?: number; lng?: number; imageUrl?: string; miss?: true; checkedAt?: string }> = existsSync(CACHE)
   ? JSON.parse(readFileSync(CACHE, 'utf-8'))
   : {}
 const items = (JSON.parse(readFileSync(DATA, 'utf-8')) as { items: Festival[] }).items
@@ -87,12 +88,15 @@ if ((await search('경복궁', 12)).length === 0) {
   let calls = 0
   let geo = 0
   let img = 0
-  for (const f of items) {
+  for (const f of mediaPriority(items)) {
+    if (calls >= runLimit(process.env.ENRICH_MAX_CALLS, 60)) break
     const needGeo = f.lat == null || f.lng == null
     const needImg = !f.imageUrl
     if (!needGeo && !needImg) continue
     const key = f.externalId
-    if (cache[key]) continue // 이미 시도함(성공이든 miss든)
+    const old = cache[key]
+    const complete = !!old && (!needGeo || (old.lat != null && old.lng != null)) && (!needImg || !!old.imageUrl)
+    if (old && (complete || !retryDue(old.checkedAt, f, false))) continue
     try {
       const kw = keywordOf(f.name)
       // ① 축제(15)로 지난 회차 찾기 — 포스터·좌표 둘 다
@@ -100,7 +104,7 @@ if ((await search('경복궁', 12)).length === 0) {
       calls += 1
       let hit = hits.find((h) => sameArea(h, f))
       // ② 없으면 장소로 — 좌표만
-      if (!hit && needGeo && f.address) {
+      if (!hit && needGeo && f.address && calls < runLimit(process.env.ENRICH_MAX_CALLS, 60)) {
         const place = f.address.replace(f.sido ?? '', '').replace(f.sigungu ?? '', '').replace(/일원|일대|주변/g, '').trim().slice(0, 20)
         if (place) {
           hits = await search(place)
@@ -109,18 +113,18 @@ if ((await search('경복궁', 12)).length === 0) {
         }
       }
       if (!hit) {
-        cache[key] = { miss: true }
+        cache[key] = { miss: true, checkedAt: new Date().toISOString() }
       } else {
         const lat = parseFloat(hit.mapy ?? '')
         const lng = parseFloat(hit.mapx ?? '')
-        const c: (typeof cache)[string] = {}
-        if (Number.isFinite(lat) && lat > 30) {
+        const c: (typeof cache)[string] = { checkedAt: new Date().toISOString() }
+        if (Number.isFinite(lat) && Number.isFinite(lng) && lat > 30) {
           c.lat = lat
           c.lng = lng
         }
         // 이미지는 축제(15) 결과에서만 — 관광지 사진을 축제 포스터로 쓰면 '엉뚱한 사진'이 된다
         if (hit.contenttypeid === '15' && hit.firstimage) c.imageUrl = hit.firstimage
-        cache[key] = Object.keys(c).length ? c : { miss: true }
+        cache[key] = c.lat != null || c.imageUrl ? c : { miss: true, checkedAt: new Date().toISOString() }
         if (c.lat && needGeo) geo += 1
         if (c.imageUrl && needImg) img += 1
       }
@@ -130,7 +134,7 @@ if ((await search('경복궁', 12)).length === 0) {
         console.error(`✖ 쿼터 소진 — ${calls}회 호출 후 중단, 다음 실행이 이어서 합니다`)
         break
       }
-      cache[key] = { miss: true }
+      cache[key] = { ...(cache[key] ?? { miss: true as const }), checkedAt: new Date().toISOString() }
     }
   }
   console.log(`▶ 보강 호출 ${calls}회 · 좌표 +${geo} · 이미지 +${img}`)

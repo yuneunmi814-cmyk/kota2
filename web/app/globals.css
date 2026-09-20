@@ -39,7 +39,7 @@
   /* 초록기 도는 중성. 흰 바탕 위 ink 15.5:1, muted 10.2:1, hint 3.7:1 */
   --color-ink: #002b11;
   --color-muted: #38443a;
-  --color-hint: #768a79;
+  --color-hint: #596f5e;
   --color-line: #eaeaea;
 
   /* 급한 것을 알리는 자리 — 「오늘 종료」 뱃지, 오류 문구.
@@ -148,3 +148,7 @@ body {
   outline-offset: 2px;
   border-radius: 6px;
 }
+
+/* Visible keyboard navigation across discovery and detail controls. */
+:where(a, button, input, select, summary):focus-visible { outline: 3px solid var(--color-brand-400); outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; } }

@@ -6,6 +6,9 @@ import type { Lang } from '@/lib/i18n'
 import { toSlug } from '@/lib/slug'
 import Poster from './Poster'
 import Icon from './Icon'
+import { REGIONS } from '@/lib/sido'
+import { hasOperatingDay } from '@/lib/operating-days'
+import { validTravelDate } from '@/lib/list-rules'
 
 // 축제 달력 — 월간 그리드.
 //
@@ -78,15 +81,28 @@ export default function MonthCalendar({
   const [picked, setPicked] = useState<string | null>(null)
   const [ready, setReady] = useState(false)
   const [showAll, setShowAll] = useState(false)
+  const [region, setRegion] = useState('')
+  const regionItems = useMemo(() => {
+    const group = REGIONS.find((r) => r.key === region)
+    return group ? items.filter((f) => f.sd && group.sidos.includes(f.sd)) : items
+  }, [items, region])
+  const labels = {
+    ko: { region: '지역', all: '전국', total: '진행 전체', start: '시작', key: '색 막대·점은 이날 시작하는 축제, 진행 전체는 시작 축제를 포함한 수입니다.', empty: '이 지역에서 해당 월에 열리는 축제가 없습니다. 다른 지역이나 달을 선택해 주세요.' },
+    en: { region: 'Region', all: 'Nationwide', total: 'On', start: 'Starts', key: 'Colored bars and dots mark new starts. On includes all festivals running that day.', empty: 'No festivals in this region this month. Try another region or month.' },
+    ja: { region: '地域', all: '全国', total: '開催', start: '開始', key: '色付きの帯・点は当日開始。開催数には当日開始の祭りも含みます。', empty: 'この地域では今月の祭りがありません。地域か月を変更してください。' },
+    th: { region: 'ภูมิภาค', all: 'ทั่วประเทศ', total: 'จัดอยู่', start: 'เริ่ม', key: 'แถบสีและจุดแสดงงานที่เริ่มวันนั้น จำนวนงานที่จัดอยู่รวมงานที่เพิ่งเริ่มด้วย', empty: 'ไม่มีเทศกาลในภูมิภาคนี้ในเดือนที่เลือก ลองเลือกภูมิภาคหรือเดือนอื่น' },
+  }[lang]
 
   // 어느 달을 보고 있었는지는 주소에 남긴다 — 축제를 열어 보고 돌아왔을 때 그 달이어야 한다
   useEffect(() => {
     const u = new URLSearchParams(window.location.search)
     const m = u.get('m')
     // eslint-disable-next-line react-hooks/set-state-in-effect -- 주소는 서버에 없다. 정적으로 구운 HTML과 맞추려면 마운트 뒤에 읽어야 한다.
-    if (m && /^\d{4}-\d{2}$/.test(m)) setCursor({ y: Number(m.slice(0, 4)), m: Number(m.slice(5, 7)) })
+    if (m && validTravelDate(`${m}-01`)) setCursor({ y: Number(m.slice(0, 4)), m: Number(m.slice(5, 7)) })
     const d = u.get('d')
-    if (d && /^\d{4}-\d{2}-\d{2}$/.test(d)) setPicked(d)
+    if (d && validTravelDate(d)) { setPicked(d); setCursor({ y: Number(d.slice(0, 4)), m: Number(d.slice(5, 7)) }) }
+    const r = u.get('region')
+    if (r && REGIONS.some((group) => group.key === r)) setRegion(r)
     setReady(true)
   }, [])
 
@@ -96,10 +112,11 @@ export default function MonthCalendar({
     const cur = `${cursor.y}-${String(cursor.m).padStart(2, '0')}`
     if (cur !== `${y0}-${String(m0).padStart(2, '0')}`) p.set('m', cur)
     if (picked) p.set('d', picked)
+    if (region) p.set('region', region)
     const qs = p.toString()
     const next = qs ? `${window.location.pathname}?${qs}` : window.location.pathname
     if (next !== `${window.location.pathname}${window.location.search}`) window.history.replaceState(null, '', next)
-  }, [ready, cursor, picked, y0, m0])
+  }, [ready, cursor, picked, region, y0, m0])
 
   const weeks = useMemo<Day[][]>(() => {
     const { y, m } = cursor
@@ -114,8 +131,8 @@ export default function MonthCalendar({
         iso: s,
         day: dd,
         inMonth,
-        starting: items.filter((f) => f.s === s),
-        running: items.filter((f) => f.s <= s && f.e >= s),
+        starting: regionItems.filter((f) => f.s === s),
+        running: regionItems.filter((f) => hasOperatingDay({startDate:f.s,endDate:f.e,operatingWeekdays:f.wd}, s, s)),
       })
     }
 
@@ -132,7 +149,7 @@ export default function MonthCalendar({
       push(d.getUTCFullYear(), d.getUTCMonth() + 1, d.getUTCDate(), false)
     }
     return Array.from({ length: cells.length / 7 }, (_, i) => cells.slice(i * 7, i * 7 + 7))
-  }, [cursor, items])
+  }, [cursor, regionItems])
 
   const move = (delta: number) => {
     const d = new Date(Date.UTC(cursor.y, cursor.m - 1 + delta, 1))
@@ -143,8 +160,17 @@ export default function MonthCalendar({
   const pickedDay = picked ? weeks.flat().find((d) => d.iso === picked) : null
   const monthCount = weeks.flat().filter((d) => d.inMonth).reduce((n, d) => n + d.starting.length, 0)
 
+  const monthRunning = regionItems.filter((f) => f.s <= iso(cursor.y, cursor.m, new Date(Date.UTC(cursor.y, cursor.m, 0)).getUTCDate()) && f.e >= iso(cursor.y, cursor.m, 1)).length
+
   return (
     <div>
+      <label className="mb-4 flex items-center gap-3 text-[14px] font-semibold text-muted">
+        {labels.region}
+        <select value={region} onChange={(e) => { setRegion(e.target.value); setPicked(null); setShowAll(false) }} className="rounded-lg border border-line bg-surface px-3 py-2 text-ink">
+          <option value="">{labels.all}</option>
+          {REGIONS.map((r) => <option key={r.key} value={r.key}>{r.label[lang]}</option>)}
+        </select>
+      </label>
       {/* 머리 — 구글 캘린더 배치를 그대로: 오늘 → 화살표 → 달 이름 순으로 왼쪽부터 */}
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <button
@@ -183,6 +209,9 @@ export default function MonthCalendar({
         </span>
       </div>
 
+      <p className="mb-3 text-[12px] leading-relaxed text-muted">{labels.key}</p>
+      {monthRunning === 0 && <p role="status" className="mb-4 rounded-lg border border-line p-4 text-[14px] text-muted">{labels.empty}</p>}
+
       {/* 격자 — 테두리는 한 겹만. 셀마다 두르면 표처럼 보인다 */}
       <div className="overflow-hidden rounded-[var(--radius-card)] border border-line bg-surface">
         <div className="grid grid-cols-7 border-b border-line">
@@ -211,6 +240,7 @@ export default function MonthCalendar({
                   }}
                   disabled={!has}
                   aria-pressed={isPicked}
+                  aria-label={`${d.iso}: ${labels.start} ${d.starting.length}, ${labels.total} ${d.running.length}`}
                   className={`min-h-[72px] border-l border-line px-1.5 py-1.5 text-left align-top transition first:border-l-0 sm:min-h-[104px] sm:px-2 sm:py-2 ${
                     isPicked ? 'bg-brand-50' : has ? 'hover:bg-paper-2' : ''
                   } ${has ? 'cursor-pointer' : 'cursor-default'}`}
@@ -253,9 +283,9 @@ export default function MonthCalendar({
                         +{d.starting.length - 2}
                       </span>
                     )}
-                    {has && d.starting.length === 0 && (
+                    {has && (
                       <span className={`px-1.5 text-[11px] tabular-nums ${d.inMonth ? 'text-hint' : 'text-hint/45'}`}>
-                        {lang === 'ko' ? `${d.running.length}개 진행` : lang === 'ja' ? `${d.running.length}件` : lang === 'th' ? `${d.running.length}` : `${d.running.length} on`}
+                        {labels.total} {d.running.length}
                       </span>
                     )}
                   </span>
@@ -267,6 +297,7 @@ export default function MonthCalendar({
                     ))}
                     {d.starting.length === 0 && has && <span className="h-1.5 w-1.5 rounded-full bg-line" />}
                   </span>
+                  {has && <span className="mt-1 block text-center text-[10px] text-hint sm:hidden">{labels.total} {d.running.length}</span>}
                 </button>
               )
             })}
