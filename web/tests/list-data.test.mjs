@@ -60,6 +60,16 @@ test('목록 필터는 종료 축제를 빼고 주말·지역·테마·검색어
   assert.deepEqual(result.map((row) => row.k), ['festival:a'])
 })
 
+test('상시 축제 가리기는 선택할 때만 상시를 제외하고 61일 장기 행사는 남긴다', () => {
+  const rows = [
+    item({ k: 'seasonal' }),
+    item({ k: 'long-run', s: '2026-08-01', e: '2026-10-01', lr: true }),
+    item({ k: 'always', s: '2026-01-01', e: '2026-12-31', al: true, lr: true }),
+  ]
+  assert.deepEqual(filterListItems(rows, baseFilters).map((f) => f.k), ['seasonal', 'long-run', 'always'])
+  assert.deepEqual(filterListItems(rows, { ...baseFilters, hideAlways: true }).map((f) => f.k), ['seasonal', 'long-run'])
+})
+
 test('날짜순은 진행중 단기 축제를 먼저, 상시 행사를 마지막에 둔다', () => {
   const rows = [
     item({ k: 'festival:always', al: true, s: '2026-01-01', e: '2026-12-31' }),

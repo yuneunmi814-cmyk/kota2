@@ -23,6 +23,7 @@ export interface ListParams {
   sort: ListSort
   q: string
   graded: boolean
+  hideAlways: boolean
   page: number
 }
 
@@ -36,6 +37,7 @@ export interface ListParamsApi extends ListParams {
   setSort: (v: ListSort) => void
   setQ: (v: string) => void
   setGraded: (v: boolean) => void
+  setHideAlways: (v: boolean) => void
   setPage: (v: number | ((n: number) => number)) => void
   /** 주소를 읽어 상태에 반영한 뒤 true. 이 전에는 주소를 되쓰지 않는다 */
   ready: boolean
@@ -83,6 +85,7 @@ export function useListParams(initial: {
   }
   const [region, setRegion] = useState<string | null>(initial.region)
   const [graded, setGraded] = useState(initial.graded)
+  const [hideAlways, setHideAlways] = useState(false)
   const [sido, setSido] = useState<string | null>(null)
   const [theme, setTheme] = useState<Theme | null>(initial.theme)
   const [sort, setSort] = useState<ListSort>(initial.sort)
@@ -120,6 +123,7 @@ export function useListParams(initial: {
     if (u.get('theme')) setTheme(u.get('theme') as Theme)
     if (u.get('sort')) setSort(u.get('sort') as ListSort)
     if (u.get('graded') === '1') setGraded(true)
+    if (u.get('hideAlways') === '1') setHideAlways(true)
     if (u.get('q')) setQ(u.get('q')!)
     const dates = travelRange(u.get('from'), u.get('to'))
     if (dates) { updateFrom(dates[0]); updateTo(dates[1]); updatePeriod('all') }
@@ -139,19 +143,20 @@ export function useListParams(initial: {
     if (sido) p.set('sido', sido)
     if (theme) p.set('theme', theme)
     if (graded) p.set('graded', '1')
+    if (hideAlways) p.set('hideAlways', '1')
     if (sort !== 'date') p.set('sort', sort)
     if (q.trim()) p.set('q', q.trim())
     if (page > 1) p.set('page', String(page))
     const qs = p.toString()
     const next = qs ? `${window.location.pathname}?${qs}` : window.location.pathname
     if (next !== `${window.location.pathname}${window.location.search}`) window.history.replaceState(null, '', next)
-  }, [ready, period, from, to, region, sido, theme, graded, sort, q, page])
+  }, [ready, period, from, to, region, sido, theme, graded, hideAlways, sort, q, page])
 
   // 필터를 바꾸면 첫 장으로. 5페이지를 보다 다른 지역을 고르면 결과가 24건뿐일 수도 있다.
   //
   // 첫 렌더는 건너뛴다 — 주소에 page=4가 실려 들어온 경우(상세에서 뒤로 온 경우)를
   // 초기화해 버리면 고치려던 버그를 그대로 다시 만드는 셈이다.
-  const filterSig = JSON.stringify([period, from, to, region, sido, theme, graded, q.trim(), sort])
+  const filterSig = JSON.stringify([period, from, to, region, sido, theme, graded, hideAlways, q.trim(), sort])
   const lastSig = useRef<string | null>(null)
   useEffect(() => {
     // 주소에서 읽어 넣는 동안에는 초기화하지 않는다 — ?page=4&region=seoul로 들어왔을 때
@@ -166,7 +171,7 @@ export function useListParams(initial: {
     setPage(1)
   }, [ready, filterSig])
 
-  return { period, from, to, setFrom, setTo, region, sido, theme, sort, q, graded, page, setPeriod, setRegion, setSido, setTheme, setSort, setQ, setGraded, setPage, ready }
+  return { period, from, to, setFrom, setTo, region, sido, theme, sort, q, graded, hideAlways, page, setPeriod, setRegion, setSido, setTheme, setSort, setQ, setGraded, setHideAlways, setPage, ready }
 }
 
 const SCROLL_KEY = 'kota_list_scroll'

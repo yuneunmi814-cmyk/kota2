@@ -11,6 +11,17 @@ test('언어 전환은 목록의 검색·필터·정렬·더보기 상태를 보
   )
 })
 
+test('언어 전환은 상시 가리기와 여행 날짜를 함께 보존한다', () => {
+  assert.equal(
+    routes.languageHref('en', '/ko/festivals/', '?from=2026-09-15&to=2026-09-11&hideAlways=1&page=3'),
+    '/en/festivals/?from=2026-09-11&to=2026-09-15&hideAlways=1&page=3',
+  )
+  assert.equal(
+    routes.languageHref('ja', '/ko/festivals/', '?from=2026-02-30&to=2026-09-11&hideAlways=0'),
+    '/ja/festivals/?from=2026-09-11&to=2026-09-11',
+  )
+})
+
 test('언어 전환은 상세 축제 ID와 기존 경로를 유지한다', () => {
   assert.equal(routes.languageHref('th', '/en/festivals/tourapi-506600/', ''), '/th/festivals/tourapi-506600/')
   assert.equal(routes.languageHref('en', '/ko/themes/food/', ''), '/en/themes/food/')
