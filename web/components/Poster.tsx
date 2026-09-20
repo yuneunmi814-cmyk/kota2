@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import PosterFallback from './PosterFallback'
 
 // 축제 포스터 — 없거나 로딩에 실패해도 자리를 채운다.
@@ -70,6 +70,29 @@ export default function Poster({
 }) {
   const [failedSrc, setFailedSrc] = useState<string | null>(null)
   const failed = !!src && failedSrc === src
+
+  // 상세 히어로의 높이를 포스터 비율에 맞춘다(2026-09-20 팀 회의).
+  //
+  // 히어로 칸은 가로로 긴 자리(최대 430px 높이)라, 세로형 포스터(대개 444×627)를 자르지 않고 넣으면
+  // 304×430으로 줄어 "포스터가 너무 작다"가 된다. 모바일은 더 심해서 250px 높이에 177px 폭으로 들어간다.
+  // 그래서 그림이 로드되면 실제 크기를 재서, 세로형·정방형이면 칸을 키운다.
+  //   - 비율은 절대 깨지 않는다(object-contain 그대로). 남는 옆자리는 같은 그림을 흐려 깐 배경이 채운다.
+  //   - 가로형은 지금 높이가 맞으므로 건드리지 않는다.
+  //   - 원본이 작은 그림을 무한정 키우면 뭉개진다 → 원본 높이의 1.6배까지만.
+  // 칸의 주인은 페이지다. 여기서는 가장 가까운 [data-hero] 조상의 height만 바꾼다.
+  const imgRef = useRef<HTMLImageElement | null>(null)
+  const fitHero = useCallback((img: HTMLImageElement | null) => {
+    if (!whole || !img || !img.naturalWidth || !img.naturalHeight) return
+    const hero = img.closest<HTMLElement>('[data-hero]')
+    if (!hero) return
+    const ar = img.naturalWidth / img.naturalHeight
+    if (ar >= 1.15) return // 가로형 — 기본 높이가 맞다
+    const cap = Math.round(Math.min(640, Math.max(430, img.naturalHeight * 1.6)))
+    // 폭을 꽉 채웠을 때의 높이와 상한 중 작은 쪽. 40px은 좌우 여백.
+    hero.style.height = `min(${cap}px, calc((100vw - 40px) / ${ar.toFixed(4)}))`
+  }, [whole])
+  // 캐시에 있던 그림은 리액트가 onLoad를 달기 전에 이미 다 읽혀 있다
+  useEffect(() => { if (imgRef.current?.complete) fitHero(imgRef.current) }, [fitHero, src])
   // 이미지가 있어도 틴트+첫 글자를 먼저 깔고 그 위에 얹는다 — 지자체 서버가 느려서
   // 로딩에 몇 초 걸리는 동안 흰 공백이 보이던 문제(실측). 로드되면 이미지가 덮는다.
   return (
@@ -92,7 +115,9 @@ export default function Poster({
         <img
           src={proxied(src)}
           alt={name}
+          ref={imgRef}
           loading={eager ? 'eager' : 'lazy'}
+          onLoad={(e) => fitHero(e.currentTarget)}
           onError={() => setFailedSrc(src ?? null)}
           decoding="async"
           className={
