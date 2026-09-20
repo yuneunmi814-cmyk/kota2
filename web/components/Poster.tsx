@@ -1,5 +1,6 @@
 'use client'
 import { useState } from 'react'
+import PosterFallback from './PosterFallback'
 
 // 축제 포스터 — 없거나 로딩에 실패해도 자리를 채운다.
 //
@@ -8,10 +9,8 @@ import { useState } from 'react'
 // 브랜드 색으로 놓아 카드마다 다르게 보이게 한다. 포스터 URL은 지자체 서버에 있어
 // 수시로 죽기 때문에 onError도 같은 자리채움으로 떨어뜨린다.
 //
-// 여기에 '포스터 준비 중'을 명시한다. 한때는 빈 자리를 그 지역 풍경 사진(포토코리아)으로
-// 메웠는데 — 구례 축제에 화엄사 사진 — 그 축제와 아무 상관이 없다. '지역 사진'이라고
-// 라벨을 달아도 대부분은 축제 사진으로 읽는다. 채워 보이려고 엉뚱한 사진을 놓느니
-// 없다고 말하는 편이 정직하고, 여행자도 헛된 기대를 안 한다.
+// 목록의 포스터 부재 영역은 사용자가 제공한 시간대별 공통 일러스트로 채운다.
+// 장식 이미지에는 축제 사진이라는 alt를 붙이지 않는다. 축제명과 접근성용 부재 안내는 유지한다.
 
 const PLACEHOLDER = 'bg-[#f2f2f0]'
 
@@ -103,12 +102,9 @@ export default function Poster({
           }
         />
       )}
-      {/* 포스터가 없거나 죽은 링크일 때 — 상태를 그대로 말한다 */}
+      {/* 정상 포스터는 건드리지 않고, 없거나 죽은 링크만 공통 장식 배경으로 채운다. */}
       {(!src || failed) && pendingLabel && (
-        <div className="absolute inset-0 flex flex-col justify-center gap-3 border-b border-line bg-brand-50 px-5 py-7">
-          <span className="line-clamp-3 text-xl font-bold leading-snug text-brand">{name}</span>
-          <span className="text-xs font-medium text-muted">{pendingLabel}</span>
-        </div>
+        <PosterFallback name={name} pendingLabel={pendingLabel} />
       )}
     </div>
   )
