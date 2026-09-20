@@ -471,6 +471,11 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
 
             <p className="text-[12px] leading-relaxed text-hint">
             {t(l, isPublicData(f) ? 'detail.source' : 'detail.source.manual')}
+            {/* 확인 날짜 — '언제 본 정보인지'를 모르면 믿을 수가 없다. 주최 측에 확인했다고 쓰지 않는다:
+                이 날짜는 주간 수집이 공공데이터와 맞춰 본 날이다. 주최 측 확인은 아래 verifiedAt 줄이 따로 말한다. */}
+            {isPublicData(f) && f.syncedAt && (
+              <span className="mt-1 block tabular-nums">{t(l, 'detail.checked', { d: todayKst(new Date(f.syncedAt)) })}</span>
+            )}
             {f.verifiedAt && f.verificationSource && <span className="mt-2 block"><a href={f.verificationSource} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">{{ko:'운영 안내·공식 링크 확인',en:'Programme and official link checked',ja:'運営案内・公式リンク確認',th:'ตรวจสอบกำหนดการและลิงก์ทางการ'}[l]} · {f.verifiedAt}</a></span>}
           </p>
           </div>

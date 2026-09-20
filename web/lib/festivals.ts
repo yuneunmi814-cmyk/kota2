@@ -34,6 +34,8 @@ export interface Festival {
   duplicateIds?: string[]
   verifiedAt?: string
   verificationSource?: string
+  /** 공공데이터 원천과 마지막으로 맞춰 본 시각(주간 수집). 주최 측에 확인했다는 뜻이 아니다 — 그건 verifiedAt. */
+  syncedAt?: string | null
 
   /** 원본 소스의 id — 식별에는 쓰지 않는다(환경마다 달라진다). externalId를 쓸 것 */
   id: string | number
@@ -134,6 +136,7 @@ interface Row {
   popularity: number | null
   visitor_lift: number | null
   sources: string[] | null
+  synced_at?: string | null
   tourapi_id: string | null
   festival_translations?: { lang: string; name: string | null; summary: string | null; place_name: string | null }[]
   festival_photos?: { ord: number; url: string; thumb: string | null; caption: string | null }[]
@@ -165,6 +168,7 @@ interface SummaryRow {
 function fromRow(r: Row): Festival {
   return {
     id: r.id,
+    syncedAt: r.synced_at ?? null,
     externalId: r.id,
     name: r.name,
     startDate: r.start_date,
