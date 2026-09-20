@@ -26,10 +26,12 @@ export type Section = { h: string; p?: string[]; ul?: string[] }
 export type Doc = { title: string; updated: string; intro: string; sections: Section[] }
 
 /** 시행일 — 문서를 고치면 올릴 것 */
-const UPDATED = '2026-08-19'
+// 앞 날짜가 처음 시행한 날, 괄호가 마지막으로 고친 날이다. 받는 정보가 바뀐 것이 아니라 문의 주소만 바뀌었다.
+const UPDATED = '2026-08-19 (rev. 2026-09-20)'
 
 const OPERATOR_KO = '프로젝트윤'
-const CONTACT = 'yuneunmi814@gmail.com'
+// 문의 주소 — 2026-09-20에 개인 지메일에서 사업자 도메인 주소로 바꿨다(푸터의 운영자 표시와 같은 주소).
+const CONTACT = 'hello@projectyoon.com'
 
 const ko: Record<LegalKind, Doc> = {
   privacy: {
