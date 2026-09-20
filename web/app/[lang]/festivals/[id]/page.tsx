@@ -225,7 +225,7 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
         {/* 바로 판단할 사실을 사진보다 앞에 둔다. 상세 본문은 이 값들의 맥락과 주의를 설명한다. */}
         <dl aria-label={t(l, 'detail.info')} className="mb-5 grid grid-cols-2 overflow-hidden rounded-[var(--radius-card)] border border-line bg-paper text-sm sm:grid-cols-4">
           <QuickFact label={t(l, 'detail.period')} value={<span className="tabular-nums">{fmt(f.startDate)} – {fmt(f.endDate)}</span>} />
-          <QuickFact label={t(l, 'detail.place')} value={(l !== 'ko' && f.address ? localizeAddress(f.address, l) : f.address) ?? L.placeName ?? t(l, 'detail.noLocation')} />
+          <QuickFact label={t(l, 'detail.place')} value={(l !== 'ko' && f.address ? localizeAddress(f.address, l) : f.address) ?? L.placeName ?? t(l, 'detail.noLocation')} sub={l !== 'ko' && f.address ? <span lang="ko" className="select-all">{f.address}</span> : undefined} />
           <QuickFact label={t(l, 'detail.hours')} value={quickHours ?? t(l, 'detail.noHours')} sub={quickDays || hoursOriginal ? <>{quickDays}{hoursOriginal && <span className="block">{t(l, 'detail.original')}</span>}</> : undefined} />
           <QuickFact label={t(l, 'detail.fee')} value={longFee ? <><span className="line-clamp-2">{quickFee}</span><a href="#admission" className="mt-1 inline-block text-[12px] text-brand underline underline-offset-2">{t(l, 'detail.seeFee')}</a></> : quickFee} sub={L.feeIsOriginal ? t(l, 'detail.original') : undefined} />
         </dl>
