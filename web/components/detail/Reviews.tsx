@@ -117,7 +117,7 @@ export default function Reviews({
   const fmt = (d: string) => d.slice(0, 10).replace(/-/g, '.')
 
   return (
-    <section id="reviews" className="scroll-mt-24">
+    <section id="reviews" className="scroll-mt-32">
       <h2 className="mb-1 text-[20px] font-bold text-ink">{t(lang, 'review.title')}</h2>
       <p className="mb-5 text-[13px] text-hint">{t(lang, 'review.moderated')}</p>
 

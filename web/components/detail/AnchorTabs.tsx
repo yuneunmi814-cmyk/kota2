@@ -30,7 +30,7 @@ export default function AnchorTabs({ anchors, lang }: { anchors: Anchor[]; lang:
         if (visible[0]) setActive(visible[0].target.id)
       },
       // 헤더 높이만큼 위를 잘라내고, 화면 아래 절반은 무시한다
-      { rootMargin: '-88px 0px -55% 0px', threshold: 0 },
+      { rootMargin: '-120px 0px -55% 0px', threshold: 0 },
     )
     targets.forEach((el) => io.observe(el))
     return () => io.disconnect()
@@ -41,7 +41,7 @@ export default function AnchorTabs({ anchors, lang }: { anchors: Anchor[]; lang:
   return (
     <nav
       aria-label={t(lang, 'detail.contents')}
-      className="sticky top-0 z-30 -mx-5 mb-6 border-b border-line bg-paper/95 px-5 backdrop-blur"
+      className="sticky top-[65px] z-20 -mx-5 mb-6 border-b border-line bg-paper/95 px-5 backdrop-blur"
     >
       <div className="no-scrollbar flex gap-1 overflow-x-auto">
         {anchors.map((a) => (

@@ -61,18 +61,10 @@ test('좌표가 없으면 빈 목록', () => {
 
 // ── 목차 ─────────────────────────────────────────────────────
 
-test('있는 칸만 목차에 넣고 후기는 항상 넣는다', () => {
-  assert.deepEqual(detailSections(축제({ lat: 1, lng: 1, photos: [{ url: 'a', thumb: 'a', name: '' }] }), { hasSummary: true, nearbyCount: 2 }), [
-    'about',
-    'photos',
-    'location',
-    'reviews',
-    'nearby',
-  ])
-})
-
-test('아무것도 없으면 후기 칸만 남는다', () => {
-  assert.deepEqual(detailSections(축제({}), { hasSummary: false, nearbyCount: 0 }), ['reviews'])
+test('상세 목차는 데이터 유무와 관계없이 방문 결정 순서의 본문 일곱 구획을 보여준다', () => {
+  const expected = ['about', 'program', 'schedule', 'admission', 'notes', 'location', 'contact', 'reviews']
+  assert.deepEqual(detailSections(축제({ lat: 1, lng: 1, photos: [{ url: 'a', thumb: 'a', name: '' }] }), { hasSummary: true, nearbyCount: 2 }), [...expected, 'nearby'])
+  assert.deepEqual(detailSections(축제({}), { hasSummary: false, nearbyCount: 0 }), expected)
 })
 
 // ── 히어로·곁타일 ────────────────────────────────────────────
