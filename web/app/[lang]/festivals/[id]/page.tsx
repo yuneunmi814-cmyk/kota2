@@ -450,9 +450,19 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
                       className="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-5 py-2.5 text-[14px] font-bold text-ink transition hover:border-brand/40 hover:text-brand"
                     >
                       <Icon name="phone" size={15} /> {f.tel}
+                      {/* 외국어 화면에서만 — 번호를 눌렀는데 한국어만 나오면 거기서 여행이 막힌다 */}
+                      {l !== 'ko' && <span className="text-[11px] font-semibold text-hint">{t(l, 'official.telKo')}</span>}
                     </a>
                   )}
                 </div>
+                {/* 1330 — 주최 측과 말이 안 통할 때 닿을 곳. 번호와 해외 번호는 한국관광공사 공식 안내,
+                    언어별 시간은 지자체 공식 안내 기준이다. 태국어는 24시간이 아니라서 그렇게 적지 않는다. */}
+                {l !== 'ko' && (
+                  <p className="mt-4 text-[13px] leading-relaxed text-muted">
+                    {t(l, 'official.helpline')}{' '}
+                    <a href="tel:1330" className="font-bold text-brand underline underline-offset-4">1330</a>
+                  </p>
+                )}
                 {f.homepage && (
                   <p className="mt-3 truncate text-[12px] text-hint">{f.homepage.replace(/^https?:\/\//, '')}</p>
                 )}
