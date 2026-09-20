@@ -4,7 +4,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { todayKst } from '@/lib/date'
 import { notFound, permanentRedirect } from 'next/navigation'
-import { listFestivalSummaries, feeKind, findByKey, isAlwaysOn, isLongRun, isPublicData, listFestivalSlugs, localized, regionRank, statusOf } from '@/lib/festivals'
+import { listFestivalSummaries, feeKind, findByKey, isAlwaysOn, isLongRun, listFestivalSlugs, localized, regionRank, statusOf } from '@/lib/festivals'
 import { detailSections, festivalJsonLd, heroMedia, metaDescription, nearbyFestivals, sourceHost, sourceUrl } from '@/lib/detail-view'
 import { toSlug } from '@/lib/slug'
 import { festivalRoutePath, resolveFestivalRoute, staticFestivalSlugs } from '@/lib/festival-routes'
@@ -22,11 +22,8 @@ import Footer from '@/components/Footer'
 import Poster from '@/components/Poster'
 import Icon from '@/components/Icon'
 import FestivalCard from '@/components/FestivalCard'
-import KakaoMap from '@/components/KakaoMap'
-import ReadMore from '@/components/detail/ReadMore'
+import FestivalBody from '@/components/detail/FestivalBody'
 import ShareButton from '@/components/detail/ShareButton'
-import YouTube from '@/components/detail/YouTube'
-import Gallery from '@/components/detail/Gallery'
 
 // 1시간마다 다시 굽는다 — 축제 데이터는 주 1회만 바뀌므로 요청마다 DB를 볼 이유가 없다
 export const revalidate = 3600
@@ -64,7 +61,6 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
 }
 
 const fmt = (d: string) => d.replace(/-/g, '.')
-const won = (n: number, l: Lang) => t(l, 'detail.won', { n: n.toLocaleString(l === 'ko' ? 'ko-KR' : 'en-US') })
 
 export default async function FestivalDetailPage({ params }: { params: Promise<{ lang: string; id: string }> }) {
   const { lang, id } = await params
@@ -78,6 +74,11 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
   const st = statusOf(f)
   const ended = st === 'ended' && !isAlwaysOn(f)
   const fee = feeKind(f)
+  const quickFee = fee === 'unknown' ? t(l, 'detail.feeUnknown') : L.fee ?? t(l, 'detail.feeUnknown')
+  const longFee = quickFee.length > 55
+  const quickHours = editorialField(f, l, 'hours')
+  const quickDays = f.operatingWeekdays?.length ? operatingDaysLabel(f.operatingWeekdays, l) : null
+  const hoursOriginal = l !== 'ko' && /[가-힣]/.test(quickHours ?? '')
   const always = isAlwaysOn(f)
   const rank = await regionRank(f)
   const [rating, reviews] = await Promise.all([ratingOf(f.externalId), reviewsOf(f.externalId)])
@@ -87,16 +88,16 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
   const nearby = nearbyFestivals(f, hasCoords ? await listFestivalSummaries() : [])
 
   const mapHref = hasCoords ? `https://map.kakao.com/link/to/${encodeURIComponent(f.name)},${f.lat},${f.lng}` : null
-  const boothCount = f.booths?.length ?? 0
-  const menuCount = f.booths?.reduce((n, b) => n + b.menu.length, 0) ?? 0
 
   // 목차 — 어떤 칸이 있는지는 detail-view가 정하고, 사람이 읽는 이름표만 여기서 붙인다
   const SECTION_LABEL = {
     about: 'detail.about',
-    photos: 'detail.photos',
-    lineup: 'detail.lineup',
     program: 'detail.program',
+    schedule: 'detail.schedule',
+    admission: 'detail.admission',
+    notes: 'detail.notes',
     location: 'detail.location',
+    contact: 'detail.contact',
     reviews: 'review.title',
     nearby: 'detail.nearby',
   } as const
@@ -214,14 +215,15 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
           </div>
         )}
 
-        {/* 지역 내 순위 — 트립어드바이저가 '서울의 즐길거리 1,619개 중에서 5위'를 놓는 자리.
-            그쪽 근거는 리뷰 평점이고 우리 근거는 통신사 방문자 실측이다. 뱃지가 아니라 문장으로
-            두는 이유: 이게 이 페이지에서 가장 무거운 한 줄이라 뱃지 무리에 섞이면 묻힌다. */}
-        {/* 산정 기준을 화면에 적는다.
-            전에는 title 속성에만 있었다 — 마우스를 올려야 보이니 모바일에서는 볼 방법이 아예
-            없었고, 데스크톱에서도 '올려보면 나온다'는 것을 알 도리가 없다(BUG-09, 2026-08-23).
-            근거를 숨긴 순위는 근거가 없는 것과 같다. title은 남겨 둔다 — 지우면 손해는 없지만
-            이득도 없다. */}
+        {/* 바로 판단할 사실을 사진보다 앞에 둔다. 상세 본문은 이 값들의 맥락과 주의를 설명한다. */}
+        <dl aria-label={t(l, 'detail.info')} className="mb-5 grid grid-cols-2 overflow-hidden rounded-[var(--radius-card)] border border-line bg-paper text-sm sm:grid-cols-4">
+          <QuickFact label={t(l, 'detail.period')} value={<span className="tabular-nums">{fmt(f.startDate)} – {fmt(f.endDate)}</span>} />
+          <QuickFact label={t(l, 'detail.place')} value={f.address ?? L.placeName ?? t(l, 'detail.noLocation')} sub={l !== 'ko' && /[가-힣]/.test(f.address ?? L.placeName ?? '') ? t(l, 'detail.original') : undefined} />
+          <QuickFact label={t(l, 'detail.hours')} value={quickHours ?? t(l, 'detail.noHours')} sub={quickDays || hoursOriginal ? <>{quickDays}{hoursOriginal && <span className="block">{t(l, 'detail.original')}</span>}</> : undefined} />
+          <QuickFact label={t(l, 'detail.fee')} value={longFee ? <><span className="line-clamp-2">{quickFee}</span><a href="#admission" className="mt-1 inline-block text-[12px] text-brand underline underline-offset-2">{t(l, 'detail.seeFee')}</a></> : quickFee} sub={L.feeIsOriginal ? t(l, 'detail.original') : undefined} />
+        </dl>
+
+        {/* 방문자 순위는 맥락과 산정 기준을 함께 보여주되 방문 결정에 필요한 사실 뒤에 둔다. */}
         {rank && (
           <div className="mb-5">
             <p className="text-[15px] font-bold text-ink">
@@ -231,14 +233,6 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
           </div>
         )}
 
-        <div className="mb-5 flex flex-wrap items-center gap-x-5 gap-y-2 rounded-xl border border-line px-4 py-3 text-sm">
-          <span className="font-semibold tabular-nums">{fmt(f.startDate)} – {fmt(f.endDate)}</span>
-          {f.operatingWeekdays?.length && <span className="font-semibold">{operatingDaysLabel(f.operatingWeekdays, l)}</span>}
-          <span>{f.hours ? `${t(l, 'detail.hours')}: ${editorialField(f, l, 'hours')}` : `${t(l, 'detail.hours')}: ${t(l, 'detail.feeUnknown')}`}</span>
-          <span>{fee === 'unknown' ? t(l, 'detail.feeUnknown') : (fee === 'free' ? t(l, 'detail.free') : f.fee)}</span>
-          {f.homepage && <a href={f.homepage} target="_blank" rel="noopener noreferrer" className="ml-auto font-bold underline underline-offset-4">{t(l, 'official.visit')}</a>}
-        </div>
-
         {/* 사진 그리드 — 큰 1 + 작은 2. 트립어드바이저 상세 상단. 옆 칸은 유튜브 썸네일·지도로 채운다 */}
         {/* 모바일은 히어로 한 장만(트립어드바이저와 같다). 390px에서 3열이면 옆 칸이 127px이라 아무것도 안 보인다.
             영상·지도는 아래 각자의 섹션에 그대로 있으므로 정보 손실이 없다. */}
@@ -247,7 +241,7 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
         {heroSrc && (
         <div
           className={`mb-8 grid gap-2 overflow-hidden rounded-[var(--radius-card)] grid-cols-1 ${sideTiles.length ? 'sm:grid-cols-3' : ''}`}
-          style={{ height: 'clamp(210px, 52vw, 440px)' }}
+          style={{ height: 'clamp(250px, 48vw, 430px)' }}
         >
           <div className={`relative h-full overflow-hidden ${sideTiles.length ? 'sm:col-span-2' : ''}`}>
             <Poster src={heroSrc} name={L.name} letterClass="text-[5em]" whole eager />
@@ -273,7 +267,7 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
               {/* key는 타일마다 달라야 한다 — 사진이 둘이면 둘 다 key="photo"라 리액트가 경고했다(2026-09-04) */}
               {sideTiles.map((tile, i) =>
                 tile!.kind === 'photo' ? (
-                  <a key={`photo-${i}`} href="#photos" className="group relative block overflow-hidden">
+                  <a key={`photo-${i}`} href="#about" className="group relative block overflow-hidden">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={tile!.src} alt="" loading="lazy" className="h-full w-full object-cover transition group-hover:scale-[1.03]" />
                   </a>
@@ -294,249 +288,9 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
 
         <AnchorTabs anchors={anchors} lang={l} />
 
-        {/* 2단 — 왼쪽 본문 / 오른쪽 sticky 정보 카드 */}
-        <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_340px]">
-          <div className="min-w-0">
-            {/* 소개 */}
-            {(L.summary || f.summary) && (
-              <section id="about" className="mb-10 scroll-mt-24">
-                <h2 className="mb-3 text-[20px] font-black text-ink">{t(l, 'detail.about')}</h2>
-                {L.summaryIsOriginal && <OriginalNote lang={l} />}
-                <ReadMore text={L.summary ?? f.summary ?? ''} more={t(l, 'detail.more')} less={t(l, 'detail.less')} />
-              </section>
-            )}
-
-            {/* 사진 — TourAPI 갤러리. 263건이 평균 5장을 갖고 있다 */}
-            {f.photos && f.photos.length > 0 && (
-              <section id="photos" className="mb-10 scroll-mt-24">
-                <h2 className="mb-3 text-[20px] font-black text-ink">{t(l, 'detail.photos')}</h2>
-                {/* 사진 출처는 사진에 맞춰 고른다.
-                    전에는 어떤 사진이든 '한국관광공사(공공누리 제3유형)'를 붙였다. 그런데 주최측
-                    누리집에서 긁어온 사진도 섞여 있다 — cdn.imweb.me 같은 곳이다. 남의 사진에 공사
-                    출처를 달아 둔 셈이고, 공공누리 3유형이 아닌 것을 3유형이라 표시한 것이라
-                    저작권과 채점 양쪽으로 위험했다(2026-08-23 영어 화면 점검).
-                    공사 사진은 전부 visitkorea.or.kr에서 온다 — 그것으로 가른다. */}
-                <Gallery
-                  photos={f.photos}
-                  title={L.name}
-                  sourceLabel={t(
-                    l,
-                    f.photos.every((p) => /(^|\.)visitkorea\.or\.kr\//.test(p.url))
-                      ? 'detail.photos.src'
-                      : 'detail.photos.srcOrganizer',
-                  )}
-                  prevLabel={t(l, 'gallery.prev')}
-                  nextLabel={t(l, 'gallery.next')}
-                  closeLabel={t(l, 'gallery.close')}
-                />
-              </section>
-            )}
-
-            {/* 먹거리 — 구석구석의 부스·메뉴·가격. 외국인에게 '얼마인지'가 정보다 */}
-            {boothCount > 0 && (
-              <section className="mb-10">
-                <div className="mb-3 flex items-baseline gap-2">
-                  <h2 className="text-[20px] font-black text-ink">
-                    <Icon name="utensils" size={18} className="-mt-1 mr-1 inline text-brand" />
-                    {t(l, 'detail.food')}
-                  </h2>
-                  <span className="text-[13px] text-hint">
-                    {t(l, boothCount === 1 ? 'detail.booth.n1' : 'detail.booth.n', { n: boothCount })} · {t(l, menuCount === 1 ? 'detail.menu.n1' : 'detail.menu.n', { n: menuCount })}
-                  </span>
-                </div>
-                {f.boothsFromPastEdition && (
-                  <p className="mb-3 rounded-lg bg-brand-50 px-3 py-2 text-[13px] text-brand-600">{t(l, 'detail.booth.past')}</p>
-                )}
-                <OriginalNote lang={l} text={f.booths?.map((b) => `${b.name} ${b.menu.map((m) => m.name).join(' ')}`).join(' ')} />
-                <div className="divide-y divide-line rounded-[var(--radius-card)] border border-line bg-surface">
-                  {f.booths!.slice(0, 12).map((b) => (
-                    <details key={b.name} className="group px-4 py-3" open={boothCount <= 3}>
-                      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[15px] font-bold text-ink [&::-webkit-details-marker]:hidden">
-                        <span className="truncate">{b.name}</span>
-                        <span className="shrink-0 text-[12px] font-semibold text-hint">{t(l, 'detail.menu.n', { n: b.menu.length })}</span>
-                      </summary>
-                      {b.menu.length > 0 && (
-                        <ul className="mt-2 grid gap-x-6 gap-y-1.5 text-[14px] sm:grid-cols-2">
-                          {b.menu.slice(0, 20).map((m, i) => (
-                            <li key={`${m.name}-${i}`} className="flex items-baseline justify-between gap-3 border-b border-dotted border-line/80 pb-1">
-                              <span className="truncate text-ink/85">{m.name}</span>
-                              {m.price != null && <span className="shrink-0 tabular-nums font-bold text-brand">{won(m.price, l)}</span>}
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </details>
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {/* 프로그램 */}
-            {/* 출연 라인업 — 공공 API에 없는 정보다(TourAPI·문화포털 모두).
-                그런데 음악 페스티벌에서 사람들이 가장 먼저 찾는 게 '누가 나오는가'다.
-                프로그램에 섞으면 묻히므로 위에 따로, 목차에도 따로 둔다. */}
-            {f.lineup && (
-              <section id="lineup" className="mb-10 scroll-mt-24">
-                <h2 className="mb-3 text-[20px] font-black text-ink">{t(l, 'detail.lineup')}</h2>
-                <OriginalNote lang={l} text={f.lineup} />
-                <p className="whitespace-pre-line rounded-[var(--radius-card)] border border-line p-5 text-[15px] leading-relaxed text-ink/85">
-                  {f.lineup}
-                </p>
-              </section>
-            )}
-
-            {f.program && (
-              <section id="program" className="mb-10 scroll-mt-24">
-                <h2 className="mb-3 text-[20px] font-black text-ink">{t(l, 'detail.program')}</h2>
-                <OriginalNote lang={l} text={editorialField(f, l, 'program')} />
-                <p className="whitespace-pre-line rounded-[var(--radius-card)] bg-surface p-5 text-[15px] leading-relaxed text-ink/85">{editorialField(f, l, 'program')}</p>
-              </section>
-            )}
-
-            {/* 영상 */}
-            {f.youtube && ytId && (
-              <section id="video" className="mb-10 scroll-mt-24">
-                <h2 className="mb-3 text-[20px] font-black text-ink">{t(l, 'detail.video')}</h2>
-                <YouTube url={f.youtube} title={L.name} />
-              </section>
-            )}
-
-            {/* 위치 */}
-            {hasCoords && (
-              <section id="location" className="mb-10 scroll-mt-24">
-                <h2 className="mb-3 text-[20px] font-black text-ink">{t(l, 'detail.location')}</h2>
-                <KakaoMap
-                  lat={f.lat as number}
-                  lng={f.lng as number}
-                  label={f.address ?? L.placeName ?? L.name}
-                  festivalId={f.externalId}
-                  linkLabel={t(l, 'map.open')}
-                  loadingLabel={t(l, 'map.loading')}
-                />
-                {f.address && <p className="mt-2 text-[14px] text-muted">{f.address}</p>}
-              </section>
-            )}
-
-            {/* 공식 홈페이지 — 우리 데이터는 공공 API 스냅샷이라 일정 변경·예매는 주최측이 정확하다.
-                여행자가 마지막에 확인해야 할 곳이므로 본문 끝에 크게 놓는다. */}
-            {(f.homepage || f.instagram || f.tel) && (
-              <section className="mb-10 rounded-[var(--radius-card)] border-2 border-brand/25 bg-brand-50/60 p-5">
-                <h2 className="mb-1 text-[17px] font-black text-brand">{t(l, 'official.title')}</h2>
-                <p className="mb-4 text-[13px] leading-relaxed text-muted">{t(l, 'official.sub')}</p>
-                <div className="flex flex-wrap gap-2">
-                  {f.homepage && (
-                    <a
-                      href={f.homepage}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 rounded-full bg-brand px-5 py-2.5 text-[14px] font-bold text-white transition hover:bg-brand-600"
-                    >
-                      <Icon name="link" size={15} /> {t(l, 'official.visit')}
-                    </a>
-                  )}
-                  {f.instagram && (
-                    <a
-                      href={f.instagram}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-5 py-2.5 text-[14px] font-bold text-ink transition hover:border-insta/50 hover:text-insta"
-                    >
-                      <Icon name="instagram" size={15} className="text-insta" /> {t(l, 'official.insta')}
-                    </a>
-                  )}
-                  {f.tel && (
-                    <a
-                      href={`tel:${f.tel}`}
-                      className="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-5 py-2.5 text-[14px] font-bold text-ink transition hover:border-brand/40 hover:text-brand"
-                    >
-                      <Icon name="phone" size={15} /> {f.tel}
-                      {/* 외국어 화면에서만 — 번호를 눌렀는데 한국어만 나오면 거기서 여행이 막힌다 */}
-                      {l !== 'ko' && <span className="text-[11px] font-semibold text-hint">{t(l, 'official.telKo')}</span>}
-                    </a>
-                  )}
-                </div>
-                {/* 1330 — 주최 측과 말이 안 통할 때 닿을 곳. 번호와 해외 번호는 한국관광공사 공식 안내,
-                    언어별 시간은 지자체 공식 안내 기준이다. 태국어는 24시간이 아니라서 그렇게 적지 않는다. */}
-                {l !== 'ko' && (
-                  <p className="mt-4 text-[13px] leading-relaxed text-muted">
-                    {t(l, 'official.helpline')}{' '}
-                    <a href="tel:1330" className="font-bold text-brand underline underline-offset-4">1330</a>
-                  </p>
-                )}
-                {f.homepage && (
-                  <p className="mt-3 truncate text-[12px] text-hint">{f.homepage.replace(/^https?:\/\//, '')}</p>
-                )}
-              </section>
-            )}
-
-            <p className="text-[12px] leading-relaxed text-hint">
-            {t(l, isPublicData(f) ? 'detail.source' : 'detail.source.manual')}
-            {f.verifiedAt && f.verificationSource && <span className="mt-2 block"><a href={f.verificationSource} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">{{ko:'운영 안내·공식 링크 확인',en:'Programme and official link checked',ja:'運営案内・公式リンク確認',th:'ตรวจสอบกำหนดการและลิงก์ทางการ'}[l]} · {f.verifiedAt}</a></span>}
-          </p>
-          </div>
-
-          {/* 오른쪽 — sticky 정보 카드. 트립어드바이저의 '시간' 카드 자리 */}
-          <aside className="order-first lg:order-last lg:sticky lg:top-24 lg:self-start">
-            <div className="rounded-[var(--radius-card)] border border-line bg-surface p-5 shadow-[0_8px_28px_-16px_rgba(79,50,22,.25)]">
-              <h2 className="mb-4 text-[15px] font-black text-ink">{t(l, 'detail.info')}</h2>
-              {(always || isLongRun(f)) && <p className="mb-4 text-[13px] leading-relaxed text-muted">{t(l, 'detail.scheduleNote')}</p>}
-              <dl className="space-y-3.5 text-[14px]">
-                <Row icon="calendar" label={t(l, 'detail.period')}>
-                  <span className="tabular-nums font-semibold">{fmt(f.startDate)} – {fmt(f.endDate)}</span>
-                </Row>
-                {f.hours && <Row icon="clock" label={t(l, 'detail.hours')}>{editorialField(f, l, 'hours')}<OriginalNote lang={l} text={editorialField(f, l, 'hours')} /></Row>}
-                {/* 요금은 셋이다 — 무료 / 유료 / 모름. 모르는 것을 「무료」라고 하지 않는다.
-                    공공 API가 요금을 안 준 축제가 425건 중 300건이고, 그건 공짜라는 뜻이
-                    아니다. 유료 축제를 싣기 시작하면 이 단정이 실제 피해가 된다. */}
-                <Row icon="ticket" label={t(l, 'detail.fee')}>
-                  {fee === 'unknown' ? (
-                    <span className="text-hint">{t(l, 'detail.feeUnknown')}</span>
-                  ) : (
-                    <span className={fee === 'free' ? 'font-bold text-brand' : ''}>{L.fee}</span>
-                  )}
-                  {L.feeIsOriginal && <OriginalNote lang={l} />}
-                </Row>
-                {(f.address || L.placeName) && (
-                  <Row icon="pin" label={t(l, 'detail.place')}>
-                    <span className="break-keep">{f.address ?? L.placeName}</span>
-                  </Row>
-                )}
-                {f.ageInfo && <Row icon="user" label={t(l, 'detail.age')}>{f.ageInfo}<OriginalNote lang={l} text={f.ageInfo} /></Row>}
-                {f.organizer && <Row icon="user" label={t(l, 'detail.organizer')}>{f.organizer}</Row>}
-                {f.tel && (
-                  <Row icon="phone" label={t(l, 'detail.tel')}>
-                    <a href={`tel:${f.tel}`} className="font-semibold text-brand hover:underline">{f.tel}</a>
-                  </Row>
-                )}
-              </dl>
-
-              <div className="mt-5 flex flex-col gap-2">
-                {/* 길찾기는 카카오맵으로 나간다 — 그러니 카카오 노랑을 입는다.
-                    우리 초록으로 두면 사이트 안에서 뭔가 열리는 버튼처럼 보인다. */}
-                {mapHref && (
-                  <a href={mapHref} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 rounded-full bg-kakao px-5 py-3 text-[15px] font-bold text-kakao-ink transition hover:brightness-95">
-                    <Icon name="pin" size={17} /> {t(l, 'detail.directions')}
-                  </a>
-                )}
-                <div className="flex gap-2">
-                  {f.homepage && (
-                    <a href={f.homepage} target="_blank" rel="noopener noreferrer" className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-full border border-line px-4 py-2.5 text-[13px] font-bold text-ink transition hover:border-brand/40 hover:text-brand">
-                      <Icon name="link" size={15} /> {t(l, 'detail.homepage')}
-                    </a>
-                  )}
-                  {f.instagram && (
-                    <a href={f.instagram} target="_blank" rel="noopener noreferrer" className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-full border border-line px-4 py-2.5 text-[13px] font-bold text-ink transition hover:border-insta/50 hover:text-insta">
-                      <Icon name="instagram" size={15} className="text-insta" /> {t(l, 'official.insta')}
-                    </a>
-                  )}
-                </div>
-              </div>
-            </div>
-          </aside>
-        </div>
-
+        <FestivalBody f={f} L={L} lang={l} ytId={ytId} mapHref={mapHref} ended={ended} />
         {/* 리뷰 — 트립어드바이저에서 본문의 8할을 차지하는 자리 */}
-        <section className="mx-auto max-w-6xl px-5 pb-16">
+        <section className="mx-auto max-w-3xl pb-16">
           <Reviews festivalId={f.externalId} lang={l} initial={reviews} />
           <ReportError festivalId={f.externalId} lang={l} />
         </section>
@@ -560,19 +314,12 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
   )
 }
 
-function OriginalNote({ lang, text }: { lang: Lang; text?: string | null }) {
-  if (lang === 'ko' || (text !== undefined && !/[가-힣]/.test(text ?? ''))) return null
-  return <p className="my-2 text-[13px] leading-relaxed text-muted">{t(lang, 'detail.original')}</p>
-}
-
-function Row({ icon, label, children }: { icon: Parameters<typeof Icon>[0]['name']; label: string; children: React.ReactNode }) {
+function QuickFact({ label, value, sub }: { label: string; value: React.ReactNode; sub?: React.ReactNode }) {
   return (
-    <div className="flex flex-col gap-0.5 sm:flex-row sm:gap-3">
-      <dt className="flex items-center gap-1.5 text-muted sm:w-24 sm:shrink-0">
-        <Icon name={icon} size={15} className="text-brand" />
-        <span className="font-semibold">{label}</span>
-      </dt>
-      <dd className="min-w-0 flex-1 pl-[22px] text-ink sm:pl-0">{children}</dd>
+    <div className="min-w-0 border-b border-r-[1px] border-line px-3 py-3 last:border-r-0 sm:border-b-0 sm:px-4">
+      <dt className="mb-1 text-[12px] font-bold text-muted">{label}</dt>
+      <dd className="break-words text-[14px] font-bold leading-snug text-ink">{value}</dd>
+      {sub && <dd className="mt-1 text-[12px] leading-snug text-muted">{sub}</dd>}
     </div>
   )
 }

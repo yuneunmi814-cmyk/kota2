@@ -51,23 +51,17 @@ export function nearbyFestivals(
 }
 
 /** 목차에 놓을 수 있는 칸. 화면 순서와 같다 */
-export type SectionId = 'about' | 'photos' | 'lineup' | 'program' | 'location' | 'reviews' | 'nearby'
+export type SectionId = 'about' | 'program' | 'schedule' | 'admission' | 'notes' | 'location' | 'contact' | 'reviews' | 'nearby'
 
 /**
- * 목차 — 그 섹션이 실제로 그려질 때만 넣는다.
- * 이름표(사람이 읽는 글자)는 화면 쪽에서 붙인다. 여기서는 무엇이 있는지만 정한다.
+ * 핵심 정보의 순서는 모든 축제에서 같다. 정보가 없는 칸도 명시적으로 안내한다.
+ * 사진·영상·먹거리 등은 해당 주제 안에 종속되어 목차를 불필요하게 늘리지 않는다.
  */
 export function detailSections(
   f: Festival,
-  { hasSummary, nearbyCount }: { hasSummary: boolean; nearbyCount: number },
+  { nearbyCount }: { hasSummary: boolean; nearbyCount: number },
 ): SectionId[] {
-  const out: SectionId[] = []
-  if (hasSummary) out.push('about')
-  if ((f.photos?.length ?? 0) > 0) out.push('photos')
-  if (f.lineup) out.push('lineup')
-  if (f.program) out.push('program')
-  if (f.lat != null && f.lng != null) out.push('location')
-  out.push('reviews')
+  const out: SectionId[] = ['about', 'program', 'schedule', 'admission', 'notes', 'location', 'contact', 'reviews']
   if (nearbyCount > 0) out.push('nearby')
   return out
 }
