@@ -51,14 +51,14 @@ test('a festival with an image uses it for both OG and Twitter and preserves enc
 test('an image-less festival uses the KOTA share image instead of inheriting a missing or stale image', () => {
   const meta = pageMetadata({ lang: 'th', path: 'festivals/tourapi-506600', title: 'เทศกาล', description: 'ข้อมูลเทศกาล' })
   assert.equal(meta.openGraph.url, 'https://ko-ta.co.kr/th/festivals/tourapi-506600/')
-  assert.deepEqual(meta.openGraph.images, ['/og.png'])
-  assert.deepEqual(meta.twitter.images, ['/og.png'])
+  assert.deepEqual(meta.openGraph.images, ['/og-korea-festa-20260921.png'])
+  assert.deepEqual(meta.twitter.images, ['/og-korea-festa-20260921.png'])
   assert.equal(meta.openGraph.locale, 'th_TH')
 })
 
 test('Next resolves one brand suffix and the fallback image to the public origin', () => {
   const meta = pageMetadata({ lang: 'ko', path: 'festivals/tourapi-506600', title: '산청축제', description: '산청 소개' })
   assert.equal(resolveTitle(meta.title, '%s · KOTA').absolute, '산청축제 · KOTA')
-  assert.equal(resolveImages(meta.openGraph.images, new URL('https://ko-ta.co.kr'), false)[0].url.href, 'https://ko-ta.co.kr/og.png')
-  assert.equal(resolveImages(meta.twitter.images, new URL('https://ko-ta.co.kr'), false)[0].url.href, 'https://ko-ta.co.kr/og.png')
+  assert.equal(resolveImages(meta.openGraph.images, new URL('https://ko-ta.co.kr'), false)[0].url.href, 'https://ko-ta.co.kr/og-korea-festa-20260921.png')
+  assert.equal(resolveImages(meta.twitter.images, new URL('https://ko-ta.co.kr'), false)[0].url.href, 'https://ko-ta.co.kr/og-korea-festa-20260921.png')
 })

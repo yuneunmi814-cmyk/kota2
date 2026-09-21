@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import type { ReactNode } from 'react'
 import Analytics from '@/components/Analytics'
 import BackToTop from '@/components/BackToTop'
-import { HTML_LANG, LANGS, SITE_URL, isLang, type Lang } from '@/lib/i18n'
+import { HTML_LANG, LANGS, SITE_URL, SHARE_IMAGE, isLang, type Lang } from '@/lib/i18n'
 import { t } from '@/lib/ui'
 import '../globals.css'
 
@@ -60,13 +60,13 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
       title: s.title,
       description: s.desc,
       url: `${SITE_URL}/${l}/`,
-      images: [{ url: '/og.png', width: 1200, height: 630, alt: 'KOTA' }],
+      images: [{ url: SHARE_IMAGE, width: 1200, height: 630, alt: 'KOTA' }],
     },
     twitter: {
       card: 'summary_large_image',
       title: s.title,
       description: s.desc,
-      images: ['/og.png'],
+      images: [SHARE_IMAGE],
     },
   }
 }

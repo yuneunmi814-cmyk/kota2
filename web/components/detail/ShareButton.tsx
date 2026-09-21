@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react'
 import Icon from '../Icon'
 import { track } from '@/lib/track'
-import type { Lang } from '@/lib/i18n'
+import { SHARE_IMAGE, SITE_URL, type Lang } from '@/lib/i18n'
 import { tryCopyLink } from '@/lib/share-copy'
 
 // 공유 — 축제는 '같이 갈래?'로 퍼진다. 그래서 공유가 부가 기능이 아니라 유입 경로다.
@@ -114,7 +114,7 @@ export default function ShareButton({
       content: {
         title,
         description: description?.slice(0, 80) ?? '',
-        imageUrl: image ?? '',
+        imageUrl: image || `${SITE_URL}${SHARE_IMAGE}`,
         link: { mobileWebUrl: url(), webUrl: url() },
       },
       buttons: [{ title: labels.more, link: { mobileWebUrl: url(), webUrl: url() } }],

@@ -45,6 +45,9 @@ export const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? ''
 // 기본값도 그쪽으로 옮긴다 — 환경변수가 빠진 채 빌드돼도 죽은 주소를 가리키지 않게.
 export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ko-ta.co.kr'
 
+// A new filename prevents old logo bytes being reused by social image caches.
+export const SHARE_IMAGE = '/og-korea-festa-20260921.png'
+
 /** 언어별 절대 URL — hreflang·canonical·OG에 쓴다 */
 export function absUrl(lang: Lang, path = ''): string {
   const clean = path.replace(/^\/+|\/+$/g, '')
@@ -61,7 +64,7 @@ export function pageMetadata({ lang, path, title, description, image, absoluteTi
   absoluteTitle?: boolean
 }): Metadata {
   const url = absUrl(lang, path)
-  const shareImage = image || '/og.png'
+  const shareImage = image || SHARE_IMAGE
   return {
     title: absoluteTitle ? { absolute: title } : title,
     description,

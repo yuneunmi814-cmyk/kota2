@@ -5,7 +5,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import type { Festival } from '@/lib/festivals'
 import { listFestivalSummaries, isAlwaysOn, localized, statusOf } from '@/lib/festivals'
-import { LANGS, SITE_URL, isLang, pageMetadata, type Lang } from '@/lib/i18n'
+import { LANGS, SITE_URL, SHARE_IMAGE, isLang, pageMetadata, type Lang } from '@/lib/i18n'
 import { t } from '@/lib/ui'
 import Header from '@/components/Header'
 import FestivalRow from '@/components/FestivalRow'
@@ -135,7 +135,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
                 alternateName: '코타',
                 url: `${SITE_URL}/`,
                 logo: `${SITE_URL}/icon.png`,
-                image: `${SITE_URL}/og.png`,
+                image: `${SITE_URL}${SHARE_IMAGE}`,
               },
             ],
           }).replace(/</g, '\\u003c'),
