@@ -8,6 +8,12 @@ import type { Lang } from './i18n'
 type Dict = Record<string, string>
 
 const ko: Dict = {
+  'contact.korea': "국내 1330",
+  'contact.overseas': "해외 +82-2-1330",
+  'contact.chat': "공식 채팅·이용 안내",
+  'official.telKo': "전화 문의 · 외국어 응대 미확인",
+  'official.helpline': "말이 안 통하면 1330 관광안내로 문의하세요. 영어·일본어 등으로 여행 안내와 통역을 도와드립니다. 언어별 운영 시간은 공식 안내에서 확인하세요.",
+
   'verification.title': "정보 확인 기록",
   'verification.programme': "{d} 주최 측 공지로 운영 안내·공식 링크 확인",
   'verification.schedule': "{d} 주최 측 공지로 일정 확인",
@@ -186,8 +192,6 @@ const ko: Dict = {
   'nav.festivals': '전국 축제',
   'detail.place': '장소',
   'detail.tel': '문의',
-  'official.telKo': '한국어 응대',
-  'official.helpline': '주최 측 전화는 한국어로 응대해요. 말이 안 통하면 1330 관광안내(한국관광공사)로 — 영어·일본어·중국어 24시간. 해외에서는 +82-2-1330.',
   'detail.homepage': '홈페이지',
   'official.title': '주최 측 공식 채널',
   'official.sub': '일정 변경·예매·상세 프로그램은 주최 측 공지가 가장 정확해요',
@@ -209,6 +213,12 @@ const ko: Dict = {
 }
 
 const en: Dict = {
+  'contact.korea': "In Korea: 1330",
+  'contact.overseas': "Overseas: +82-2-1330",
+  'contact.chat': "Official chat & service details",
+  'official.telKo': "Organizer phone · foreign-language support unconfirmed",
+  'official.helpline': "Need language help? Contact the 1330 Korea Travel Helpline for travel information and interpretation in English, Japanese and other languages. Check the official guide for hours by language.",
+
   'verification.title': "Information checks",
   'verification.programme': "Programme and official link checked against organizer notice: {d}",
   'verification.schedule': "Dates checked against organizer notice: {d}",
@@ -387,8 +397,6 @@ const en: Dict = {
   'nav.festivals': 'All festivals',
   'detail.place': 'Where',
   'detail.tel': 'Contact',
-  'official.telKo': 'Korean only',
-  'official.helpline': 'The organizer’s phone line is answered in Korean. If you get stuck, call 1330, the Korea Travel Helpline run by the Korea Tourism Organization — English, Japanese and Chinese 24/7. From overseas: +82-2-1330.',
   'detail.homepage': 'Website',
   'official.title': 'Official organizer channels',
   'official.sub': 'The organizer\'s own notices are the most reliable for schedule changes, tickets, and program details',
@@ -410,6 +418,12 @@ const en: Dict = {
 }
 
 const ja: Dict = {
+  'contact.korea': "韓国内：1330",
+  'contact.overseas': "海外：+82-2-1330",
+  'contact.chat': "公式チャット・利用案内",
+  'official.telKo': "主催者への電話・外国語対応は未確認",
+  'official.helpline': "言葉に困ったら1330観光通訳案内へ。日本語・英語などで観光案内や通訳を受けられます。言語ごとの対応時間は公式案内をご確認ください。",
+
   'verification.title': "情報の確認記録",
   'verification.programme': "{d} 主催者の告知で運営案内・公式リンクを確認",
   'verification.schedule': "{d} 主催者の告知で日程を確認",
@@ -588,8 +602,6 @@ const ja: Dict = {
   'nav.festivals': '全国の祭り',
   'detail.place': '会場',
   'detail.tel': 'お問い合わせ',
-  'official.telKo': '韓国語のみ',
-  'official.helpline': '主催者の電話は韓国語での対応です。困ったときは1330(韓国観光公社の観光案内電話)へ。日本語・英語・中国語は24時間対応。海外からは+82-2-1330。',
   'detail.homepage': '公式サイト',
   'official.title': '主催者の公式窓口',
   'official.sub': '日程変更・チケット・詳細プログラムは主催者の告知が最も正確です',
@@ -611,6 +623,12 @@ const ja: Dict = {
 }
 
 const th: Dict = {
+  'contact.korea': "ในเกาหลี: 1330",
+  'contact.overseas': "จากต่างประเทศ: +82-2-1330",
+  'contact.chat': "แชตทางการและข้อมูลบริการ",
+  'official.telKo': "โทรหาผู้จัด · ยังไม่ยืนยันบริการภาษาต่างประเทศ",
+  'official.helpline': "หากติดขัดด้านภาษา ติดต่อสายด่วนท่องเที่ยวเกาหลี 1330 เพื่อขอข้อมูลและบริการล่ามภาษาอังกฤษ ญี่ปุ่น และภาษาอื่น ๆ ตรวจสอบเวลาให้บริการแต่ละภาษาที่เว็บไซต์ทางการ",
+
   'verification.title': "บันทึกการตรวจสอบข้อมูล",
   'verification.programme': "ตรวจสอบรายละเอียดกิจกรรมและลิงก์ทางการจากประกาศผู้จัด: {d}",
   'verification.schedule': "ตรวจสอบวันที่จากประกาศผู้จัด: {d}",
@@ -789,8 +807,6 @@ const th: Dict = {
   'nav.festivals': 'เทศกาลทั้งหมด',
   'detail.place': 'สถานที่',
   'detail.tel': 'ติดต่อ',
-  'official.telKo': 'ภาษาเกาหลีเท่านั้น',
-  'official.helpline': 'เบอร์ของผู้จัดงานให้บริการเป็นภาษาเกาหลี หากติดขัดโทร 1330 สายด่วนท่องเที่ยวเกาหลีขององค์การส่งเสริมการท่องเที่ยวเกาหลี มีบริการภาษาไทยในเวลาทำการ และภาษาอังกฤษตลอด 24 ชั่วโมง โทรจากต่างประเทศ +82-2-1330',
   'detail.homepage': 'เว็บไซต์',
   'official.title': 'ช่องทางทางการของผู้จัดงาน',
   'official.sub': 'ประกาศจากผู้จัดงานแม่นยำที่สุดสำหรับการเปลี่ยนแปลงกำหนดการ บัตร และรายละเอียด',

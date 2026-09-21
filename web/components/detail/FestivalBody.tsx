@@ -1,3 +1,4 @@
+import { festivalContacts, HELPLINE_URL } from '@/lib/contact'
 import { menuLabel, menuHints, menuTranslationUrl } from '@/lib/menu'
 import { operatingDaysLabel } from '@/lib/operating-days'
 import { editorialField } from '@/lib/editorial'
@@ -40,6 +41,7 @@ export default function FestivalBody({ f, L, lang, ytId, mapHref, ended }: {
   ended: boolean
 }) {
   const l = lang
+  const contacts = festivalContacts(f)
   const hasCoords = f.lat != null && f.lng != null
   const hours = editorialField(f, l, 'hours')
   const program = editorialField(f, l, 'program')
@@ -172,15 +174,27 @@ export default function FestivalBody({ f, L, lang, ytId, mapHref, ended }: {
       <section id="contact" className={sectionClass}>
         <h2 className={headingClass}>{t(l, 'detail.contact')}</h2>
         {f.organizer && <dl className="mb-4 border-t border-line"><Fact label={t(l, 'detail.organizer')}>{f.organizer}{l !== 'ko' && /[가-힣]/.test(f.organizer) && <p className="mt-1 text-[13px] leading-relaxed text-muted">{t(l, 'detail.koOrganizer')}</p>}</Fact></dl>}
-        {(f.homepage || f.instagram || f.tel) ? <>
+        {(contacts.homepage || contacts.instagram || contacts.email || f.tel) ? <>
           <p className="mb-4 text-[13px] leading-relaxed text-muted">{t(l, 'official.sub')}</p>
           <div className="flex flex-wrap gap-2">
-            {f.homepage && <a href={f.homepage} target="_blank" rel="noopener noreferrer" className="rounded-full bg-brand px-5 py-2.5 text-[14px] font-bold text-white hover:bg-brand-600">{t(l, 'official.visit')}</a>}
-            {f.instagram && <a href={f.instagram} target="_blank" rel="noopener noreferrer" className="rounded-full border border-line px-5 py-2.5 text-[14px] font-bold text-ink hover:text-insta">{t(l, 'official.insta')}</a>}
-            {f.tel && <a href={`tel:${f.tel}`} className="rounded-full border border-line px-5 py-2.5 text-[14px] font-bold text-ink hover:text-brand">{f.tel}{l !== 'ko' && <span className="ml-2 text-[11px] text-hint">{t(l, 'official.telKo')}</span>}</a>}
+            {contacts.homepage && <a href={contacts.homepage} target="_blank" rel="noopener noreferrer" className="rounded-full bg-brand px-5 py-2.5 text-[14px] font-bold text-white hover:bg-brand-600">{t(l, 'official.visit')}</a>}
+            {contacts.instagram && <a href={contacts.instagram} target="_blank" rel="noopener noreferrer" className="rounded-full border border-line px-5 py-2.5 text-[14px] font-bold text-ink hover:text-insta">{t(l, 'official.insta')}</a>}
+            {contacts.email && <a href={`mailto:${contacts.email}`} className="break-all rounded-full border border-line px-5 py-2.5 text-[14px] font-bold text-ink">{contacts.email}</a>}
           </div>
-          {l !== 'ko' && <p className="mt-4 text-[13px] leading-relaxed text-muted">{t(l, 'official.helpline')} <a href="tel:1330" className="font-bold text-brand underline">1330</a></p>}
+          {f.tel && <div className="mt-4 text-[14px] text-muted">
+            <p className="mb-2 text-xs">{t(l, 'official.telKo')}</p>
+            <p>{f.tel}</p>
+            <div className="mt-2 flex flex-wrap gap-2">{contacts.phones.map(phone => <a key={phone.href} href={phone.href} className="rounded-full border border-line px-4 py-2 font-bold text-ink hover:text-brand">{phone.label}</a>)}</div>
+          </div>}
         </> : <p className="text-[15px] text-muted">{t(l, 'detail.noContact')}</p>}
+        <div className="mt-5 rounded-lg border border-line bg-paper-2/60 p-4 text-[13px] leading-relaxed text-muted">
+          <p>{t(l, 'official.helpline')}</p>
+          <div className="mt-2 flex flex-wrap gap-x-4 gap-y-2 font-bold text-brand">
+            <a href="tel:1330" className="underline">{t(l, 'contact.korea')}</a>
+            <a href="tel:+8221330" className="underline">{t(l, 'contact.overseas')}</a>
+            <a href={HELPLINE_URL} target="_blank" rel="noopener noreferrer" className="underline">{t(l, 'contact.chat')}</a>
+          </div>
+        </div>
         <p className="mt-6 text-[12px] leading-relaxed text-hint">{t(l, isPublicData(f) ? 'detail.source' : 'detail.source.manual')}</p>
 
       </section>
