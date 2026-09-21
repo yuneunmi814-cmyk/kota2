@@ -131,7 +131,7 @@ export default function FestivalBody({ f, L, lang, ytId, mapHref, ended }: {
       <section id="admission" className={sectionClass}>
         <h2 className={headingClass}>{t(l, 'detail.admission')}</h2>
         <dl className="border-t border-line">
-          <Fact label={t(l, 'detail.fee')}>{fee === 'unknown' ? <span className="text-muted">{t(l, 'detail.feeUnknown')}</span> : <>{L.fee}{L.feeIsOriginal && <OriginalNote lang={l} />}</>}</Fact>
+          <Fact label={t(l, 'detail.fee')}>{fee === 'unknown' ? <span className="text-muted">{t(l, 'detail.feeUnknown')}</span> : <>{L.fee}{L.feeIsOriginal && <><OriginalNote lang={l} /><a href={menuTranslationUrl(f.fee ?? '', l)} target="_blank" rel="noopener noreferrer" className="text-sm font-bold text-brand underline">{t(l, 'detail.translate')}</a></>}</>}</Fact>
           {f.ageInfo && <Fact label={t(l, 'detail.age')}>{f.ageInfo}<OriginalNote lang={l} text={f.ageInfo} /></Fact>}
         </dl>
         {f.homepage && <p className="mt-4 text-[13px] text-muted">{t(l, 'detail.attendNote')} <a href={f.homepage} target="_blank" rel="noopener noreferrer" className="font-bold text-brand underline underline-offset-4">{t(l, 'official.visit')}</a></p>}
@@ -182,8 +182,8 @@ export default function FestivalBody({ f, L, lang, ytId, mapHref, ended }: {
             {contacts.email && <a href={`mailto:${contacts.email}`} className="break-all rounded-full border border-line px-5 py-2.5 text-[14px] font-bold text-ink">{contacts.email}</a>}
           </div>
           {f.tel && <div className="mt-4 text-[14px] text-muted">
-            <p className="mb-2 text-xs">{t(l, 'official.telKo')}</p>
-            <p>{f.tel}</p>
+            {contacts.phones.length > 0 && <p className="mb-2 text-xs">{t(l, 'official.telKo')}</p>}
+            {f.tel !== contacts.phones[0]?.label && <p>{f.tel}</p>}
             <div className="mt-2 flex flex-wrap gap-2">{contacts.phones.map(phone => <a key={phone.href} href={phone.href} className="rounded-full border border-line px-4 py-2 font-bold text-ink hover:text-brand">{phone.label}</a>)}</div>
           </div>}
         </> : <p className="text-[15px] text-muted">{t(l, 'detail.noContact')}</p>}

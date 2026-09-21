@@ -1,3 +1,4 @@
+import { menuTranslationUrl } from '@/lib/menu'
 import Verification from '@/components/detail/Verification'
 import { editionFeedUrl } from '@/lib/edition-calendar'
 import { operatingDaysLabel } from '@/lib/operating-days'
@@ -238,7 +239,7 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
           <QuickFact label={t(l, 'detail.period')} value={<span className="tabular-nums">{fmt(f.startDate)} – {fmt(f.endDate)}</span>} />
           <QuickFact label={t(l, 'detail.place')} value={(l !== 'ko' && f.address ? localizeAddress(f.address, l) : f.address) ?? L.placeName ?? t(l, 'detail.noLocation')} sub={l !== 'ko' && f.address ? <span lang="ko" className="select-all">{f.address}</span> : undefined} />
           <QuickFact label={t(l, 'detail.hours')} value={quickHours ?? t(l, 'detail.noHours')} sub={quickDays || hoursOriginal ? <>{quickDays}{hoursOriginal && <span className="block">{t(l, 'detail.original')}</span>}</> : undefined} />
-          <QuickFact label={t(l, 'detail.fee')} value={longFee ? <><span className="line-clamp-2">{quickFee}</span><a href="#admission" className="mt-1 inline-block text-[12px] text-brand underline underline-offset-2">{t(l, 'detail.seeFee')}</a></> : quickFee} sub={L.feeIsOriginal ? t(l, 'detail.original') : undefined} />
+          <QuickFact label={t(l, 'detail.fee')} value={longFee ? <><span className="line-clamp-2">{quickFee}</span><a href="#admission" className="mt-1 inline-block text-[12px] text-brand underline underline-offset-2">{t(l, 'detail.seeFee')}</a></> : quickFee} sub={L.feeIsOriginal ? <a href={menuTranslationUrl(f.fee ?? '', l)} target="_blank" rel="noopener noreferrer" className="text-brand underline">{t(l, 'detail.translate')}</a> : undefined} />
         </dl>
 
         {/* 방문자 순위는 맥락과 산정 기준을 함께 보여주되 방문 결정에 필요한 사실 뒤에 둔다. */}

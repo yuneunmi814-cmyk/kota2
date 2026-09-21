@@ -16,6 +16,7 @@ const rows = `
 곱창|Intestines|ホルモン|ไส้
 무뼈|Boneless|骨なし|ไม่มีกระดูก
 순살|Boneless|骨なし|ไม่มีกระดูก
+해장국밥|Hangover soup with rice|ヘジャンクッパ|ซุปแฮจังกุกกับข้าว
 해장국|Hangover soup|ヘジャングク|ซุปแฮจังกุก
 우거지|Cabbage leaves|白菜の外葉|ใบกะหล่ำ
 시래기|Dried radish greens|干した大根の葉|ใบหัวไชเท้าแห้ง

@@ -39,3 +39,10 @@ test('unrecognized conditions remain intact and clearly marked instead of guesse
   assert.equal(localized({ ...festival, fee: null }, 'ja').fee, null)
   assert.equal(localized(festival, 'ko').fee, festival.fee)
 })
+
+test('free entry with paid activities preserves the charge qualification', () => {
+ const out=localized({...festival,fee:'무료 (체험부스 일부 유료)'},'ja')
+ assert.equal(out.fee,'無料 (一部の体験は有料)')
+ assert.equal(out.feeIsOriginal,false)
+ assert.equal(localized({...festival,fee:'유료(8,000원)'},'en').fee,'Paid admission 8,000 KRW')
+})

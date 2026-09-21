@@ -66,6 +66,15 @@ function feeText(raw: string | null | undefined, lang: Lang) {
       feeIsOriginal: false,
     }
   }
+  const mixedFree = /^(?:입장료\s*)?무료\s*[(（]\s*(체험(?:부스|프로그램)?|먹거리|프로그램)\s*(일부\s*)?유료\s*[)）]$/.exec(text)
+  if (mixedFree) {
+    const paidPart = mixedFree[1] === '먹거리'
+      ? { en: 'food is charged separately', ja: '飲食は有料', th: 'อาหารมีค่าใช้จ่าย' }
+      : { en: `${mixedFree[2] ? 'some ' : ''}activities are paid`, ja: `${mixedFree[2] ? '一部の' : ''}体験は有料`, th: `กิจกรรม${mixedFree[2] ? 'บางรายการ' : ''}มีค่าใช้จ่าย` }
+    return { fee: `${words.free} (${paidPart[lang]})`, feeIsOriginal: false }
+  }
+  const amount = /^유료\s*[(（]?\s*([\d,]+)원\s*[)）]?$/.exec(text)
+  if (amount) return { fee: `${words.paid} ${amount[1]}${words.won}`, feeIsOriginal: false }
   return { fee: text, feeIsOriginal: /[가-힣]/.test(text) }
 }
 

@@ -8,10 +8,11 @@ import type { Lang } from './i18n'
 type Dict = Record<string, string>
 
 const ko: Dict = {
+  'detail.translate': "Google 번역에서 뜻 보기 ↗",
   'contact.korea': "국내 1330",
   'contact.overseas': "해외 +82-2-1330",
   'contact.chat': "공식 채팅·이용 안내",
-  'official.telKo': "전화 문의 · 외국어 응대 미확인",
+  'official.telKo': "한국어 전화 · 외국어 응대 미확인",
   'official.helpline': "말이 안 통하면 1330 관광안내로 문의하세요. 영어·일본어 등으로 여행 안내와 통역을 도와드립니다. 언어별 운영 시간은 공식 안내에서 확인하세요.",
 
   'verification.title': "정보 확인 기록",
@@ -213,10 +214,11 @@ const ko: Dict = {
 }
 
 const en: Dict = {
+  'detail.translate': "Read with Google Translate ↗",
   'contact.korea': "In Korea: 1330",
   'contact.overseas': "Overseas: +82-2-1330",
   'contact.chat': "Official chat & service details",
-  'official.telKo': "Organizer phone · foreign-language support unconfirmed",
+  'official.telKo': "Korean phone line · other languages unconfirmed",
   'official.helpline': "Need language help? Contact the 1330 Korea Travel Helpline for travel information and interpretation in English, Japanese and other languages. Check the official guide for hours by language.",
 
   'verification.title': "Information checks",
@@ -418,10 +420,11 @@ const en: Dict = {
 }
 
 const ja: Dict = {
+  'detail.translate': "Google翻訳で読む ↗",
   'contact.korea': "韓国内：1330",
   'contact.overseas': "海外：+82-2-1330",
   'contact.chat': "公式チャット・利用案内",
-  'official.telKo': "主催者への電話・外国語対応は未確認",
+  'official.telKo': "韓国語の電話・外国語対応は未確認",
   'official.helpline': "言葉に困ったら1330観光通訳案内へ。日本語・英語などで観光案内や通訳を受けられます。言語ごとの対応時間は公式案内をご確認ください。",
 
   'verification.title': "情報の確認記録",
@@ -623,10 +626,11 @@ const ja: Dict = {
 }
 
 const th: Dict = {
+  'detail.translate': "อ่านด้วย Google แปลภาษา ↗",
   'contact.korea': "ในเกาหลี: 1330",
   'contact.overseas': "จากต่างประเทศ: +82-2-1330",
   'contact.chat': "แชตทางการและข้อมูลบริการ",
-  'official.telKo': "โทรหาผู้จัด · ยังไม่ยืนยันบริการภาษาต่างประเทศ",
+  'official.telKo': "โทรภาษาเกาหลี · ยังไม่ยืนยันบริการภาษาอื่น",
   'official.helpline': "หากติดขัดด้านภาษา ติดต่อสายด่วนท่องเที่ยวเกาหลี 1330 เพื่อขอข้อมูลและบริการล่ามภาษาอังกฤษ ญี่ปุ่น และภาษาอื่น ๆ ตรวจสอบเวลาให้บริการแต่ละภาษาที่เว็บไซต์ทางการ",
 
   'verification.title': "บันทึกการตรวจสอบข้อมูล",
