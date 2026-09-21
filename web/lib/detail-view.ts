@@ -143,7 +143,7 @@ export function festivalJsonLd({
     ...(L.summary ? { description: L.summary } : {}),
     startDate: f.startDate,
     endDate: f.endDate,
-    eventStatus: 'https://schema.org/EventScheduled',
+    ...(statusOf(f) === 'ended' ? {} : { eventStatus: 'https://schema.org/EventScheduled' }),
     eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
     inLanguage: lang,
     location: {

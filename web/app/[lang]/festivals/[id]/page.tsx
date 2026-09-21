@@ -1,3 +1,4 @@
+import { editionFeedUrl } from '@/lib/edition-calendar'
 import { operatingDaysLabel } from '@/lib/operating-days'
 import { editorialField } from '@/lib/editorial'
 import type { Metadata } from 'next'
@@ -216,9 +217,16 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
         {ended && (
           <div className="mb-5 rounded-[var(--radius-card)] bg-surface p-4 text-[14px] leading-relaxed text-ink/85">
             <p>{t(l, 'detail.endedNote')}</p>
-            <Link href={`/${l}/festivals/`} className="mt-2 inline-block font-bold text-brand underline underline-offset-4">
+            <Link href={`/${l}/festivals/?period=ongoing`} className="mt-2 inline-block font-bold text-brand underline underline-offset-4">
               {t(l, 'detail.endedCta')}
             </Link>
+            <details className="mt-3">
+              <summary className="cursor-pointer font-bold text-brand">{t(l, 'edition.title')}</summary>
+              <p className="mt-2">{t(l, 'edition.note')}</p>
+              <a className="mt-2 inline-block font-bold text-brand underline" href={editionFeedUrl(f, l).replace('https:', 'webcal:')}>{t(l, 'edition.subscribe')}</a>
+              <p className="mt-2 text-xs">{t(l, 'edition.urlNote')}</p>
+              <input aria-label={t(l, 'edition.urlNote')} readOnly value={editionFeedUrl(f, l)} className="mt-1 w-full rounded border border-line bg-paper p-2 text-xs" />
+            </details>
           </div>
         )}
 

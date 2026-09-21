@@ -8,6 +8,11 @@ import type { Lang } from './i18n'
 type Dict = Record<string, string>
 
 const ko: Dict = {
+  'edition.title': "다음 회차 알림 · 달력 구독",
+  'edition.note': "새 일정이 KOTA에 등록되면 구독한 달력에 반영됩니다. 발표 전에는 빈 달력이며 날짜를 예상해 넣지 않습니다. 알림은 시작 하루 전으로 설정되며, 갱신 주기와 알림 허용은 달력 앱 설정에 따릅니다.",
+  'edition.subscribe': "달력에서 구독하기",
+  'edition.urlNote': "열리지 않으면 아래 주소를 복사해 달력 앱의 URL 구독에 붙여 넣으세요. 파일 가져오기는 자동 갱신되지 않습니다.",
+
   'brand.tagline': '내 여행지 주변 축제',
   'home.headline': '지금, 어디로 가시나요?',
   'home.sub': '전국 {n}개 축제를 날짜와 위치로 찾아드립니다.',
@@ -192,6 +197,11 @@ const ko: Dict = {
 }
 
 const en: Dict = {
+  'edition.title': "Next edition · calendar alerts",
+  'edition.note': "When new dates are listed on KOTA, your subscribed calendar updates. It stays empty until then. A reminder is set for one day before the start; refresh timing and alerts depend on your calendar app settings.",
+  'edition.subscribe': "Subscribe in calendar",
+  'edition.urlNote': "If it does not open, copy this URL into your calendar’s subscription settings. Importing a file does not enable updates.",
+
   'brand.tagline': "What's on near you",
   'home.headline': 'Where are you headed?',
   'home.sub': 'Find {n} festivals across Korea by date and location.',
@@ -376,6 +386,11 @@ const en: Dict = {
 }
 
 const ja: Dict = {
+  'edition.title': "次回のお知らせ・カレンダー購読",
+  'edition.note': "次回の日程がKOTAに掲載されると、購読したカレンダーに反映されます。発表前は空のままです。開始1日前の通知を設定していますが、更新頻度と通知の許可はカレンダーアプリの設定によります。",
+  'edition.subscribe': "カレンダーで購読",
+  'edition.urlNote': "開かない場合は、下のURLをコピーし、カレンダーのURL購読に貼り付けてください。ファイルの読み込みだけでは更新されません。",
+
   'brand.tagline': '旅先の近くで開かれる祭り',
   'home.headline': '今日は、どこへ？',
   'home.sub': '韓国全土の祭り{n}件を、日付と現在地から探せます。',
@@ -560,6 +575,11 @@ const ja: Dict = {
 }
 
 const th: Dict = {
+  'edition.title': "แจ้งเตือนครั้งต่อไป · สมัครปฏิทิน",
+  'edition.note': "เมื่อ KOTA ลงกำหนดการใหม่ ปฏิทินที่สมัครไว้จะอัปเดต ก่อนประกาศจะยังไม่มีรายการ ตั้งเตือนก่อนเริ่มหนึ่งวัน การรีเฟรชและการแจ้งเตือนขึ้นอยู่กับการตั้งค่าแอปปฏิทิน",
+  'edition.subscribe': "สมัครในปฏิทิน",
+  'edition.urlNote': "หากเปิดไม่ได้ ให้คัดลอก URL ด้านล่างไปยังเมนูสมัครปฏิทินด้วย URL การนำเข้าไฟล์จะไม่อัปเดตอัตโนมัติ",
+
   'brand.tagline': 'เทศกาลใกล้จุดหมายของคุณ',
   'home.headline': 'วันนี้จะไปไหนดี?',
   'home.sub': 'ค้นหาเทศกาล {n} งานทั่วเกาหลี ตามวันที่และตำแหน่งของคุณ',
