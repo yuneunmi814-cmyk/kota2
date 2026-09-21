@@ -1,3 +1,4 @@
+import { activeCatalog } from '@/lib/catalog'
 import { festivalIndex } from '@/lib/duplicate-festivals'
 import { hasOperatingDay } from '@/lib/operating-days'
 import type { Metadata } from 'next'
@@ -31,7 +32,7 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
   // 화면에서 실제로 볼 수 있는 수만 센다.
   // 전체 길이를 쓰면 끝난 축제까지 세어 홈은 519곳을 약속하는데 목록에는 495곳뿐이었다.
   // 숫자가 어긋나면 데이터 신뢰도로 바로 이어진다(2026-08-23 점검).
-  const n = (await listFestivalSummaries()).filter((f) => statusOf(f) !== 'ended').length
+  const n = (activeCatalog(await listFestivalSummaries())).length
   return pageMetadata({
     lang: l, path: '', title: `KOTA — ${t(l, 'brand.tagline')}`,
     description: t(l, 'home.sub', { n }), absoluteTitle: true,
@@ -43,7 +44,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
   const l: Lang = isLang(lang) ? lang : 'ko'
   // 홈은 카드에 쓰는 값만 있으면 된다 — 소개·프로그램·부스·사진 원문은 상세에서만 쓴다.
   // 전량 조회를 쓰면 홈 한 장을 굽는 데 1.3MB를 끌어왔다.
-  const all = await listFestivalSummaries()
+  const all = activeCatalog(await listFestivalSummaries())
 
   const today = todayKst()
   const ongoing = all.filter((f) => statusOf(f, today) === 'ongoing' && !isAlwaysOn(f))
@@ -118,7 +119,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
                 url: `${SITE_URL}/${l}/`,
                 name: 'KOTA',
                 alternateName: ['KOTA Korea Festa', '코타', '코타 축제'],
-                description: t(l, 'home.sub', { n: all.filter((f) => statusOf(f) !== 'ended').length }),
+                description: t(l, 'home.sub', { n: all.length }),
                 inLanguage: ['ko', 'en', 'ja', 'th'],
                 publisher: { '@id': `${SITE_URL}/#org` },
                 potentialAction: {
@@ -149,7 +150,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
               {t(l, 'home.headline')}
             </h1>
             <p className="mx-auto mt-5 max-w-xl text-[16px] text-muted sm:text-[17px]">
-              {t(l, 'home.sub', { n: all.filter((f) => statusOf(f) !== 'ended').length })}
+              {t(l, 'home.sub', { n: all.length })}<span className="mt-1 block text-xs text-muted">{t(l, 'catalog.note')}</span>
             </p>
             <div className="mt-7">
               <SearchBar lang={l} />

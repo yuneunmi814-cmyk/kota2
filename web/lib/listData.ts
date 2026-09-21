@@ -1,3 +1,4 @@
+import { activeCatalog } from './catalog'
 import { dayBadge, isAlwaysOn, isLongRun, listFestivalSummaries, localized, monthsOf, statusOf, type Festival } from './festivals'
 import type { Lang } from './i18n'
 import {
@@ -25,7 +26,7 @@ export {
 // 필터·정렬·카드 표시에 실제로 쓰는 필드만 골라 언어별로 이미 번역된 문자열로 굳힌다.
 
 export async function listItems(lang: Lang): Promise<ListItem[]> {
-  return (await listFestivalSummaries()).map((f: Festival) => {
+  return activeCatalog(await listFestivalSummaries()).map((f: Festival) => {
     const L = localized(f, lang)
     return {
       k: f.externalId,

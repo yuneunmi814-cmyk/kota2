@@ -8,6 +8,12 @@ import type { Lang } from './i18n'
 type Dict = Record<string, string>
 
 const ko: Dict = {
+  'verification.title': "정보 확인 기록",
+  'verification.programme': "{d} 주최 측 공지로 운영 안내·공식 링크 확인",
+  'verification.schedule': "{d} 주최 측 공지로 일정 확인",
+  'verification.unknown': "주최 측 공지 확인 날짜: 미확인. 방문 전 공식 안내를 확인해 주세요.",
+  'catalog.note': "진행 중·예정 행사 기준 · 상시 행사 포함 · 중복 출처 제외",
+
   'menu.note': "메뉴명의 재료·표현을 참고한 안내입니다. 표시가 없어도 돼지고기가 들어 있거나 매울 수 있어요. 정확한 재료와 맵기는 부스에서 확인하세요.",
   'menu.partial': "Google 번역에서 메뉴 뜻 보기 ↗",
   'menu.pork': "돼지고기 메뉴",
@@ -203,6 +209,12 @@ const ko: Dict = {
 }
 
 const en: Dict = {
+  'verification.title': "Information checks",
+  'verification.programme': "Programme and official link checked against organizer notice: {d}",
+  'verification.schedule': "Dates checked against organizer notice: {d}",
+  'verification.unknown': "Organizer notice check date: not recorded. Check official details before visiting.",
+  'catalog.note': "Current and upcoming events · includes year-round events · duplicate sources excluded",
+
   'menu.note': "Hints are based on menu names. Dishes without a label may still contain pork or be spicy. Check ingredients and spice level at the booth.",
   'menu.partial': "Translate this menu with Google ↗",
   'menu.pork': "Pork dish",
@@ -398,6 +410,12 @@ const en: Dict = {
 }
 
 const ja: Dict = {
+  'verification.title': "情報の確認記録",
+  'verification.programme': "{d} 主催者の告知で運営案内・公式リンクを確認",
+  'verification.schedule': "{d} 主催者の告知で日程を確認",
+  'verification.unknown': "主催者の告知を確認した日：未確認。訪問前に公式案内をご確認ください。",
+  'catalog.note': "開催中・開催予定の件数・通年行事を含む・重複する情報源は除外",
+
   'menu.note': "メニュー名をもとにした目安です。表示がなくても豚肉を含んだり辛かったりする場合があります。材料と辛さは店舗で確認してください。",
   'menu.partial': "Google翻訳でメニューを見る ↗",
   'menu.pork': "豚肉料理",
@@ -593,6 +611,12 @@ const ja: Dict = {
 }
 
 const th: Dict = {
+  'verification.title': "บันทึกการตรวจสอบข้อมูล",
+  'verification.programme': "ตรวจสอบรายละเอียดกิจกรรมและลิงก์ทางการจากประกาศผู้จัด: {d}",
+  'verification.schedule': "ตรวจสอบวันที่จากประกาศผู้จัด: {d}",
+  'verification.unknown': "วันที่ตรวจสอบประกาศผู้จัด: ยังไม่มีข้อมูล โปรดตรวจสอบรายละเอียดทางการก่อนเดินทาง",
+  'catalog.note': "นับงานที่กำลังจัดและกำลังจะจัด · รวมงานตลอดปี · ไม่นับแหล่งข้อมูลซ้ำ",
+
   'menu.note': "คำแนะนำอ้างอิงจากชื่อเมนู เมนูที่ไม่มีป้ายก็อาจมีหมูหรือเผ็ดได้ โปรดสอบถามส่วนผสมและระดับความเผ็ดที่ร้าน",
   'menu.partial': "ดูคำแปลเมนูด้วย Google ↗",
   'menu.pork': "เมนูหมู",

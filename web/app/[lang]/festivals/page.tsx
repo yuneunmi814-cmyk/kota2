@@ -41,6 +41,7 @@ export default async function FestivalsPage({ params }: { params: Promise<{ lang
             그 훅이 정적 페이지에서 하이드레이션을 막아 칩이 그려지고도 아무 반응이 없었다.
             이제 FestivalList가 마운트 뒤에 window.location을 직접 읽으므로 훅도 경계도
             필요 없다. 서버는 기본 상태(첫 24장)를 그대로 그려 주니 검색엔진에도 그대로 보인다. */}
+        <p className="mb-4 text-xs text-muted">{t(l, 'catalog.note')}</p>
         <FestivalList items={items} lang={l} />
       </main>
       <Footer lang={l} />

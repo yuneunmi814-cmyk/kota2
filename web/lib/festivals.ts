@@ -32,6 +32,8 @@ export interface Translation {
 export interface Festival {
   operatingWeekdays?: number[]
   duplicateIds?: string[]
+  scheduleVerifiedAt?: string
+  scheduleVerificationSource?: string
   verifiedAt?: string
   verificationSource?: string
   /** 공공데이터 원천과 마지막으로 맞춰 본 시각(주간 수집). 주최 측에 확인했다는 뜻이 아니다 — 그건 verifiedAt. */

@@ -1,3 +1,4 @@
+import Verification from '@/components/detail/Verification'
 import { editionFeedUrl } from '@/lib/edition-calendar'
 import { operatingDaysLabel } from '@/lib/operating-days'
 import { editorialField } from '@/lib/editorial'
@@ -229,6 +230,8 @@ export default async function FestivalDetailPage({ params }: { params: Promise<{
             </details>
           </div>
         )}
+
+        <Verification f={f} lang={l} />
 
         {/* 바로 판단할 사실을 사진보다 앞에 둔다. 상세 본문은 이 값들의 맥락과 주의를 설명한다. */}
         <dl aria-label={t(l, 'detail.info')} className="mb-5 grid grid-cols-2 overflow-hidden rounded-[var(--radius-card)] border border-line bg-paper text-sm sm:grid-cols-4">

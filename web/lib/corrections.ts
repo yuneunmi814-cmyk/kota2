@@ -9,6 +9,8 @@
 //
 /** Official corrections are shared by ingestion and the final web live overlay. */
 export interface FestivalCorrection {
+  checkedAt?: string
+  source?: string
   match?: string
   externalId?: string
   year?: number
@@ -92,6 +94,9 @@ export function applyCorrections<T extends CorrectableFestival>(
     if (locationChanged && !coordsChanged && (next.address !== f.address || next.sido !== f.sido || next.sigungu !== f.sigungu)) {
       next.lat = null; next.lng = null
     }
-    return next
+    // Attach only dated, source-backed schedule evidence. Never treat a build date as a check.
+    const schedule = corrections.filter(c => c.checkedAt && validDate(c.checkedAt) && /^https?:\/\//.test(c.source ?? '') && (c.startDate || c.endDate || c.operatingWeekdays))
+      .sort((a,b) => b.checkedAt!.localeCompare(a.checkedAt!))[0]
+    return schedule ? { ...next, scheduleVerifiedAt: schedule.checkedAt, scheduleVerificationSource: schedule.source } : next
   })
 }
