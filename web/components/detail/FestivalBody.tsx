@@ -1,3 +1,4 @@
+import { menuLabel, menuHints, menuTranslationUrl } from '@/lib/menu'
 import { operatingDaysLabel } from '@/lib/operating-days'
 import { todayKst } from '@/lib/date'
 import { editorialField } from '@/lib/editorial'
@@ -91,7 +92,7 @@ export default function FestivalBody({ f, L, lang, ytId, mapHref, ended }: {
               {t(l, 'detail.food')} <span className="text-[13px] font-medium text-hint">· {t(l, boothCount === 1 ? 'detail.booth.n1' : 'detail.booth.n', { n: boothCount })} · {t(l, menuCount === 1 ? 'detail.menu.n1' : 'detail.menu.n', { n: menuCount })}</span>
             </h3>
             {f.boothsFromPastEdition && <p className="mb-3 text-[13px] text-muted">{t(l, 'detail.booth.past')}</p>}
-            <OriginalNote lang={l} text={f.booths?.map((b) => `${b.name} ${b.menu.map((m) => m.name).join(' ')}`).join(' ')} />
+            <p className="mb-3 text-[13px] leading-relaxed text-muted">{t(l, 'menu.note')}</p>
             <div className="divide-y divide-line rounded-[var(--radius-card)] border border-line">
               {f.booths!.map((b, i) => (
                 <details key={`${b.name}-${i}`} className="group px-4 py-3" open={boothCount <= 3}>
@@ -99,10 +100,15 @@ export default function FestivalBody({ f, L, lang, ytId, mapHref, ended }: {
                     <span>{b.name}</span><span className="shrink-0 text-[12px] font-semibold text-hint">{t(l, 'detail.menu.n', { n: b.menu.length })}</span>
                   </summary>
                   {b.menu.length > 0 && <ul className="mt-3 grid gap-x-6 gap-y-1.5 text-[14px] sm:grid-cols-2">
-                    {b.menu.map((m, j) => <li key={`${m.name}-${j}`} className="flex items-baseline justify-between gap-3 border-b border-dotted border-line pb-1">
-                      <span className="text-ink/85">{m.name}</span>
+                    {b.menu.map((m, j) => { const translated = menuLabel(m.name, l); return <li key={`${m.name}-${j}`} className="flex items-baseline justify-between gap-3 border-b border-dotted border-line pb-1">
+                      <span className="min-w-0 text-ink/85">
+                        <span>{translated.label}</span>
+                        {l !== 'ko' && translated.label !== m.name && <span lang="ko" className="mt-0.5 block select-all text-xs text-muted">{m.name}</span>}
+                        {l !== 'ko' && translated.partial && <a href={menuTranslationUrl(m.name, l)} target="_blank" rel="noopener noreferrer" className="block text-xs font-semibold text-brand underline">{t(l, 'menu.partial')}</a>}
+                        <span className="mt-1 flex flex-wrap gap-1">{menuHints(m.name).map(hint => <span key={hint} className="rounded border border-line px-1.5 py-0.5 text-xs">{t(l, `menu.${hint}`)}</span>)}</span>
+                      </span>
                       {m.price != null && <span className="shrink-0 tabular-nums font-bold text-brand">{t(l, 'detail.won', { n: m.price.toLocaleString(l === 'ko' ? 'ko-KR' : 'en-US') })}</span>}
-                    </li>)}
+                    </li> })}
                   </ul>}
                 </details>
               ))}
@@ -153,6 +159,10 @@ export default function FestivalBody({ f, L, lang, ytId, mapHref, ended }: {
             <div className="mt-2 rounded-lg border border-line bg-paper-2/60 px-3 py-2">
               <p className="text-[12px] leading-snug text-muted">{t(l, 'detail.koAddress')}</p>
               <p lang="ko" className="mt-0.5 select-all text-[15px] font-semibold text-ink">{f.address}</p>
+              <details className="mt-3">
+                <summary className="cursor-pointer font-bold text-brand">{t(l, 'detail.showAddress')}</summary>
+                <div lang="ko" className="mt-3 select-all rounded-lg bg-paper p-5 text-xl font-bold leading-relaxed text-ink"><p>{f.name}</p><p className="mt-3">{f.address}</p></div>
+              </details>
             </div>
           </div>
         )}

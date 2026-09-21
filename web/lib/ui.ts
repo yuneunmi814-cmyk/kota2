@@ -8,6 +8,12 @@ import type { Lang } from './i18n'
 type Dict = Record<string, string>
 
 const ko: Dict = {
+  'menu.note': "메뉴명의 재료·표현을 참고한 안내입니다. 표시가 없어도 돼지고기가 들어 있거나 매울 수 있어요. 정확한 재료와 맵기는 부스에서 확인하세요.",
+  'menu.partial': "Google 번역에서 메뉴 뜻 보기 ↗",
+  'menu.pork': "돼지고기 메뉴",
+  'menu.spicy': "매운 메뉴",
+  'detail.showAddress': "한국어 이름·주소 크게 보기",
+
   'edition.title': "다음 회차 알림 · 달력 구독",
   'edition.note': "새 일정이 KOTA에 등록되면 구독한 달력에 반영됩니다. 발표 전에는 빈 달력이며 날짜를 예상해 넣지 않습니다. 알림은 시작 하루 전으로 설정되며, 갱신 주기와 알림 허용은 달력 앱 설정에 따릅니다.",
   'edition.subscribe': "달력에서 구독하기",
@@ -197,6 +203,12 @@ const ko: Dict = {
 }
 
 const en: Dict = {
+  'menu.note': "Hints are based on menu names. Dishes without a label may still contain pork or be spicy. Check ingredients and spice level at the booth.",
+  'menu.partial': "Translate this menu with Google ↗",
+  'menu.pork': "Pork dish",
+  'menu.spicy': "Spicy dish",
+  'detail.showAddress': "Show Korean name & address",
+
   'edition.title': "Next edition · calendar alerts",
   'edition.note': "When new dates are listed on KOTA, your subscribed calendar updates. It stays empty until then. A reminder is set for one day before the start; refresh timing and alerts depend on your calendar app settings.",
   'edition.subscribe': "Subscribe in calendar",
@@ -386,6 +398,12 @@ const en: Dict = {
 }
 
 const ja: Dict = {
+  'menu.note': "メニュー名をもとにした目安です。表示がなくても豚肉を含んだり辛かったりする場合があります。材料と辛さは店舗で確認してください。",
+  'menu.partial': "Google翻訳でメニューを見る ↗",
+  'menu.pork': "豚肉料理",
+  'menu.spicy': "辛い料理",
+  'detail.showAddress': "韓国語の名前・住所を大きく表示",
+
   'edition.title': "次回のお知らせ・カレンダー購読",
   'edition.note': "次回の日程がKOTAに掲載されると、購読したカレンダーに反映されます。発表前は空のままです。開始1日前の通知を設定していますが、更新頻度と通知の許可はカレンダーアプリの設定によります。",
   'edition.subscribe': "カレンダーで購読",
@@ -575,6 +593,12 @@ const ja: Dict = {
 }
 
 const th: Dict = {
+  'menu.note': "คำแนะนำอ้างอิงจากชื่อเมนู เมนูที่ไม่มีป้ายก็อาจมีหมูหรือเผ็ดได้ โปรดสอบถามส่วนผสมและระดับความเผ็ดที่ร้าน",
+  'menu.partial': "ดูคำแปลเมนูด้วย Google ↗",
+  'menu.pork': "เมนูหมู",
+  'menu.spicy': "เมนูเผ็ด",
+  'detail.showAddress': "แสดงชื่อและที่อยู่ภาษาเกาหลีตัวใหญ่",
+
   'edition.title': "แจ้งเตือนครั้งต่อไป · สมัครปฏิทิน",
   'edition.note': "เมื่อ KOTA ลงกำหนดการใหม่ ปฏิทินที่สมัครไว้จะอัปเดต ก่อนประกาศจะยังไม่มีรายการ ตั้งเตือนก่อนเริ่มหนึ่งวัน การรีเฟรชและการแจ้งเตือนขึ้นอยู่กับการตั้งค่าแอปปฏิทิน",
   'edition.subscribe': "สมัครในปฏิทิน",
