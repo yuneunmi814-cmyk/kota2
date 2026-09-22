@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { LANGS, isLang, pageMetadata, type Lang } from '@/lib/i18n'
-import { listItems } from '@/lib/listData'
+import { listItems } from '@/lib/list-source'
 import { t } from '@/lib/ui'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'

@@ -1,7 +1,6 @@
-import { activeCatalog } from '@/lib/catalog'
+import { currentCatalog } from '@/lib/catalog-source'
 import { toSlug } from '@/lib/slug'
 import type { MetadataRoute } from 'next'
-import { listFestivalSummaries } from '@/lib/festivals'
 import { LANGS, SITE_URL } from '@/lib/i18n'
 import { THEMES } from '@/lib/themes'
 
@@ -14,7 +13,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     languages: Object.fromEntries(LANGS.map((l) => [l, `${SITE_URL}/${l}/${path}`])),
   })
   const rows: MetadataRoute.Sitemap = []
-  const slugs = activeCatalog(await listFestivalSummaries()).map(f => toSlug(f.externalId))
+  const slugs = (await currentCatalog()).map(f => toSlug(f.externalId))
   for (const l of LANGS) {
     rows.push({ url: `${SITE_URL}/${l}/`, changeFrequency: 'daily', priority: 1, alternates: alt('') })
     rows.push({ url: `${SITE_URL}/${l}/festivals/`, changeFrequency: 'daily', priority: 0.9, alternates: alt('festivals/') })

@@ -1,10 +1,10 @@
-import { activeCatalog } from '@/lib/catalog'
+import { currentCatalog } from '@/lib/catalog-source'
 import { festivalIndex } from '@/lib/duplicate-festivals'
 import { hasOperatingDay } from '@/lib/operating-days'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import type { Festival } from '@/lib/festivals'
-import { listFestivalSummaries, isAlwaysOn, localized, statusOf } from '@/lib/festivals'
+import { isAlwaysOn, localized, statusOf } from '@/lib/festivals'
 import { LANGS, SITE_URL, SHARE_IMAGE, isLang, pageMetadata, type Lang } from '@/lib/i18n'
 import { t } from '@/lib/ui'
 import Header from '@/components/Header'
@@ -19,7 +19,7 @@ import ThemeRail from '@/components/ThemeRail'
 import { addDays, todayKst, weekendRange } from '@/lib/date'
 
 
-// 1시간마다 다시 굽는다 — 축제 데이터는 주 1회만 바뀌므로 요청마다 DB를 볼 이유가 없다
+// 공통 목록은 1시간 캐시하고 화면은 요청마다 같은 캐시를 읽는다.
 export const revalidate = 3600
 
 export function generateStaticParams() {
@@ -32,7 +32,7 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
   // 화면에서 실제로 볼 수 있는 수만 센다.
   // 전체 길이를 쓰면 끝난 축제까지 세어 홈은 519곳을 약속하는데 목록에는 495곳뿐이었다.
   // 숫자가 어긋나면 데이터 신뢰도로 바로 이어진다(2026-08-23 점검).
-  const n = (activeCatalog(await listFestivalSummaries())).length
+  const n = (await currentCatalog()).length
   return pageMetadata({
     lang: l, path: '', title: `KOTA — ${t(l, 'brand.tagline')}`,
     description: t(l, 'home.sub', { n }), absoluteTitle: true,
@@ -44,7 +44,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
   const l: Lang = isLang(lang) ? lang : 'ko'
   // 홈은 카드에 쓰는 값만 있으면 된다 — 소개·프로그램·부스·사진 원문은 상세에서만 쓴다.
   // 전량 조회를 쓰면 홈 한 장을 굽는 데 1.3MB를 끌어왔다.
-  const all = activeCatalog(await listFestivalSummaries())
+  const all = await currentCatalog()
 
   const today = todayKst()
   const ongoing = all.filter((f) => statusOf(f, today) === 'ongoing' && !isAlwaysOn(f))
