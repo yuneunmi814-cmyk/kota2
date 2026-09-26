@@ -25,23 +25,23 @@ export default function Header({ lang, path = '' }: { lang: Lang; path?: string 
   return (
     <>
     <header className="sticky top-0 z-30 border-b border-line bg-paper/90 backdrop-blur">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-1 px-3 sm:px-5">
         {/* 로고 — 「KOTA Korea Festa」. 태극 O와 오방색 엠블럼이 '한국 축제'를 첫눈에 말한다.
             테마마다 'Korea Festa' 글자색이 다른 판을 쓴다: 둘 다 그려 두고 CSS가 하나만 보여 준다
             (서버가 그린 HTML과 첫 화면이 어긋나지 않게). 폭·높이를 적어 자리 밀림을 막는다. */}
         <Link href={`/${lang}/`} className="flex shrink-0 items-center" aria-label="KOTA Korea Festa">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo-light.webp" alt="KOTA Korea Festa" width={880} height={304} className="logo-light h-10 w-auto sm:h-11" />
+          <img src="/logo-light.webp" alt="KOTA Korea Festa" width={880} height={304} className="logo-light h-8 w-auto sm:h-11" />
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo-dark.webp" alt="" aria-hidden="true" width={880} height={304} className="logo-dark h-10 w-auto sm:h-11" />
+          <img src="/logo-dark.webp" alt="" aria-hidden="true" width={880} height={304} className="logo-dark h-8 w-auto sm:h-11" />
         </Link>
 
-        <nav className="flex items-center gap-1">
+        <nav className="flex shrink-0 items-center gap-0 sm:gap-1">
           {/* 축제 전체 — 달력과 같은 규칙으로 좁은 화면에서는 아이콘만 남긴다 */}
           <Link
             href={`/${lang}/festivals/`}
             aria-label={allLabel}
-            className="flex items-center gap-1.5 rounded-full px-3 py-2 text-[14px] font-bold text-muted transition hover:bg-paper-2 hover:text-brand"
+            className="flex items-center gap-1.5 rounded-full px-2 py-2 sm:px-3 text-[14px] font-bold text-muted transition hover:bg-paper-2 hover:text-brand"
           >
             <Icon name="search" size={16} />
             <span className="hidden sm:inline">{allLabel}</span>
@@ -56,7 +56,7 @@ export default function Header({ lang, path = '' }: { lang: Lang; path?: string 
           <Link
             href={`/${lang}/calendar/`}
             aria-label={calendarLabel}
-            className="flex items-center gap-1.5 rounded-full px-3 py-2 text-[14px] font-bold text-muted transition hover:bg-paper-2 hover:text-brand"
+            className="flex items-center gap-1.5 rounded-full px-2 py-2 sm:px-3 text-[14px] font-bold text-muted transition hover:bg-paper-2 hover:text-brand"
           >
             <Icon name="calendar" size={16} />
             <span className="hidden sm:inline">{calendarLabel}</span>
@@ -65,22 +65,22 @@ export default function Header({ lang, path = '' }: { lang: Lang; path?: string 
           <ThemeToggle lang={lang} />
 
           {/* 언어 — 링크라서 크롤러가 4개 언어판을 모두 따라갈 수 있다 */}
-          <div className="group relative">
-            <button
-              type="button"
-              className="flex items-center gap-1.5 rounded-full px-3 py-2 text-[14px] font-bold text-muted transition hover:bg-paper-2 hover:text-brand"
-              aria-haspopup="true"
+          {/* Native disclosure works on touch/Safari and before hydration;
+              do not rely on hover or button focus to reveal the links. */}
+          <details className="relative shrink-0">
+            <summary
+              className="flex min-h-11 cursor-pointer list-none items-center gap-1.5 rounded-full px-2 py-2 sm:px-3 text-[14px] font-bold text-muted transition hover:bg-paper-2 hover:text-brand [&::-webkit-details-marker]:hidden"
             >
               <Icon name="globe" size={16} />
               {LANG_NAME[lang]}
-            </button>
-            <ul className="invisible absolute right-0 top-full w-36 rounded-2xl border border-line bg-surface py-1.5 opacity-0 shadow-lg transition group-focus-within:visible group-focus-within:opacity-100 group-hover:visible group-hover:opacity-100">
+            </summary>
+            <ul className="absolute right-0 top-full w-36 rounded-2xl border border-line bg-surface py-1.5 shadow-lg">
               <Suspense fallback={LANGS.map((l) => (
                 <li key={l}>
                   <Link
                     href={`/${l}/${clean ? `${clean}/` : ''}`}
                     hrefLang={l}
-                    className={`block px-4 py-2 text-[14px] transition hover:bg-paper-2 ${
+                    className={`flex min-h-11 items-center px-4 py-2 text-[14px] transition hover:bg-paper-2 ${
                       l === lang ? 'font-bold text-brand' : 'text-muted'
                     }`}
                   >
@@ -91,7 +91,7 @@ export default function Header({ lang, path = '' }: { lang: Lang; path?: string 
                 <LanguageSwitcher lang={lang} />
               </Suspense>
             </ul>
-          </div>
+          </details>
         </nav>
       </div>
     </header>

@@ -20,7 +20,7 @@ export default function LanguageSwitcher({ lang }: { lang: Lang }) {
           // changed since this component's last render.
           event.currentTarget.href = languageHref(nextLang, window.location.pathname, window.location.search + window.location.hash)
         }}
-        className={`block px-4 py-2 text-[14px] transition hover:bg-paper-2 ${
+        className={`flex min-h-11 items-center px-4 py-2 text-[14px] transition hover:bg-paper-2 ${
           nextLang === lang ? 'font-bold text-brand' : 'text-muted'
         }`}
       >
